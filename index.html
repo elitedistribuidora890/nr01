@@ -1,0 +1,2995 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NR1 Psicossocial — Sistema de Gestão</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0f1117;--bg2:#161b27;--bg3:#1e2436;--bg4:#252d40;
+--surface:#1e2436;--surface2:#252d40;--surface3:#2d3650;
+--border:#2d3650;--border2:#3a4565;
+--text:#e8ecf4;--text2:#9aa3be;--text3:#5a6480;
+--accent:#4f7cff;--accent2:#3d6aee;--accent-glow:rgba(79,124,255,0.15);
+--green:#22d07a;--green-bg:rgba(34,208,122,0.1);
+--amber:#f5a524;--amber-bg:rgba(245,165,36,0.1);
+--red:#ff5555;--red-bg:rgba(255,85,85,0.1);
+--purple:#a78bfa;--purple-bg:rgba(167,139,250,0.1);
+--cyan:#22d3ee;--cyan-bg:rgba(34,211,238,0.1);
+--sidebar:240px;--header:60px;
+--r:8px;--r2:12px;--r3:16px;
+font-family:'DM Sans',sans-serif;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg);position:fixed;inset:0;z-index:1000;transition:opacity .4s}
+#login-screen.hidden{opacity:0;pointer-events:none}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);padding:48px 40px;width:100%;max-width:420px;box-shadow:0 32px 80px rgba(0,0,0,.5)}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px}
+.login-logo-icon{width:40px;height:40px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+.login-logo-text{font-size:22px;font-weight:600;letter-spacing:-.3px}
+.login-logo-sub{font-size:12px;color:var(--text2);margin-top:1px}
+.login-title{font-size:24px;font-weight:600;margin-bottom:6px}
+.login-sub{color:var(--text2);font-size:14px;margin-bottom:28px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;color:var(--text);font-size:14px;font-family:inherit;transition:border-color .2s}
+.form-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.btn-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--r);padding:11px 20px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .2s,transform .1s;letter-spacing:.2px}
+.btn-primary:hover{background:var(--accent2)}
+.btn-primary:active{transform:scale(.99)}
+.login-footer{text-align:center;margin-top:20px;font-size:13px;color:var(--text2)}
+.login-footer a{color:var(--accent);text-decoration:none;cursor:pointer}
+.demo-hint{background:var(--accent-glow);border:1px solid rgba(79,124,255,.2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.5}
+.demo-hint strong{color:var(--accent)}
+.login-err{background:var(--red-bg);border:1px solid rgba(255,85,85,.2);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;display:none}
+.login-err.show{display:block}
+
+/* FIREBASE SETUP BANNER */
+#firebase-banner{background:var(--amber-bg);border:1px solid rgba(245,165,36,.3);border-radius:var(--r);padding:12px 16px;font-size:12px;color:var(--amber);margin-bottom:20px;line-height:1.6;display:none}
+#firebase-banner.show{display:block}
+#firebase-banner a{color:var(--accent);cursor:pointer}
+
+/* APP SHELL */
+#app{display:flex;height:100vh;opacity:0;transition:opacity .4s}
+#app.visible{opacity:1}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sidebar-brand{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.brand-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.brand-name{font-size:15px;font-weight:600;letter-spacing:-.2px;line-height:1.2}
+.brand-tag{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px}
+.sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto}
+.nav-section{margin-bottom:4px}
+.nav-section-title{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);padding:8px 12px 4px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);cursor:pointer;font-size:13.5px;color:var(--text2);transition:all .15s;margin-bottom:1px;user-select:none}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--accent-glow);color:var(--accent);font-weight:500}
+.nav-item .nav-icon{font-size:16px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red-bg);color:var(--red);font-size:10px;font-weight:600;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center}
+.nav-badge.green{background:var(--green-bg);color:var(--green)}
+.sidebar-footer{padding:12px 8px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);cursor:pointer;transition:background .15s}
+.user-card:hover{background:var(--bg3)}
+.user-avatar{width:32px;height:32px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.user-name{font-size:13px;font-weight:500}
+.user-role{font-size:11px;color:var(--text3)}
+
+/* MAIN */
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:var(--header);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px;flex-shrink:0}
+.topbar-title{font-size:17px;font-weight:600;flex:1}
+.topbar-search{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:7px 14px;font-size:13px;color:var(--text);font-family:inherit;width:240px}
+.topbar-search:focus{outline:none;border-color:var(--accent)}
+.topbar-search::placeholder{color:var(--text3)}
+.btn-icon{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);font-size:16px;transition:all .15s}
+.btn-icon:hover{background:var(--surface3);color:var(--text);border-color:var(--border2)}
+.topbar-notif{position:relative}
+.notif-dot{position:absolute;top:5px;right:5px;width:6px;height:6px;background:var(--red);border-radius:50%;border:1px solid var(--bg2)}
+.page{flex:1;overflow-y:auto;padding:24px;display:none}
+.page.active{display:block}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px}
+.page-title{font-size:22px;font-weight:600;letter-spacing:-.3px}
+.page-sub{font-size:13px;color:var(--text2);margin-top:3px}
+.page-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;align-items:center}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r);font-size:13.5px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s;border:none;text-decoration:none}
+.btn-sm{padding:6px 12px;font-size:12.5px}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:var(--accent2)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--surface3);border-color:var(--border2)}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(255,85,85,.2)}
+.btn-danger:hover{background:rgba(255,85,85,.2)}
+.btn-success{background:var(--green-bg);color:var(--green);border:1px solid rgba(34,208,122,.2)}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px;transition:border-color .2s}
+.stat-card:hover{border-color:var(--border2)}
+.stat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.stat-label{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.stat-icon{width:34px;height:34px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:17px}
+.stat-icon.blue{background:var(--accent-glow);color:var(--accent)}
+.stat-icon.green{background:var(--green-bg);color:var(--green)}
+.stat-icon.amber{background:var(--amber-bg);color:var(--amber)}
+.stat-icon.red{background:var(--red-bg);color:var(--red)}
+.stat-icon.purple{background:var(--purple-bg);color:var(--purple)}
+.stat-value{font-size:28px;font-weight:600;letter-spacing:-.5px}
+.stat-change{font-size:12px;margin-top:4px;display:flex;align-items:center;gap:4px}
+.stat-change.pos{color:var(--green)}
+.stat-change.neg{color:var(--red)}
+.stat-change.neutral{color:var(--text3)}
+
+/* GRID LAYOUTS */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-2-1{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-title{font-size:14px;font-weight:600}
+.card-body{padding:20px}
+.card-footer{padding:12px 20px;border-top:1px solid var(--border);background:var(--bg3)}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{border-bottom:1px solid var(--border)}
+th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);font-weight:600;padding:10px 16px;white-space:nowrap}
+td{padding:12px 16px;font-size:13.5px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600;letter-spacing:.2px;white-space:nowrap}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.badge-green{background:var(--green-bg);color:var(--green)}
+.badge-amber{background:var(--amber-bg);color:var(--amber)}
+.badge-red{background:var(--red-bg);color:var(--red)}
+.badge-blue{background:var(--accent-glow);color:var(--accent)}
+.badge-purple{background:var(--purple-bg);color:var(--purple)}
+.badge-gray{background:var(--bg4);color:var(--text2)}
+.badge-cyan{background:var(--cyan-bg);color:var(--cyan)}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.form-row{margin-bottom:16px}
+.form-row.full{grid-column:1/-1}
+label.field-label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+input.field,select.field,textarea.field{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:9px 13px;color:var(--text);font-size:13.5px;font-family:inherit;transition:border-color .2s;resize:vertical}
+input.field:focus,select.field:focus,textarea.field:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+select.field{cursor:pointer}
+select.field option{background:var(--bg2)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);width:100%;max-width:620px;max-height:90vh;overflow-y:auto;box-shadow:0 32px 80px rgba(0,0,0,.5)}
+.modal-lg{max-width:820px}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg2);z-index:1}
+.modal-title{font-size:16px;font-weight:600}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.btn-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;padding:2px;display:flex;align-items:center;border-radius:6px;transition:color .15s}
+.btn-close:hover{color:var(--text)}
+
+/* RISK MATRIX */
+.risk-cell{border-radius:var(--r);padding:8px;text-align:center;font-size:11px;font-weight:600;cursor:pointer;transition:transform .15s}
+.risk-cell:hover{transform:scale(1.05)}
+.risk-low{background:rgba(34,208,122,.15);color:var(--green)}
+.risk-med{background:rgba(245,165,36,.15);color:var(--amber)}
+.risk-high{background:rgba(255,85,85,.15);color:var(--red)}
+.risk-crit{background:rgba(167,139,250,.15);color:var(--purple)}
+
+/* PROGRESS */
+.progress-bar{background:var(--bg3);border-radius:4px;height:6px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;transition:width .4s}
+.progress-fill.blue{background:var(--accent)}
+.progress-fill.green{background:var(--green)}
+.progress-fill.amber{background:var(--amber)}
+.progress-fill.red{background:var(--red)}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:24px}
+.timeline::before{content:'';position:absolute;left:7px;top:4px;bottom:0;width:1px;background:var(--border)}
+.timeline-item{position:relative;margin-bottom:20px}
+.timeline-item::before{content:'';position:absolute;left:-21px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--border2)}
+.timeline-item.done::before{background:var(--green);border-color:var(--green)}
+.timeline-item.active::before{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.timeline-date{font-size:11px;color:var(--text3);margin-bottom:3px;font-family:'DM Mono',monospace}
+.timeline-text{font-size:13.5px}
+.timeline-sub{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* TOAST */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--surface3);border:1px solid var(--border2);border-radius:var(--r2);padding:12px 18px;font-size:13.5px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideIn .3s ease;max-width:340px}
+.toast.success{border-left:3px solid var(--green)}
+.toast.error{border-left:3px solid var(--red)}
+.toast.info{border-left:3px solid var(--accent)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:none;opacity:1}}
+
+/* QUESTIONNAIRE */
+.question-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:12px;transition:border-color .2s}
+.question-card:hover{border-color:var(--border2)}
+.question-num{font-size:11px;color:var(--text3);margin-bottom:8px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px}
+.question-text{font-size:14px;margin-bottom:14px;line-height:1.5}
+.question-options{display:flex;flex-wrap:wrap;gap:8px}
+.q-opt{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:7px 14px;font-size:13px;cursor:pointer;transition:all .15s;color:var(--text2)}
+.q-opt:hover{border-color:var(--border2);color:var(--text)}
+.q-opt.selected{background:var(--accent-glow);border-color:var(--accent);color:var(--accent);font-weight:500}
+.q-scale{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.q-scale-opt{width:36px;height:36px;border-radius:var(--r);background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;transition:all .15s;color:var(--text2);font-family:'DM Mono',monospace}
+.q-scale-opt:hover{border-color:var(--border2);color:var(--text)}
+.q-scale-opt.s1.selected{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.q-scale-opt.s2.selected{background:var(--accent-glow);border-color:var(--accent);color:var(--accent)}
+.q-scale-opt.s3.selected{background:var(--amber-bg);border-color:var(--amber);color:var(--amber)}
+.q-scale-opt.s4.selected{background:var(--red-bg);border-color:var(--red);color:var(--red)}
+.scale-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:4px}
+
+/* CHART */
+.chart-container{position:relative;height:260px}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px;opacity:.5}
+.empty-state h3{font-size:16px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.empty-state p{font-size:13px}
+
+/* SEARCH */
+.search-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 13px;font-size:13.5px;color:var(--text);font-family:inherit;width:240px}
+.search-box:focus{outline:none;border-color:var(--accent)}
+.search-box::placeholder{color:var(--text3)}
+
+/* TABS */
+.tabs{display:flex;gap:2px;background:var(--bg3);padding:3px;border-radius:var(--r);margin-bottom:20px;width:fit-content}
+.tab{padding:7px 16px;border-radius:calc(var(--r) - 2px);font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .15s}
+.tab.active{background:var(--surface2);color:var(--text)}
+.tab:hover:not(.active){color:var(--text)}
+
+/* ACTION PLAN */
+.action-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
+.action-row:last-child{border-bottom:none}
+.action-priority{width:4px;height:40px;border-radius:2px;flex-shrink:0}
+.priority-high{background:var(--red)}
+.priority-med{background:var(--amber)}
+.priority-low{background:var(--green)}
+.action-info{flex:1}
+.action-title{font-size:13.5px;font-weight:500;margin-bottom:3px}
+.action-meta{font-size:12px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap}
+.action-status{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+/* COMPANY CARD */
+.company-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.company-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.company-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.company-card.cc-blue::before{background:var(--accent)}
+.company-card.cc-green::before{background:var(--green)}
+.company-card.cc-amber::before{background:var(--amber)}
+.company-card.cc-purple::before{background:var(--purple)}
+.company-card.cc-red::before{background:var(--red)}
+.company-name{font-size:15px;font-weight:600;margin-bottom:4px}
+.company-cnpj{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:12px}
+.company-stats{display:flex;gap:16px;flex-wrap:wrap}
+.cs-item{font-size:12px;color:var(--text2)}
+.cs-value{font-size:16px;font-weight:600;color:var(--text);display:block}
+
+/* DIMENSION */
+.dimension-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.dimension-row:last-child{border-bottom:none}
+.dimension-label{font-size:13px;flex:1;min-width:160px}
+.dimension-bar{flex:1;max-width:160px}
+.dimension-score{font-size:13px;font-weight:600;width:36px;text-align:right;font-family:'DM Mono',monospace}
+.dimension-risk{width:80px;text-align:right}
+
+/* REPORT */
+.report-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.report-item:hover{background:var(--bg3)}
+.report-icon{width:40px;height:40px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.report-info{flex:1}
+.report-name{font-size:13.5px;font-weight:500;margin-bottom:2px}
+.report-meta{font-size:12px;color:var(--text2)}
+.report-actions{display:flex;gap:6px;flex-shrink:0}
+
+/* SECTION */
+.section-label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);font-weight:600;padding:16px 0 8px}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ACCORDION */
+.accordion-item{border:1px solid var(--border);border-radius:var(--r2);margin-bottom:8px;overflow:hidden}
+.accordion-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:var(--surface);transition:background .15s;font-size:14px;font-weight:500}
+.accordion-header:hover{background:var(--surface2)}
+.accordion-chevron{transition:transform .25s;color:var(--text2)}
+.accordion-body{background:var(--bg3);padding:0 18px;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s}
+.accordion-body.open{padding:16px 18px;max-height:600px}
+
+/* LOADING */
+.skeleton{background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--r);height:16px;margin-bottom:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.loading-spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* CONFIRM DIALOG */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:none;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);padding:28px 32px;max-width:380px;width:100%;text-align:center}
+.confirm-icon{font-size:40px;margin-bottom:12px}
+.confirm-title{font-size:17px;font-weight:600;margin-bottom:8px}
+.confirm-msg{font-size:13.5px;color:var(--text2);margin-bottom:24px;line-height:1.5}
+.confirm-btns{display:flex;gap:10px;justify-content:center}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+.sidebar{position:fixed;left:-240px;top:0;bottom:0;z-index:100;transition:left .3s}
+.sidebar.open{left:0}
+.stats-grid{grid-template-columns:1fr 1fr}
+.grid-2,.grid-2-1,.grid-3{grid-template-columns:1fr}
+.form-grid,.form-grid-3{grid-template-columns:1fr}
+.page{padding:16px}
+.topbar-search{width:160px}
+.page-actions{flex-direction:column;gap:6px;align-items:flex-end}
+.action-status{flex-direction:column;align-items:flex-end}
+}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.page.active>*{animation:fadeUp .25s ease both}
+.page.active>*:nth-child(2){animation-delay:.04s}
+.page.active>*:nth-child(3){animation-delay:.08s}
+.page.active>*:nth-child(4){animation-delay:.12s}
+
+/* FIREBASE CONFIG MODAL */
+#modal-firebase .modal{max-width:520px}
+.config-field{margin-bottom:12px}
+.config-field label{display:block;font-size:11px;color:var(--text3);margin-bottom:4px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px}
+.config-field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;color:var(--text);font-size:13px;font-family:'DM Mono',monospace}
+.config-field input:focus{outline:none;border-color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+<div class="login-card">
+  <div class="login-logo">
+    <div class="login-logo-icon">🛡️</div>
+    <div>
+      <div class="login-logo-text">NR1 Psicossocial</div>
+      <div class="login-logo-sub">Sistema de Gestão</div>
+    </div>
+  </div>
+
+  <div id="firebase-banner" class="firebase-banner">
+    ⚠️ <strong>Firebase não configurado.</strong> O sistema está funcionando em modo local (dados salvos no navegador). <a onclick="openModal('modal-firebase')">Configurar Firebase</a> para persistência em nuvem.
+  </div>
+
+  <div id="login-form">
+    <h1 class="login-title">Bem-vindo de volta</h1>
+    <p class="login-sub">Faça login para acessar o painel</p>
+    <div class="demo-hint" id="demo-hint">
+      <strong>Modo Local Ativo:</strong> Use qualquer e-mail e senha (mín. 6 caracteres) para criar uma conta local. Os dados ficam salvos no navegador.
+    </div>
+    <div id="login-err" class="login-err"></div>
+    <div class="form-group">
+      <label class="form-label">E-mail</label>
+      <input type="email" class="form-input" id="login-email" placeholder="consultor@empresa.com" value="demo@nr1.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Senha</label>
+      <input type="password" class="form-input" id="login-pass" placeholder="••••••••" value="demo123">
+    </div>
+    <button class="btn-primary" id="btn-login" onclick="doLogin()">Entrar no Sistema</button>
+    <div class="login-footer">
+      Não tem conta? <a onclick="showRegister()">Criar conta</a> · <a onclick="showReset()">Esqueci a senha</a>
+    </div>
+  </div>
+
+  <div id="register-form" style="display:none">
+    <h1 class="login-title">Criar conta</h1>
+    <p class="login-sub">Preencha os dados para criar sua conta</p>
+    <div id="register-err" class="login-err"></div>
+    <div class="form-group"><label class="form-label">Nome completo</label><input type="text" class="form-input" id="reg-name" placeholder="Seu nome"></div>
+    <div class="form-group"><label class="form-label">E-mail</label><input type="email" class="form-input" id="reg-email" placeholder="seu@email.com"></div>
+    <div class="form-group"><label class="form-label">Senha (mín. 6 caracteres)</label><input type="password" class="form-input" id="reg-pass" placeholder="Mínimo 6 caracteres"></div>
+    <button class="btn-primary" onclick="doRegister()">Criar conta</button>
+    <div class="login-footer"><a onclick="showLogin()">← Voltar ao login</a></div>
+  </div>
+
+  <div id="reset-form" style="display:none">
+    <h1 class="login-title">Recuperar senha</h1>
+    <p class="login-sub">Enviaremos instruções por e-mail</p>
+    <div class="form-group"><label class="form-label">E-mail</label><input type="email" class="form-input" id="reset-email" placeholder="seu@email.com"></div>
+    <button class="btn-primary" onclick="doReset()">Enviar instruções</button>
+    <div class="login-footer"><a onclick="showLogin()">← Voltar ao login</a></div>
+  </div>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">🛡️</div>
+    <div>
+      <div class="brand-name">NR1 Psicossocial</div>
+      <div class="brand-tag">Gestão de Riscos</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-item active" onclick="showPage('dashboard',this)">
+        <span class="nav-icon">📊</span>Dashboard
+      </div>
+    </div>
+    <div class="nav-section-title">Cadastros</div>
+    <div class="nav-item" onclick="showPage('empresas',this)">
+      <span class="nav-icon">🏢</span>Empresas
+      <span class="nav-badge green" id="badge-empresas">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('colaboradores',this)">
+      <span class="nav-icon">👥</span>Colaboradores
+      <span class="nav-badge green" id="badge-colab" style="background:var(--green-bg);color:var(--green)">0</span>
+    </div>
+    <div class="nav-section-title">Avaliação</div>
+    <div class="nav-item" onclick="showPage('questionarios',this)">
+      <span class="nav-icon">📋</span>Questionários NR1
+    </div>
+    <div class="nav-item" onclick="showPage('diagnosticos',this)">
+      <span class="nav-icon">🔬</span>Diagnósticos
+    </div>
+    <div class="nav-item" onclick="showPage('riscos',this)">
+      <span class="nav-icon">⚠️</span>Gestão de Riscos
+      <span class="nav-badge" id="badge-riscos">0</span>
+    </div>
+    <div class="nav-section-title">Ação</div>
+    <div class="nav-item" onclick="showPage('plano',this)">
+      <span class="nav-icon">📌</span>Plano de Ação
+      <span class="nav-badge" id="badge-acoes">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('acompanhamento',this)">
+      <span class="nav-icon">📈</span>Acompanhamentos
+    </div>
+    <div class="nav-section-title">Relatórios</div>
+    <div class="nav-item" onclick="showPage('relatorios',this)">
+      <span class="nav-icon">📄</span>Relatórios
+    </div>
+    <div class="nav-item" onclick="showPage('configuracoes',this)">
+      <span class="nav-icon">⚙️</span>Configurações
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar" id="user-avatar">?</div>
+      <div style="flex:1;min-width:0">
+        <div class="user-name" id="user-name-display" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Usuário</div>
+        <div class="user-role" id="user-email-display" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">email</div>
+      </div>
+      <div class="btn-icon" style="width:28px;height:28px;font-size:13px" onclick="doLogout()" title="Sair">↩</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+  <div class="topbar">
+    <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()" style="display:none">☰</button>
+    <span class="topbar-title" id="topbar-title">Dashboard</span>
+    <input type="text" class="topbar-search" id="global-search" placeholder="🔍  Buscar empresa, colaborador..." oninput="globalSearch(this.value)">
+    <div class="btn-icon topbar-notif" id="notif-btn" title="Notificações">🔔<span class="notif-dot" id="notif-dot"></span></div>
+    <div class="btn-icon" onclick="openModal('modal-firebase')" title="Configurar Firebase">🔧</div>
+  </div>
+
+  <!-- DASHBOARD PAGE -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Visão Geral</div>
+        <div class="page-sub" id="dash-date">Atualizado agora</div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary btn-sm" onclick="showPage('relatorios')">📄 Gerar Relatório</button>
+        <button class="btn btn-accent btn-sm" onclick="openModal('modal-empresa')">+ Nova Empresa</button>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Empresas</span><div class="stat-icon blue">🏢</div></div>
+        <div class="stat-value" id="stat-empresas">0</div>
+        <div class="stat-change neutral" id="stat-empresas-sub">Cadastradas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Colaboradores</span><div class="stat-icon green">👥</div></div>
+        <div class="stat-value" id="stat-colab">0</div>
+        <div class="stat-change neutral" id="stat-colab-sub">Cadastrados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Avaliações</span><div class="stat-icon purple">📋</div></div>
+        <div class="stat-value" id="stat-aval">0</div>
+        <div class="stat-change neutral">Total realizadas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Ações Pendentes</span><div class="stat-icon amber">⚠️</div></div>
+        <div class="stat-value" id="stat-acoes">0</div>
+        <div class="stat-change neutral" id="stat-acoes-sub">No plano</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Riscos Críticos</span><div class="stat-icon red">🔴</div></div>
+        <div class="stat-value" id="stat-riscos">0</div>
+        <div class="stat-change neg" id="stat-riscos-sub">Identificados</div>
+      </div>
+    </div>
+    <div class="grid-2-1">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Evolução das Avaliações</span>
+        </div>
+        <div class="card-body">
+          <div class="chart-container"><canvas id="chart-evolucao"></canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Distribuição de Riscos</span></div>
+        <div class="card-body">
+          <div class="chart-container"><canvas id="chart-riscos"></canvas></div>
+          <div id="risco-legend" style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+            <div style="display:flex;align-items:center;gap:8px"><div class="legend-dot" style="background:var(--purple)"></div><span style="font-size:12px;color:var(--text2);flex:1">Crítico</span><span style="font-size:12px;font-weight:600" id="leg-crit">0</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><div class="legend-dot" style="background:var(--red)"></div><span style="font-size:12px;color:var(--text2);flex:1">Alto</span><span style="font-size:12px;font-weight:600" id="leg-alto">0</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><div class="legend-dot" style="background:var(--amber)"></div><span style="font-size:12px;color:var(--text2);flex:1">Médio</span><span style="font-size:12px;font-weight:600" id="leg-med">0</span></div>
+            <div style="display:flex;align-items:center;gap:8px"><div class="legend-dot" style="background:var(--green)"></div><span style="font-size:12px;color:var(--text2);flex:1">Baixo</span><span style="font-size:12px;font-weight:600" id="leg-baixo">0</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:16px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Empresas Recentes</span><button class="btn btn-sm btn-secondary" onclick="showPage('empresas')">Ver todas</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Empresa</th><th>Colaboradores</th><th>Status</th></tr></thead>
+            <tbody id="dash-empresas-tbody">
+              <tr><td colspan="3" style="text-align:center;color:var(--text3);padding:20px">Nenhuma empresa cadastrada</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Atividade Recente</span></div>
+        <div class="card-body">
+          <div class="timeline" id="activity-timeline">
+            <div class="timeline-item">
+              <div class="timeline-date">Agora</div>
+              <div class="timeline-text">Sistema iniciado</div>
+              <div class="timeline-sub">NR1 Psicossocial · Pronto para uso</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPRESAS PAGE -->
+  <div class="page" id="page-empresas">
+    <div class="page-header">
+      <div><div class="page-title">Empresas</div><div class="page-sub" id="empresas-count-label">0 empresas cadastradas</div></div>
+      <div class="page-actions">
+        <input type="text" class="search-box" placeholder="🔍 Buscar empresa..." oninput="filterEmpresas(this.value)">
+        <button class="btn btn-secondary" onclick="exportEmpresasExcel()">📊 Excel</button>
+        <button class="btn btn-accent" onclick="openModal('modal-empresa')">+ Nova Empresa</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px" id="companies-grid">
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🏢</div>
+        <h3>Nenhuma empresa cadastrada</h3>
+        <p>Clique em "+ Nova Empresa" para começar</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLABORADORES PAGE -->
+  <div class="page" id="page-colaboradores">
+    <div class="page-header">
+      <div><div class="page-title">Colaboradores</div><div class="page-sub" id="colab-count-label">0 colaboradores cadastrados</div></div>
+      <div class="page-actions">
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="colab-empresa-filter" onchange="filterColabs()">
+          <option value="">Todas as empresas</option>
+        </select>
+        <input type="text" class="search-box" placeholder="🔍 Buscar colaborador..." id="colab-search" oninput="filterColabs()">
+        <button class="btn btn-secondary" onclick="exportColabExcel()">📊 Excel</button>
+        <button class="btn btn-accent" onclick="openModal('modal-colaborador')">+ Novo Colaborador</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Nome</th><th>CPF</th><th>Empresa</th><th>Setor</th><th>Função</th><th>Tempo</th><th>Ações</th></tr></thead>
+          <tbody id="colab-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhum colaborador cadastrado</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card-footer" style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;color:var(--text2)" id="colab-pag-info">0 colaboradores</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-secondary" id="colab-prev" onclick="colabPage(-1)">← Anterior</button>
+          <button class="btn btn-sm btn-accent" id="colab-next" onclick="colabPage(1)">Próximo →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUESTIONÁRIOS PAGE -->
+  <div class="page" id="page-questionarios">
+    <div class="page-header">
+      <div><div class="page-title">Questionários NR1</div><div class="page-sub">Instrumento de avaliação psicossocial</div></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" onclick="exportQuestionariosExcel()">📊 Exportar</button>
+        <button class="btn btn-accent" onclick="openModal('modal-questionario')">▶ Iniciar Avaliação</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchQTab(this,'q-tab-new')">Nova Avaliação</div>
+      <div class="tab" onclick="switchQTab(this,'q-tab-hist')">Histórico</div>
+    </div>
+    <div id="q-tab-new">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><span class="card-title">Selecionar Contexto da Avaliação</span></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="field-label">Empresa *</label>
+              <select class="field" id="quest-empresa-select" onchange="updateQuestColabs()">
+                <option value="">Selecione a empresa</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="field-label">Colaborador (opcional)</label>
+              <select class="field" id="quest-colab-select">
+                <option value="">Todos do setor/empresa</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="field-label">Setor</label>
+              <input class="field" id="quest-setor" placeholder="Ex: Produção, RH, TI...">
+            </div>
+            <div class="form-row">
+              <label class="field-label">Data da Avaliação</label>
+              <input class="field" type="date" id="quest-data">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="questions-container">
+        <!-- Questions rendered here -->
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+        <button class="btn btn-secondary" onclick="clearQuest()">Limpar</button>
+        <button class="btn btn-accent" onclick="saveQuestionario()">💾 Salvar Avaliação</button>
+      </div>
+    </div>
+    <div id="q-tab-hist" style="display:none">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Histórico de Avaliações</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Data</th><th>Empresa</th><th>Setor</th><th>Colaborador</th><th>Score</th><th>Nível</th><th>Ações</th></tr></thead>
+            <tbody id="quest-hist-tbody">
+              <tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhuma avaliação registrada</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGNÓSTICOS PAGE -->
+  <div class="page" id="page-diagnosticos">
+    <div class="page-header">
+      <div><div class="page-title">Diagnóstico Psicossocial</div><div class="page-sub">Análise por dimensões NR1</div></div>
+      <div class="page-actions">
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="diag-empresa-filter" onchange="renderDiagnostico()">
+          <option value="">Selecione uma empresa</option>
+        </select>
+        <button class="btn btn-secondary" onclick="generateDiagPDF()">📄 Gerar PDF</button>
+      </div>
+    </div>
+    <div id="diagnostico-content">
+      <div class="empty-state">
+        <div class="empty-icon">🔬</div>
+        <h3>Selecione uma empresa</h3>
+        <p>Escolha uma empresa acima para visualizar o diagnóstico</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RISCOS PAGE -->
+  <div class="page" id="page-riscos">
+    <div class="page-header">
+      <div><div class="page-title">Gestão de Riscos</div><div class="page-sub">Identificação, avaliação e controle</div></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" onclick="exportRiscosExcel()">📊 Excel</button>
+        <button class="btn btn-accent" onclick="openModal('modal-risco')">+ Novo Risco</button>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Matriz de Risco</span></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr 1fr 1fr;gap:4px;align-items:center;font-size:10px">
+            <div style="color:var(--text3);text-align:center;padding:4px">Prob↓ / Imp→</div>
+            <div style="color:var(--text3);text-align:center;padding:4px">M.Baixo</div>
+            <div style="color:var(--text3);text-align:center;padding:4px">Baixo</div>
+            <div style="color:var(--text3);text-align:center;padding:4px">Médio</div>
+            <div style="color:var(--text3);text-align:center;padding:4px">Alto</div>
+            <div style="color:var(--text3);text-align:center;padding:4px">Crítico</div>
+            <div style="color:var(--text3);text-align:right;padding:4px;white-space:nowrap">M.Alta</div>
+            <div class="risk-cell risk-med">3</div><div class="risk-cell risk-med">6</div><div class="risk-cell risk-high">9</div><div class="risk-cell risk-crit">12</div><div class="risk-cell risk-crit">15</div>
+            <div style="color:var(--text3);text-align:right;padding:4px">Alta</div>
+            <div class="risk-cell risk-low">2</div><div class="risk-cell risk-med">4</div><div class="risk-cell risk-high">8</div><div class="risk-cell risk-high">10</div><div class="risk-cell risk-crit">12</div>
+            <div style="color:var(--text3);text-align:right;padding:4px">Média</div>
+            <div class="risk-cell risk-low">1</div><div class="risk-cell risk-low">3</div><div class="risk-cell risk-med">6</div><div class="risk-cell risk-high">9</div><div class="risk-cell risk-high">10</div>
+            <div style="color:var(--text3);text-align:right;padding:4px">Baixa</div>
+            <div class="risk-cell risk-low">1</div><div class="risk-cell risk-low">2</div><div class="risk-cell risk-low">3</div><div class="risk-cell risk-med">4</div><div class="risk-cell risk-med">6</div>
+            <div style="color:var(--text3);text-align:right;padding:4px;white-space:nowrap">M.Baixa</div>
+            <div class="risk-cell risk-low">1</div><div class="risk-cell risk-low">1</div><div class="risk-cell risk-low">2</div><div class="risk-cell risk-low">3</div><div class="risk-cell risk-low">3</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Riscos por Nível</span></div>
+        <div class="card-body" id="riscos-criticos-list">
+          <div class="empty-state" style="padding:20px">
+            <div class="empty-icon" style="font-size:32px">⚠️</div>
+            <h3>Nenhum risco registrado</h3>
+            <p>Clique em "+ Novo Risco" para adicionar</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Todos os Riscos Identificados</span>
+        <select class="field" style="width:auto;padding:5px 10px;font-size:12px" id="risco-empresa-filter" onchange="filterRiscos()">
+          <option value="">Todas as empresas</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Risco</th><th>Empresa</th><th>Setor</th><th>Probabilidade</th><th>Impacto</th><th>Score</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="riscos-tbody">
+            <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhum risco cadastrado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLANO DE AÇÃO PAGE -->
+  <div class="page" id="page-plano">
+    <div class="page-header">
+      <div><div class="page-title">Plano de Ação</div><div class="page-sub">Medidas corretivas e preventivas</div></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" onclick="exportAcoesExcel()">📊 Excel</button>
+        <button class="btn btn-secondary" onclick="generatePlanoPDF()">📄 PDF</button>
+        <button class="btn btn-accent" onclick="openModal('modal-acao')">+ Nova Ação</button>
+      </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Pendentes</span><div class="stat-icon amber">⏳</div></div><div class="stat-value" id="plano-stat-pend" style="color:var(--amber)">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Em Andamento</span><div class="stat-icon blue">🔄</div></div><div class="stat-value" id="plano-stat-and" style="color:var(--accent)">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Concluídos</span><div class="stat-icon green">✅</div></div><div class="stat-value" id="plano-stat-conc" style="color:var(--green)">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Atrasados</span><div class="stat-icon red">🚨</div></div><div class="stat-value" id="plano-stat-atr" style="color:var(--red)">0</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Ações do Plano</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <select class="field" style="width:auto;padding:5px 10px;font-size:12px" id="plano-empresa-filter" onchange="filterAcoes()">
+            <option value="">Todas as empresas</option>
+          </select>
+          <select class="field" style="width:auto;padding:5px 10px;font-size:12px" id="plano-status-filter" onchange="filterAcoes()">
+            <option value="">Todos os status</option>
+            <option>Pendente</option><option>Em Andamento</option><option>Concluído</option><option>Atrasado</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body" id="acoes-list">
+        <div class="empty-state">
+          <div class="empty-icon">📌</div>
+          <h3>Nenhuma ação cadastrada</h3>
+          <p>Clique em "+ Nova Ação" para criar o plano</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACOMPANHAMENTO PAGE -->
+  <div class="page" id="page-acompanhamento">
+    <div class="page-header">
+      <div><div class="page-title">Acompanhamentos</div><div class="page-sub">Histórico de evolução e resultados</div></div>
+      <div class="page-actions">
+        <button class="btn btn-accent" onclick="openModal('modal-acomp')">+ Registrar Evolução</button>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Evolução por Empresa</span></div>
+        <div class="card-body" id="acomp-empresa-resumo">
+          <div class="empty-state" style="padding:20px"><p>Cadastre empresas e avaliações para ver evolução</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Radar de Dimensões</span></div>
+        <div class="card-body">
+          <div class="chart-container"><canvas id="chart-radar"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><span class="card-title">Histórico de Acompanhamentos</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data</th><th>Empresa</th><th>Ação</th><th>Responsável</th><th>Resultado</th><th>Próximo Passo</th><th>Ações</th></tr></thead>
+          <tbody id="acomp-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhum acompanhamento registrado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RELATÓRIOS PAGE -->
+  <div class="page" id="page-relatorios">
+    <div class="page-header">
+      <div><div class="page-title">Relatórios</div><div class="page-sub">Geração e exportação de documentos</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Modelos de Relatório</span></div>
+        <div>
+          <div class="report-item">
+            <div class="report-icon" style="background:var(--accent-glow);color:var(--accent)">📋</div>
+            <div class="report-info"><div class="report-name">Relatório Diagnóstico NR1</div><div class="report-meta">Diagnóstico completo de riscos psicossociais</div></div>
+            <div class="report-actions">
+              <button class="btn btn-sm btn-accent" onclick="generateDiagPDF()">PDF</button>
+              <button class="btn btn-sm btn-secondary" onclick="exportEmpresasExcel()">Excel</button>
+            </div>
+          </div>
+          <div class="report-item">
+            <div class="report-icon" style="background:var(--green-bg);color:var(--green)">🏢</div>
+            <div class="report-info"><div class="report-name">Relatório de Empresas</div><div class="report-meta">Dados cadastrais e colaboradores</div></div>
+            <div class="report-actions">
+              <button class="btn btn-sm btn-accent" onclick="generateEmpresasPDF()">PDF</button>
+              <button class="btn btn-sm btn-secondary" onclick="exportEmpresasExcel()">Excel</button>
+            </div>
+          </div>
+          <div class="report-item">
+            <div class="report-icon" style="background:var(--amber-bg);color:var(--amber)">⚠️</div>
+            <div class="report-info"><div class="report-name">Relatório de Riscos</div><div class="report-meta">Matriz de riscos e medidas de controle</div></div>
+            <div class="report-actions">
+              <button class="btn btn-sm btn-accent" onclick="generateRiscosPDF()">PDF</button>
+              <button class="btn btn-sm btn-secondary" onclick="exportRiscosExcel()">Excel</button>
+            </div>
+          </div>
+          <div class="report-item">
+            <div class="report-icon" style="background:var(--red-bg);color:var(--red)">📌</div>
+            <div class="report-info"><div class="report-name">Plano de Ação</div><div class="report-meta">Ações, responsáveis, prazos e status</div></div>
+            <div class="report-actions">
+              <button class="btn btn-sm btn-accent" onclick="generatePlanoPDF()">PDF</button>
+              <button class="btn btn-sm btn-secondary" onclick="exportAcoesExcel()">Excel</button>
+            </div>
+          </div>
+          <div class="report-item">
+            <div class="report-icon" style="background:var(--purple-bg);color:var(--purple)">👥</div>
+            <div class="report-info"><div class="report-name">Relatório de Colaboradores</div><div class="report-meta">Lista completa de colaboradores</div></div>
+            <div class="report-actions">
+              <button class="btn btn-sm btn-accent" onclick="generateColabPDF()">PDF</button>
+              <button class="btn btn-sm btn-secondary" onclick="exportColabExcel()">Excel</button>
+            </div>
+          </div>
+          <div class="report-item">
+            <div class="report-icon" style="background:var(--cyan-bg);color:var(--cyan)">📈</div>
+            <div class="report-info"><div class="report-name">Relatório Completo NR1</div><div class="report-meta">Todos os dados em um único documento</div></div>
+            <div class="report-actions">
+              <button class="btn btn-sm btn-accent" onclick="generateFullPDF()">PDF</button>
+              <button class="btn btn-sm btn-secondary" onclick="exportAllExcel()">Excel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Relatórios Gerados</span></div>
+        <div id="relatorios-gerados-list">
+          <div class="empty-state" style="padding:40px 20px">
+            <div class="empty-icon">📄</div>
+            <h3>Nenhum relatório gerado ainda</h3>
+            <p>Use os modelos ao lado para gerar relatórios</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIGURAÇÕES PAGE -->
+  <div class="page" id="page-configuracoes">
+    <div class="page-header">
+      <div><div class="page-title">Configurações</div><div class="page-sub">Preferências e personalização do sistema</div></div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><span class="card-title">👤 Perfil do Usuário</span></div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-row"><label class="field-label">Nome completo</label><input class="field" id="config-nome" placeholder="Seu nome"></div>
+              <div class="form-row"><label class="field-label">E-mail</label><input class="field" id="config-email" placeholder="email@empresa.com" readonly style="opacity:.6"></div>
+              <div class="form-row"><label class="field-label">Telefone</label><input class="field" id="config-tel" placeholder="(00) 00000-0000"></div>
+              <div class="form-row"><label class="field-label">CRQ / CRP / CRP</label><input class="field" id="config-crp" placeholder="Nº do conselho profissional"></div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px">
+              <button class="btn btn-accent" onclick="savePerfil()">Salvar alterações</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🔐 Segurança</span></div>
+          <div class="card-body">
+            <div class="form-row"><label class="field-label">Nova senha</label><input type="password" class="field" id="new-pass" placeholder="Mínimo 6 caracteres"></div>
+            <div class="form-row"><label class="field-label">Confirmar nova senha</label><input type="password" class="field" id="conf-pass" placeholder="Repita a senha"></div>
+            <div style="display:flex;justify-content:flex-end">
+              <button class="btn btn-accent" onclick="changePassword()">Alterar senha</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><span class="card-title">🔧 Integração Firebase</span></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">Configure o Firebase para persistência em nuvem, autenticação real e sincronização entre dispositivos.</p>
+            <button class="btn btn-accent" onclick="openModal('modal-firebase')">⚙️ Configurar Firebase</button>
+            <div id="firebase-status" style="margin-top:12px;font-size:12px;color:var(--text3)">Status: Modo local (localStorage)</div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><span class="card-title">📄 Cabeçalho dos Relatórios</span></div>
+          <div class="card-body">
+            <div class="form-row"><label class="field-label">Nome do Consultor/Empresa</label><input class="field" id="config-rel-nome" placeholder="Ex: João Consultor — NR1 Assessoria"></div>
+            <div class="form-row"><label class="field-label">Subtítulo / Especialidade</label><input class="field" id="config-rel-sub" placeholder="Ex: Especialista em Riscos Psicossociais"></div>
+            <div style="display:flex;justify-content:flex-end">
+              <button class="btn btn-accent" onclick="saveRelConfig()">Salvar</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">📤 Dados e Backup</span></div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13.5px;font-weight:500">Exportar todos os dados</div><div style="font-size:12px;color:var(--text2)">Backup completo em JSON</div></div>
+                <button class="btn btn-sm btn-secondary" onclick="exportAllData()">⬇ Exportar</button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div><div style="font-size:13.5px;font-weight:500">Importar dados</div><div style="font-size:12px;color:var(--text2)">Restaurar backup JSON</div></div>
+                <label class="btn btn-sm btn-secondary" style="cursor:pointer">📁 Importar<input type="file" accept=".json" style="display:none" onchange="importData(this)"></label>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="color:var(--red)"><div style="font-size:13.5px;font-weight:500">Limpar todos os dados</div><div style="font-size:12px;color:var(--text3)">Apaga tudo permanentemente</div></div>
+                <button class="btn btn-sm btn-danger" onclick="clearAllData()">🗑 Limpar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- MODALS -->
+
+<!-- Modal: Firebase Config -->
+<div class="modal-overlay" id="modal-firebase">
+<div class="modal" id="modal-firebase-inner">
+  <div class="modal-header">
+    <span class="modal-title">🔧 Configurar Firebase</span>
+    <button class="btn-close" onclick="closeModal('modal-firebase')">✕</button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6">
+      Para usar o Firebase, crie um projeto em <strong style="color:var(--accent)">console.firebase.google.com</strong>, ative Authentication (Email/Password) e Firestore, e cole as credenciais abaixo.
+    </p>
+    <div class="config-field"><label>API Key</label><input class="field" id="fb-apikey" placeholder="AIzaSy..."></div>
+    <div class="config-field"><label>Auth Domain</label><input class="field" id="fb-authdomain" placeholder="projeto.firebaseapp.com"></div>
+    <div class="config-field"><label>Project ID</label><input class="field" id="fb-projectid" placeholder="meu-projeto-nr1"></div>
+    <div class="config-field"><label>Storage Bucket</label><input class="field" id="fb-storagebucket" placeholder="projeto.appspot.com"></div>
+    <div class="config-field"><label>Messaging Sender ID</label><input class="field" id="fb-senderid" placeholder="123456789"></div>
+    <div class="config-field"><label>App ID</label><input class="field" id="fb-appid" placeholder="1:123:web:abc"></div>
+    <div id="firebase-conn-status" style="margin-top:12px;font-size:12px;color:var(--text3)"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-firebase')">Cancelar</button>
+    <button class="btn btn-secondary" onclick="clearFirebaseConfig()">Limpar</button>
+    <button class="btn btn-accent" onclick="saveFirebaseConfig()">💾 Salvar e Conectar</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: Nova Empresa -->
+<div class="modal-overlay" id="modal-empresa">
+<div class="modal modal-lg">
+  <div class="modal-header">
+    <span class="modal-title" id="modal-empresa-title">🏢 Cadastrar Nova Empresa</span>
+    <button class="btn-close" onclick="closeModal('modal-empresa')">✕</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="empresa-edit-id">
+    <div class="form-grid">
+      <div class="form-row"><label class="field-label">Razão Social *</label><input class="field" id="emp-razao" placeholder="Nome jurídico completo"></div>
+      <div class="form-row"><label class="field-label">Nome Fantasia</label><input class="field" id="emp-fantasia" placeholder="Nome comercial"></div>
+      <div class="form-row"><label class="field-label">CNPJ *</label><input class="field" id="emp-cnpj" placeholder="00.000.000/0001-00" oninput="maskCNPJ(this)"></div>
+      <div class="form-row"><label class="field-label">CNAE</label><input class="field" id="emp-cnae" placeholder="Código CNAE"></div>
+      <div class="form-row"><label class="field-label">Segmento</label>
+        <select class="field" id="emp-segmento"><option>Indústria</option><option>Comércio</option><option>Serviços</option><option>Saúde</option><option>Construção Civil</option><option>Tecnologia</option><option>Educação</option><option>Agronegócio</option><option>Outro</option></select>
+      </div>
+      <div class="form-row"><label class="field-label">Qtd. Colaboradores</label><input class="field" type="number" id="emp-numcolab" placeholder="0" min="0"></div>
+      <div class="form-row"><label class="field-label">Responsável</label><input class="field" id="emp-responsavel" placeholder="Nome do responsável"></div>
+      <div class="form-row"><label class="field-label">Cargo do Responsável</label><input class="field" id="emp-cargo" placeholder="Ex: Diretor de RH"></div>
+      <div class="form-row"><label class="field-label">Telefone</label><input class="field" id="emp-tel" placeholder="(00) 00000-0000"></div>
+      <div class="form-row"><label class="field-label">E-mail</label><input class="field" type="email" id="emp-email" placeholder="email@empresa.com"></div>
+      <div class="form-row"><label class="field-label">Cidade</label><input class="field" id="emp-cidade" placeholder="Cidade"></div>
+      <div class="form-row"><label class="field-label">Estado</label>
+        <select class="field" id="emp-estado"><option>BA</option><option>SP</option><option>RJ</option><option>MG</option><option>RS</option><option>PR</option><option>SC</option><option>GO</option><option>DF</option><option>CE</option><option>PE</option><option>PI</option><option>MA</option><option>AL</option><option>SE</option><option>PB</option><option>RN</option><option>TO</option><option>PA</option><option>AM</option><option>RO</option><option>AC</option><option>RR</option><option>AP</option><option>MT</option><option>MS</option><option>ES</option></select>
+      </div>
+      <div class="form-row full"><label class="field-label">Endereço completo</label><input class="field" id="emp-endereco" placeholder="Rua, número, complemento, bairro, CEP"></div>
+      <div class="form-row full"><label class="field-label">Observações</label><textarea class="field" id="emp-obs" rows="2" placeholder="Informações adicionais relevantes..."></textarea></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-empresa')">Cancelar</button>
+    <button class="btn btn-accent" onclick="saveEmpresa()" id="btn-save-empresa">💾 Cadastrar Empresa</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: Novo Colaborador -->
+<div class="modal-overlay" id="modal-colaborador">
+<div class="modal modal-lg">
+  <div class="modal-header">
+    <span class="modal-title" id="modal-colab-title">👤 Cadastrar Colaborador</span>
+    <button class="btn-close" onclick="closeModal('modal-colaborador')">✕</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="colab-edit-id">
+    <div class="form-grid">
+      <div class="form-row"><label class="field-label">Nome completo *</label><input class="field" id="colab-nome" placeholder="Nome completo"></div>
+      <div class="form-row"><label class="field-label">CPF *</label><input class="field" id="colab-cpf" placeholder="000.000.000-00" oninput="maskCPF(this)"></div>
+      <div class="form-row"><label class="field-label">Empresa *</label><select class="field" id="colab-empresa"><option value="">Selecione a empresa</option></select></div>
+      <div class="form-row"><label class="field-label">Setor *</label><input class="field" id="colab-setor" placeholder="Ex: Produção, RH, TI..."></div>
+      <div class="form-row"><label class="field-label">Função / Cargo</label><input class="field" id="colab-funcao" placeholder="Cargo ou função"></div>
+      <div class="form-row"><label class="field-label">Tempo de empresa</label><input class="field" id="colab-tempo" placeholder="Ex: 2 anos e 3 meses"></div>
+      <div class="form-row"><label class="field-label">Jornada de trabalho</label>
+        <select class="field" id="colab-jornada"><option>40h semanais</option><option>44h semanais</option><option>Plantão 12x36</option><option>Meio período</option><option>Home office</option><option>Híbrido</option></select>
+      </div>
+      <div class="form-row"><label class="field-label">Tipo de atividade</label>
+        <select class="field" id="colab-tipo"><option>Operacional</option><option>Administrativo</option><option>Gerencial</option><option>Técnico</option><option>Comercial</option></select>
+      </div>
+      <div class="form-row full"><label class="field-label">Descrição da função</label><textarea class="field" id="colab-descfuncao" rows="2" placeholder="Descreva as principais atividades e responsabilidades..."></textarea></div>
+      <div class="form-row full"><label class="field-label">Ambiente de trabalho</label><textarea class="field" id="colab-ambiente" rows="2" placeholder="Descreva as condições do ambiente (escritório, fábrica, externo...)"></textarea></div>
+      <div class="form-row full"><label class="field-label">Exposição a riscos</label><textarea class="field" id="colab-riscos" rows="2" placeholder="Riscos físicos, químicos, biológicos, ergonômicos, psicossociais..."></textarea></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-colaborador')">Cancelar</button>
+    <button class="btn btn-accent" onclick="saveColab()" id="btn-save-colab">💾 Cadastrar Colaborador</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: Novo Risco -->
+<div class="modal-overlay" id="modal-risco">
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title" id="modal-risco-title">⚠️ Registrar Risco Psicossocial</span>
+    <button class="btn-close" onclick="closeModal('modal-risco')">✕</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="risco-edit-id">
+    <div class="form-row"><label class="field-label">Empresa *</label><select class="field" id="risco-empresa"><option value="">Selecione a empresa</option></select></div>
+    <div class="form-grid">
+      <div class="form-row"><label class="field-label">Setor</label><input class="field" id="risco-setor" placeholder="Setor afetado"></div>
+      <div class="form-row"><label class="field-label">Categoria do Risco</label>
+        <select class="field" id="risco-categoria"><option>Carga de Trabalho</option><option>Reconhecimento</option><option>Autonomia e Controle</option><option>Relações Interpessoais</option><option>Violência / Assédio</option><option>Saúde e Bem-estar</option><option>Comunicação</option><option>Condições Físicas</option></select>
+      </div>
+      <div class="form-row"><label class="field-label">Probabilidade</label>
+        <select class="field" id="risco-prob" onchange="calcRiscoScore()"><option value="1">Muito Baixa</option><option value="2">Baixa</option><option value="3" selected>Média</option><option value="4">Alta</option><option value="5">Muito Alta</option></select>
+      </div>
+      <div class="form-row"><label class="field-label">Impacto</label>
+        <select class="field" id="risco-impacto" onchange="calcRiscoScore()"><option value="1">Muito Baixo</option><option value="2">Baixo</option><option value="3" selected>Médio</option><option value="4">Alto</option><option value="5">Crítico</option></select>
+      </div>
+    </div>
+    <div style="background:var(--bg3);border-radius:var(--r);padding:12px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+      <div style="font-size:12px;color:var(--text2)">Score calculado:</div>
+      <div style="font-size:22px;font-weight:700;font-family:'DM Mono',monospace" id="risco-score-display">9</div>
+      <span id="risco-nivel-badge" class="badge badge-high">Alto</span>
+    </div>
+    <div class="form-row"><label class="field-label">Descrição do risco *</label><textarea class="field" id="risco-descricao" rows="3" placeholder="Descreva o risco identificado de forma clara e objetiva..."></textarea></div>
+    <div class="form-row"><label class="field-label">Medidas de controle propostas</label><textarea class="field" id="risco-medidas" rows="3" placeholder="Descreva as medidas corretivas e preventivas sugeridas..."></textarea></div>
+    <div class="form-row"><label class="field-label">Status</label>
+      <select class="field" id="risco-status"><option>Ativo</option><option>Em controle</option><option>Monitorado</option><option>Resolvido</option></select>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-risco')">Cancelar</button>
+    <button class="btn btn-accent" onclick="saveRisco()" id="btn-save-risco">💾 Registrar Risco</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: Nova Ação -->
+<div class="modal-overlay" id="modal-acao">
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title" id="modal-acao-title">📌 Nova Ação do Plano</span>
+    <button class="btn-close" onclick="closeModal('modal-acao')">✕</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="acao-edit-id">
+    <div class="form-row"><label class="field-label">Empresa *</label><select class="field" id="acao-empresa"><option value="">Selecione a empresa</option></select></div>
+    <div class="form-row"><label class="field-label">Descrição da ação *</label><input class="field" id="acao-descricao" placeholder="Descreva a ação corretiva ou preventiva"></div>
+    <div class="form-grid">
+      <div class="form-row"><label class="field-label">Responsável</label><input class="field" id="acao-responsavel" placeholder="Nome do responsável"></div>
+      <div class="form-row"><label class="field-label">Prazo</label><input class="field" type="date" id="acao-prazo"></div>
+      <div class="form-row"><label class="field-label">Prioridade</label>
+        <select class="field" id="acao-prioridade"><option value="Alta">🔴 Alta</option><option value="Média" selected>🟡 Média</option><option value="Baixa">🟢 Baixa</option></select>
+      </div>
+      <div class="form-row"><label class="field-label">Status</label>
+        <select class="field" id="acao-status"><option>Pendente</option><option>Em Andamento</option><option>Concluído</option><option>Atrasado</option></select>
+      </div>
+    </div>
+    <div class="form-row"><label class="field-label">Observações</label><textarea class="field" id="acao-obs" rows="3" placeholder="Detalhes, justificativas, recursos necessários..."></textarea></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-acao')">Cancelar</button>
+    <button class="btn btn-accent" onclick="saveAcao()" id="btn-save-acao">💾 Salvar Ação</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: Gerar Relatório -->
+<div class="modal-overlay" id="modal-relatorio">
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title">📄 Gerar Novo Relatório</span>
+    <button class="btn-close" onclick="closeModal('modal-relatorio')">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-row"><label class="field-label">Tipo de Relatório</label>
+      <select class="field" id="rel-tipo"><option>Diagnóstico NR1 Completo</option><option>Relatório de Empresas</option><option>Relatório de Riscos</option><option>Plano de Ação</option><option>Relatório de Colaboradores</option><option>Relatório Completo</option></select>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label class="field-label">Formato</label>
+        <select class="field" id="rel-formato"><option>PDF</option><option>Excel</option></select>
+      </div>
+      <div class="form-row"><label class="field-label">Incluir gráficos</label>
+        <select class="field"><option>Sim</option><option>Não</option></select>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-relatorio')">Cancelar</button>
+    <button class="btn btn-accent" onclick="generateFromModal()">📄 Gerar Relatório</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: Registrar Acompanhamento -->
+<div class="modal-overlay" id="modal-acomp">
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title" id="modal-acomp-title">📈 Registrar Evolução</span>
+    <button class="btn-close" onclick="closeModal('modal-acomp')">✕</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="acomp-edit-id">
+    <div class="form-grid">
+      <div class="form-row"><label class="field-label">Empresa</label><select class="field" id="acomp-empresa"><option value="">Selecione a empresa</option></select></div>
+      <div class="form-row"><label class="field-label">Data da visita</label><input class="field" type="date" id="acomp-data"></div>
+    </div>
+    <div class="form-row"><label class="field-label">Ação acompanhada</label><input class="field" id="acomp-acao" placeholder="Qual ação foi verificada?"></div>
+    <div class="form-row"><label class="field-label">Responsável</label><input class="field" id="acomp-responsavel" placeholder="Nome do responsável"></div>
+    <div class="form-row"><label class="field-label">Resultado observado</label>
+      <select class="field" id="acomp-resultado"><option>Positivo — Ação implantada</option><option>Parcial — Em andamento</option><option>Negativo — Não realizado</option></select>
+    </div>
+    <div class="form-row"><label class="field-label">Evidências</label><textarea class="field" id="acomp-evidencias" rows="2" placeholder="Descreva as evidências coletadas..."></textarea></div>
+    <div class="form-row"><label class="field-label">Próximo passo</label><input class="field" id="acomp-proximo" placeholder="Ação ou prazo para reavaliação"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-acomp')">Cancelar</button>
+    <button class="btn btn-accent" onclick="saveAcomp()" id="btn-save-acomp">💾 Salvar Registro</button>
+  </div>
+</div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" id="confirm-overlay">
+<div class="confirm-box">
+  <div class="confirm-icon" id="confirm-icon">⚠️</div>
+  <div class="confirm-title" id="confirm-title">Confirmar ação</div>
+  <div class="confirm-msg" id="confirm-msg">Tem certeza?</div>
+  <div class="confirm-btns">
+    <button class="btn btn-secondary" onclick="closeConfirm()">Cancelar</button>
+    <button class="btn btn-danger" id="confirm-ok-btn" onclick="confirmOk()">Confirmar</button>
+  </div>
+</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ============================================================
+// NR1 PSICOSSOCIAL — SISTEMA COMPLETO FUNCIONAL
+// Local Storage + Firebase opcional
+// ============================================================
+
+// === STATE ===
+const DB = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem('nr1_'+k)||'[]'); } catch{ return []; } },
+  set: (k, v) => { try { localStorage.setItem('nr1_'+k, JSON.stringify(v)); } catch(e){} },
+  getObj: (k) => { try { return JSON.parse(localStorage.getItem('nr1_'+k)||'{}'); } catch{ return {}; } },
+  setObj: (k, v) => { try { localStorage.setItem('nr1_'+k, JSON.stringify(v)); } catch(e){} }
+};
+
+let currentUser = null;
+let confirmCallback = null;
+let colabCurrentPage = 0;
+const COLAB_PER_PAGE = 10;
+let chartEvolucao = null, chartRiscos = null, chartRadar = null;
+let relatoriosGerados = DB.get('relatorios_gerados');
+let activityLog = DB.get('activity_log');
+
+// === AUTH LOCAL ===
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-err');
+  errEl.classList.remove('show');
+  if (!email || !pass) { errEl.textContent = 'Preencha e-mail e senha.'; errEl.classList.add('show'); return; }
+  if (pass.length < 6) { errEl.textContent = 'Senha deve ter no mínimo 6 caracteres.'; errEl.classList.add('show'); return; }
+  
+  // Check local users
+  const users = DB.get('users');
+  let user = users.find(u => u.email === email && u.pass === btoa(pass));
+  
+  if (!user) {
+    // Auto-register on first login
+    if (users.length === 0 || email === 'demo@nr1.com') {
+      user = { id: uid(), email, pass: btoa(pass), name: email.split('@')[0], created: new Date().toISOString() };
+      users.push(user);
+      DB.set('users', users);
+    } else {
+      errEl.textContent = 'E-mail ou senha incorretos.'; errEl.classList.add('show'); return;
+    }
+  }
+  
+  currentUser = user;
+  DB.setObj('session', { userId: user.id, email: user.email, name: user.name });
+  loginSuccess(user);
+}
+
+function doRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-pass').value;
+  const errEl = document.getElementById('register-err');
+  errEl.classList.remove('show');
+  if (!name || !email || !pass) { errEl.textContent = 'Preencha todos os campos.'; errEl.classList.add('show'); return; }
+  if (pass.length < 6) { errEl.textContent = 'Senha deve ter no mínimo 6 caracteres.'; errEl.classList.add('show'); return; }
+  const users = DB.get('users');
+  if (users.find(u => u.email === email)) { errEl.textContent = 'Este e-mail já está cadastrado.'; errEl.classList.add('show'); return; }
+  const user = { id: uid(), email, pass: btoa(pass), name, created: new Date().toISOString() };
+  users.push(user);
+  DB.set('users', users);
+  currentUser = user;
+  DB.setObj('session', { userId: user.id, email: user.email, name: user.name });
+  loginSuccess(user);
+}
+
+function doReset() {
+  const email = document.getElementById('reset-email').value.trim();
+  if (!email) { showToast('Informe seu e-mail.', 'error'); return; }
+  showToast('Se o e-mail existir, as instruções serão enviadas.', 'info');
+  showLogin();
+}
+
+function loginSuccess(user) {
+  updateUserDisplay(user);
+  document.getElementById('login-screen').classList.add('hidden');
+  setTimeout(() => {
+    document.getElementById('app').classList.add('visible');
+    initApp();
+  }, 400);
+}
+
+function doLogout() {
+  showConfirm('Sair do sistema?', 'Sua sessão será encerrada.', '↩', () => {
+    DB.setObj('session', {});
+    currentUser = null;
+    document.getElementById('app').classList.remove('visible');
+    setTimeout(() => { document.getElementById('login-screen').classList.remove('hidden'); }, 300);
+    showPage('dashboard');
+  });
+}
+
+function checkSession() {
+  const session = DB.getObj('session');
+  if (session && session.userId) {
+    const users = DB.get('users');
+    const user = users.find(u => u.id === session.userId);
+    if (user) { currentUser = user; return true; }
+  }
+  return false;
+}
+
+function updateUserDisplay(user) {
+  const name = user.name || user.email.split('@')[0];
+  const initials = name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('user-avatar').textContent = initials;
+  document.getElementById('user-name-display').textContent = name;
+  document.getElementById('user-email-display').textContent = user.email;
+}
+
+// Show forms
+function showRegister(){document.getElementById('login-form').style.display='none';document.getElementById('register-form').style.display='block';document.getElementById('reset-form').style.display='none';}
+function showReset(){document.getElementById('login-form').style.display='none';document.getElementById('register-form').style.display='none';document.getElementById('reset-form').style.display='block';}
+function showLogin(){document.getElementById('login-form').style.display='block';document.getElementById('register-form').style.display='none';document.getElementById('reset-form').style.display='none';}
+
+// === UTILITIES ===
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function fmtDate(d) { if(!d) return '—'; const dt = new Date(d); return dt.toLocaleDateString('pt-BR'); }
+function fmtDateTime(d) { if(!d) return '—'; const dt = new Date(d); return dt.toLocaleDateString('pt-BR') + ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function nowISO() { return new Date().toISOString(); }
+function maskCNPJ(el) {
+  let v=el.value.replace(/\D/g,'').slice(0,14);
+  v=v.replace(/^(\d{2})(\d)/,'$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2');
+  el.value=v;
+}
+function maskCPF(el) {
+  let v=el.value.replace(/\D/g,'').slice(0,11);
+  v=v.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4');
+  el.value=v;
+}
+function addActivity(text, sub='') {
+  activityLog.unshift({ text, sub, date: fmtDateTime(nowISO()) });
+  if(activityLog.length > 50) activityLog = activityLog.slice(0,50);
+  DB.set('activity_log', activityLog);
+  renderActivityTimeline();
+}
+
+// === NAVIGATION ===
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById('page-'+id);
+  if(page) page.classList.add('active');
+  if(el) el.classList.add('active');
+  else document.querySelectorAll('.nav-item').forEach(n => {
+    if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
+  });
+  const titles={dashboard:'Dashboard',empresas:'Empresas',colaboradores:'Colaboradores',questionarios:'Questionários NR1',diagnosticos:'Diagnóstico Psicossocial',riscos:'Gestão de Riscos',plano:'Plano de Ação',acompanhamento:'Acompanhamentos',relatorios:'Relatórios',configuracoes:'Configurações'};
+  document.getElementById('topbar-title').textContent = titles[id]||id;
+  // Page-specific refresh
+  if(id==='dashboard') refreshDashboard();
+  if(id==='empresas') renderEmpresas();
+  if(id==='colaboradores') renderColabs();
+  if(id==='questionarios') { renderQuestComp(); renderQuestHist(); populateQuestSelects(); }
+  if(id==='diagnosticos') { populateDiagFilter(); renderDiagnostico(); }
+  if(id==='riscos') { renderRiscos(); populateRiscoFilter(); }
+  if(id==='plano') { renderAcoes(); populatePlanoFilters(); }
+  if(id==='acompanhamento') { renderAcomp(); renderAcompResumo(); }
+  if(id==='relatorios') renderRelatorios();
+  if(id==='configuracoes') loadPerfil();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// === MODALS ===
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  // Populate selects when opening
+  if(id==='modal-empresa') populateEmpresaModal();
+  if(id==='modal-colaborador') populateColabEmpresaSelect();
+  if(id==='modal-risco') populateRiscoEmpresaSelect();
+  if(id==='modal-acao') populateAcaoEmpresaSelect();
+  if(id==='modal-acomp') populateAcompEmpresaSelect();
+  if(id==='modal-firebase') loadFirebaseConfig();
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e){ if(e.target===this) this.classList.remove('open'); }));
+
+// === TOAST ===
+function showToast(msg, type='info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  const icons = {success:'✅',error:'❌',info:'ℹ️',warning:'⚠️'};
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.animation='slideIn .3s ease reverse'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+// === CONFIRM ===
+function showConfirm(title, msg, icon='⚠️', callback) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  document.getElementById('confirm-icon').textContent = icon;
+  confirmCallback = callback;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('open'); confirmCallback=null; }
+function confirmOk() { closeConfirm(); if(confirmCallback) confirmCallback(); }
+
+// === FIREBASE CONFIG ===
+function loadFirebaseConfig() {
+  const cfg = DB.getObj('firebase_config');
+  document.getElementById('fb-apikey').value = cfg.apiKey||'';
+  document.getElementById('fb-authdomain').value = cfg.authDomain||'';
+  document.getElementById('fb-projectid').value = cfg.projectId||'';
+  document.getElementById('fb-storagebucket').value = cfg.storageBucket||'';
+  document.getElementById('fb-senderid').value = cfg.messagingSenderId||'';
+  document.getElementById('fb-appid').value = cfg.appId||'';
+}
+function saveFirebaseConfig() {
+  const cfg = {
+    apiKey: document.getElementById('fb-apikey').value.trim(),
+    authDomain: document.getElementById('fb-authdomain').value.trim(),
+    projectId: document.getElementById('fb-projectid').value.trim(),
+    storageBucket: document.getElementById('fb-storagebucket').value.trim(),
+    messagingSenderId: document.getElementById('fb-senderid').value.trim(),
+    appId: document.getElementById('fb-appid').value.trim()
+  };
+  if (!cfg.apiKey || !cfg.projectId) { showToast('Preencha ao menos API Key e Project ID', 'error'); return; }
+  DB.setObj('firebase_config', cfg);
+  document.getElementById('firebase-conn-status').textContent = '✅ Configuração salva. Recarregue a página para conectar ao Firebase.';
+  document.getElementById('firebase-status').textContent = 'Status: Configuração salva — recarregue para ativar Firebase';
+  showToast('Configuração Firebase salva! Recarregue a página.', 'success');
+}
+function clearFirebaseConfig() {
+  DB.setObj('firebase_config', {});
+  loadFirebaseConfig();
+  showToast('Configuração Firebase removida', 'info');
+}
+
+// === EMPRESAS ===
+function getEmpresas() { return DB.get('empresas'); }
+function saveEmpresasDB(arr) { DB.set('empresas', arr); }
+const CC_COLORS = ['cc-blue','cc-green','cc-amber','cc-purple','cc-red'];
+
+function populateEmpresaModal() {
+  const id = document.getElementById('empresa-edit-id').value;
+  if (!id) {
+    document.getElementById('modal-empresa-title').textContent = '🏢 Cadastrar Nova Empresa';
+    document.getElementById('btn-save-empresa').textContent = '💾 Cadastrar Empresa';
+    ['emp-razao','emp-fantasia','emp-cnpj','emp-cnae','emp-responsavel','emp-cargo','emp-tel','emp-email','emp-cidade','emp-endereco','emp-obs'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value='';
+    });
+    document.getElementById('emp-numcolab').value='';
+    document.getElementById('emp-segmento').value='Indústria';
+    document.getElementById('emp-estado').value='BA';
+  }
+}
+
+function saveEmpresa() {
+  const razao = document.getElementById('emp-razao').value.trim();
+  if (!razao) { showToast('Razão Social é obrigatória', 'error'); return; }
+  
+  const editId = document.getElementById('empresa-edit-id').value;
+  const empresas = getEmpresas();
+  const empresa = {
+    id: editId || uid(),
+    razao, fantasia: document.getElementById('emp-fantasia').value.trim(),
+    cnpj: document.getElementById('emp-cnpj').value.trim(),
+    cnae: document.getElementById('emp-cnae').value.trim(),
+    segmento: document.getElementById('emp-segmento').value,
+    numColaboradores: parseInt(document.getElementById('emp-numcolab').value)||0,
+    responsavel: document.getElementById('emp-responsavel').value.trim(),
+    cargo: document.getElementById('emp-cargo').value.trim(),
+    tel: document.getElementById('emp-tel').value.trim(),
+    email: document.getElementById('emp-email').value.trim(),
+    cidade: document.getElementById('emp-cidade').value.trim(),
+    estado: document.getElementById('emp-estado').value,
+    endereco: document.getElementById('emp-endereco').value.trim(),
+    obs: document.getElementById('emp-obs').value.trim(),
+    color: CC_COLORS[Math.floor(Math.random()*CC_COLORS.length)],
+    createdAt: editId ? (empresas.find(e=>e.id===editId)||{}).createdAt : nowISO(),
+    updatedAt: nowISO(), createdBy: currentUser?.email||'demo'
+  };
+  
+  if (editId) {
+    const idx = empresas.findIndex(e => e.id===editId);
+    if(idx>=0) { empresa.color = empresas[idx].color; empresas[idx]=empresa; }
+  } else {
+    empresas.push(empresa);
+  }
+  saveEmpresasDB(empresas);
+  closeModal('modal-empresa');
+  document.getElementById('empresa-edit-id').value = '';
+  renderEmpresas();
+  refreshDashboard();
+  addActivity(editId?`Empresa editada: ${razao}`:`Nova empresa: ${razao}`, empresa.cidade+', '+empresa.estado);
+  showToast(editId?'Empresa atualizada!':'Empresa cadastrada com sucesso!', 'success');
+}
+
+function editEmpresa(id) {
+  const e = getEmpresas().find(x=>x.id===id);
+  if(!e) return;
+  document.getElementById('empresa-edit-id').value = id;
+  document.getElementById('modal-empresa-title').textContent = '✏️ Editar Empresa';
+  document.getElementById('btn-save-empresa').textContent = '💾 Atualizar Empresa';
+  document.getElementById('emp-razao').value = e.razao||'';
+  document.getElementById('emp-fantasia').value = e.fantasia||'';
+  document.getElementById('emp-cnpj').value = e.cnpj||'';
+  document.getElementById('emp-cnae').value = e.cnae||'';
+  document.getElementById('emp-segmento').value = e.segmento||'Indústria';
+  document.getElementById('emp-numcolab').value = e.numColaboradores||'';
+  document.getElementById('emp-responsavel').value = e.responsavel||'';
+  document.getElementById('emp-cargo').value = e.cargo||'';
+  document.getElementById('emp-tel').value = e.tel||'';
+  document.getElementById('emp-email').value = e.email||'';
+  document.getElementById('emp-cidade').value = e.cidade||'';
+  document.getElementById('emp-estado').value = e.estado||'BA';
+  document.getElementById('emp-endereco').value = e.endereco||'';
+  document.getElementById('emp-obs').value = e.obs||'';
+  openModal('modal-empresa');
+}
+
+function deleteEmpresa(id) {
+  const e = getEmpresas().find(x=>x.id===id);
+  showConfirm('Excluir empresa?', `"${e?.razao||id}" será removida permanentemente, junto com todos os colaboradores vinculados.`, '🗑', () => {
+    const empresas = getEmpresas().filter(x=>x.id!==id);
+    saveEmpresasDB(empresas);
+    // Remove linked colaboradores
+    const colabs = getColabs().filter(c=>c.empresaId!==id);
+    saveColabsDB(colabs);
+    renderEmpresas(); refreshDashboard();
+    addActivity(`Empresa excluída: ${e?.razao||id}`);
+    showToast('Empresa excluída.', 'success');
+  });
+}
+
+function renderEmpresas(filter='') {
+  const empresas = getEmpresas().filter(e =>
+    !filter || e.razao?.toLowerCase().includes(filter.toLowerCase()) ||
+    e.fantasia?.toLowerCase().includes(filter.toLowerCase()) ||
+    e.cnpj?.includes(filter)
+  );
+  const grid = document.getElementById('companies-grid');
+  const label = document.getElementById('empresas-count-label');
+  label.textContent = `${empresas.length} empresa${empresas.length!==1?'s':''} cadastrada${empresas.length!==1?'s':''}`;
+  updateBadge('badge-empresas', empresas.length);
+  
+  if (empresas.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🏢</div><h3>Nenhuma empresa cadastrada</h3><p>Clique em "+ Nova Empresa" para começar</p></div>`;
+    return;
+  }
+  
+  const colabCount = {};
+  getColabs().forEach(c => { colabCount[c.empresaId] = (colabCount[c.empresaId]||0)+1; });
+  const avalCount = {};
+  getQuestionarios().forEach(q => { avalCount[q.empresaId] = (avalCount[q.empresaId]||0)+1; });
+  const riscoNiveis = {};
+  getRiscos().forEach(r => { if(!riscoNiveis[r.empresaId] || r.score > riscoNiveis[r.empresaId]) riscoNiveis[r.empresaId]=r.score; });
+  
+  const riscoBadge = (score) => {
+    if(!score) return '<span class="badge badge-gray">Sem dados</span>';
+    if(score>=12) return '<span class="badge badge-purple">Crítico</span>';
+    if(score>=8) return '<span class="badge badge-red">Alto</span>';
+    if(score>=5) return '<span class="badge badge-amber">Médio</span>';
+    return '<span class="badge badge-blue">Baixo</span>';
+  };
+  
+  grid.innerHTML = empresas.map(e => `
+    <div class="company-card ${e.color||'cc-blue'}">
+      <div class="company-name">${e.razao}</div>
+      <div class="company-cnpj">${e.cnpj||'CNPJ não informado'}</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px">${e.segmento||''} · ${e.cidade||''}${e.estado?', '+e.estado:''}</div>
+      <div class="company-stats">
+        <div class="cs-item"><span class="cs-value">${colabCount[e.id]||0}</span>Colaboradores</div>
+        <div class="cs-item"><span class="cs-value">${avalCount[e.id]||0}</span>Avaliações</div>
+        <div class="cs-item"><span class="cs-value">${riscoBadge(riscoNiveis[e.id])}</span>Risco</div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:14px">
+        <button class="btn btn-sm btn-secondary" onclick="editEmpresa('${e.id}')">✏ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteEmpresa('${e.id}')">🗑</button>
+      </div>
+    </div>
+  `).join('') + `
+    <div class="company-card cc-blue" onclick="openModal('modal-empresa')" style="border-style:dashed;background:transparent;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-height:160px;color:var(--text3);cursor:pointer">
+      <div style="font-size:32px">+</div>
+      <div style="font-size:13px">Cadastrar nova empresa</div>
+    </div>`;
+}
+
+function filterEmpresas(v) { renderEmpresas(v); }
+
+// === COLABORADORES ===
+function getColabs() { return DB.get('colaboradores'); }
+function saveColabsDB(arr) { DB.set('colaboradores', arr); }
+
+function populateColabEmpresaSelect() {
+  const sel = document.getElementById('colab-empresa');
+  const empresas = getEmpresas();
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="">Selecione a empresa</option>' + empresas.map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  if(curVal) sel.value = curVal;
+}
+
+function saveColab() {
+  const nome = document.getElementById('colab-nome').value.trim();
+  const empresaId = document.getElementById('colab-empresa').value;
+  if(!nome) { showToast('Nome é obrigatório','error'); return; }
+  if(!empresaId) { showToast('Selecione a empresa','error'); return; }
+  
+  const editId = document.getElementById('colab-edit-id').value;
+  const colabs = getColabs();
+  const empresas = getEmpresas();
+  const empresa = empresas.find(e=>e.id===empresaId);
+  
+  const colab = {
+    id: editId || uid(),
+    nome, cpf: document.getElementById('colab-cpf').value.trim(),
+    empresaId, empresaNome: empresa?.razao||'',
+    setor: document.getElementById('colab-setor').value.trim(),
+    funcao: document.getElementById('colab-funcao').value.trim(),
+    tempo: document.getElementById('colab-tempo').value.trim(),
+    jornada: document.getElementById('colab-jornada').value,
+    tipo: document.getElementById('colab-tipo').value,
+    descFuncao: document.getElementById('colab-descfuncao').value.trim(),
+    ambiente: document.getElementById('colab-ambiente').value.trim(),
+    riscos: document.getElementById('colab-riscos').value.trim(),
+    createdAt: editId?(colabs.find(c=>c.id===editId)||{}).createdAt:nowISO(),
+    updatedAt: nowISO()
+  };
+  
+  if(editId) { const idx=colabs.findIndex(c=>c.id===editId); if(idx>=0) colabs[idx]=colab; }
+  else colabs.push(colab);
+  saveColabsDB(colabs);
+  closeModal('modal-colaborador');
+  document.getElementById('colab-edit-id').value='';
+  renderColabs(); refreshDashboard();
+  addActivity(editId?`Colaborador editado: ${nome}`:`Novo colaborador: ${nome}`, `${colab.funcao} · ${empresa?.razao||''}`);
+  showToast(editId?'Colaborador atualizado!':'Colaborador cadastrado!','success');
+}
+
+function editColab(id) {
+  const c = getColabs().find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('colab-edit-id').value=id;
+  document.getElementById('modal-colab-title').textContent='✏️ Editar Colaborador';
+  document.getElementById('btn-save-colab').textContent='💾 Atualizar';
+  document.getElementById('colab-nome').value=c.nome||'';
+  document.getElementById('colab-cpf').value=c.cpf||'';
+  document.getElementById('colab-setor').value=c.setor||'';
+  document.getElementById('colab-funcao').value=c.funcao||'';
+  document.getElementById('colab-tempo').value=c.tempo||'';
+  document.getElementById('colab-jornada').value=c.jornada||'40h semanais';
+  document.getElementById('colab-tipo').value=c.tipo||'Operacional';
+  document.getElementById('colab-descfuncao').value=c.descFuncao||'';
+  document.getElementById('colab-ambiente').value=c.ambiente||'';
+  document.getElementById('colab-riscos').value=c.riscos||'';
+  populateColabEmpresaSelect();
+  document.getElementById('colab-empresa').value=c.empresaId||'';
+  openModal('modal-colaborador');
+}
+
+function deleteColab(id) {
+  const c=getColabs().find(x=>x.id===id);
+  showConfirm('Excluir colaborador?',`"${c?.nome||id}" será removido permanentemente.`,'🗑',()=>{
+    saveColabsDB(getColabs().filter(x=>x.id!==id));
+    renderColabs(); refreshDashboard();
+    addActivity(`Colaborador excluído: ${c?.nome||id}`);
+    showToast('Colaborador excluído.','success');
+  });
+}
+
+function renderColabs() {
+  const empresaFilter = document.getElementById('colab-empresa-filter')?.value||'';
+  const textFilter = document.getElementById('colab-search')?.value?.toLowerCase()||'';
+  
+  // Populate filter select
+  const filterSel = document.getElementById('colab-empresa-filter');
+  if(filterSel) {
+    const prev = filterSel.value;
+    filterSel.innerHTML = '<option value="">Todas as empresas</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+    filterSel.value = prev;
+  }
+  
+  let colabs = getColabs();
+  if(empresaFilter) colabs = colabs.filter(c=>c.empresaId===empresaFilter);
+  if(textFilter) colabs = colabs.filter(c=>c.nome?.toLowerCase().includes(textFilter)||c.cpf?.includes(textFilter)||c.funcao?.toLowerCase().includes(textFilter)||c.setor?.toLowerCase().includes(textFilter));
+  
+  const total = colabs.length;
+  const start = colabCurrentPage * COLAB_PER_PAGE;
+  const page = colabs.slice(start, start+COLAB_PER_PAGE);
+  
+  document.getElementById('colab-count-label').textContent = `${getColabs().length} colaborador${getColabs().length!==1?'es':''} cadastrado${getColabs().length!==1?'s':''}`;
+  updateBadge('badge-colab', getColabs().length, true);
+  document.getElementById('colab-pag-info').textContent = `Mostrando ${start+1}–${Math.min(start+COLAB_PER_PAGE,total)} de ${total}`;
+  document.getElementById('colab-prev').disabled = colabCurrentPage===0;
+  document.getElementById('colab-next').disabled = start+COLAB_PER_PAGE>=total;
+  
+  const tbody = document.getElementById('colab-tbody');
+  if(total===0) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhum colaborador encontrado</td></tr>'; return; }
+  tbody.innerHTML = page.map(c=>`
+    <tr>
+      <td><b>${c.nome}</b></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${c.cpf||'—'}</td>
+      <td>${c.empresaNome||'—'}</td>
+      <td>${c.setor||'—'}</td>
+      <td>${c.funcao||'—'}</td>
+      <td>${c.tempo||'—'}</td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-sm btn-secondary" onclick="editColab('${c.id}')">✏</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteColab('${c.id}')">🗑</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function filterColabs() { colabCurrentPage=0; renderColabs(); }
+function colabPage(dir) { colabCurrentPage+=dir; if(colabCurrentPage<0) colabCurrentPage=0; renderColabs(); }
+
+// === QUESTIONÁRIOS ===
+const NR1_QUESTIONS = [
+  {id:'q1', dim:'Organização do Trabalho', text:'Suas tarefas e responsabilidades são claramente definidas?', type:'scale'},
+  {id:'q2', dim:'Organização do Trabalho', text:'Você tem tempo suficiente para realizar seu trabalho com qualidade?', type:'scale'},
+  {id:'q3', dim:'Carga e Ritmo', text:'O ritmo de trabalho é excessivo ou insustentável?', type:'scale'},
+  {id:'q4', dim:'Carga e Ritmo', text:'Você frequentemente sente-se sobrecarregado(a) no trabalho?', type:'scale'},
+  {id:'q5', dim:'Relações Interpessoais', text:'Você tem bom relacionamento com seus colegas de trabalho?', type:'scale'},
+  {id:'q6', dim:'Relações Interpessoais', text:'Seu gestor direto oferece suporte quando você precisa?', type:'scale'},
+  {id:'q7', dim:'Relações Interpessoais', text:'Existe respeito mútuo entre as pessoas da sua equipe?', type:'scale'},
+  {id:'q8', dim:'Reconhecimento', text:'Você se sente reconhecido(a) pelo seu trabalho?', type:'scale'},
+  {id:'q9', dim:'Reconhecimento', text:'Há oportunidades de crescimento e desenvolvimento profissional?', type:'scale'},
+  {id:'q10', dim:'Autonomia', text:'Você tem autonomia para tomar decisões relacionadas ao seu trabalho?', type:'scale'},
+  {id:'q11', dim:'Autonomia', text:'Suas opiniões e sugestões são consideradas pela gestão?', type:'scale'},
+  {id:'q12', dim:'Violência e Assédio', text:'Você já presenciou ou vivenciou situação de assédio moral no trabalho?', type:'bool'},
+  {id:'q13', dim:'Violência e Assédio', text:'Você já presenciou ou vivenciou situação de assédio sexual no trabalho?', type:'bool'},
+  {id:'q14', dim:'Violência e Assédio', text:'Existe algum tipo de discriminação no ambiente de trabalho?', type:'bool'},
+  {id:'q15', dim:'Saúde e Bem-estar', text:'O trabalho tem afetado negativamente sua saúde física?', type:'scale'},
+  {id:'q16', dim:'Saúde e Bem-estar', text:'O trabalho tem causado estresse ou ansiedade significativa?', type:'scale'},
+  {id:'q17', dim:'Saúde e Bem-estar', text:'Você consegue equilibrar vida profissional e pessoal?', type:'scale'},
+];
+
+function getQuestionarios() { return DB.get('questionarios'); }
+function saveQuestionariosDB(arr) { DB.set('questionarios', arr); }
+
+const questAnswers = {};
+
+function renderQuestComp() {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = NR1_QUESTIONS.map((q,i) => `
+    <div class="question-card">
+      <div class="question-num">Questão ${i+1} / ${NR1_QUESTIONS.length} · ${q.dim}</div>
+      <div class="question-text">${q.text}</div>
+      ${q.type==='bool' ? `
+        <div class="question-options">
+          <div class="q-opt" onclick="selectBool('${q.id}', 'Sim', this)">Sim</div>
+          <div class="q-opt" onclick="selectBool('${q.id}', 'Não', this)">Não</div>
+          <div class="q-opt" onclick="selectBool('${q.id}', 'Não sei informar', this)">Não sei informar</div>
+        </div>` : `
+        <div class="q-scale">
+          ${[1,2,3,4,5,6,7,8,9,10].map(v=>`<div class="q-scale-opt s${v<=3?1:v<=5?2:v<=7?3:4}" onclick="selectScale('${q.id}',${v},this)">${v}</div>`).join('')}
+        </div>
+        <div class="scale-labels"><span>Nunca/Discordo totalmente</span><span>Sempre/Concordo totalmente</span></div>`}
+    </div>`).join('');
+}
+
+function selectBool(qid, val, el) {
+  el.closest('.question-options').querySelectorAll('.q-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  questAnswers[qid] = val;
+}
+function selectScale(qid, val, el) {
+  el.closest('.q-scale').querySelectorAll('.q-scale-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  questAnswers[qid] = val;
+}
+
+function clearQuest() {
+  Object.keys(questAnswers).forEach(k=>delete questAnswers[k]);
+  renderQuestComp();
+  document.getElementById('quest-empresa-select').value='';
+  document.getElementById('quest-colab-select').value='';
+  document.getElementById('quest-setor').value='';
+}
+
+function calcQuestScore(answers) {
+  const scaleAnswers = NR1_QUESTIONS.filter(q=>q.type==='scale').map(q=>answers[q.id]||5);
+  const boolAnswers = NR1_QUESTIONS.filter(q=>q.type==='bool').map(q=>answers[q.id]);
+  const avg = scaleAnswers.length ? scaleAnswers.reduce((a,b)=>a+b,0)/scaleAnswers.length : 5;
+  // Bool "Sim" responses to negative questions reduce score
+  const negBools = boolAnswers.filter(a=>a==='Sim').length;
+  return Math.max(1, Math.min(10, avg - negBools*0.5));
+}
+
+function calcDimScores(answers) {
+  const dims = {};
+  NR1_QUESTIONS.forEach(q => {
+    if (!dims[q.dim]) dims[q.dim] = [];
+    const v = answers[q.id];
+    if (v !== undefined) {
+      if (q.type==='scale') dims[q.dim].push(v);
+      else dims[q.dim].push(v==='Sim' ? 2 : 8);
+    }
+  });
+  const result = {};
+  Object.keys(dims).forEach(d => {
+    const arr = dims[d];
+    result[d] = arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 5;
+  });
+  return result;
+}
+
+function saveQuestionario() {
+  const empresaId = document.getElementById('quest-empresa-select').value;
+  if(!empresaId) { showToast('Selecione a empresa','error'); return; }
+  const answered = Object.keys(questAnswers).length;
+  if(answered < 5) { showToast('Responda pelo menos 5 questões antes de salvar','error'); return; }
+  
+  const empresas = getEmpresas();
+  const empresa = empresas.find(e=>e.id===empresaId);
+  const colabId = document.getElementById('quest-colab-select').value;
+  const colabs = getColabs();
+  const colab = colabs.find(c=>c.id===colabId);
+  const score = calcQuestScore(questAnswers);
+  const dimScores = calcDimScores(questAnswers);
+  const data = document.getElementById('quest-data').value || new Date().toISOString().split('T')[0];
+  
+  const quest = {
+    id: uid(),
+    empresaId, empresaNome: empresa?.razao||'',
+    colabId: colabId||null, colabNome: colab?.nome||'Geral',
+    setor: document.getElementById('quest-setor').value.trim(),
+    data, score: parseFloat(score.toFixed(2)),
+    dimScores, answers: {...questAnswers},
+    questionsCount: NR1_QUESTIONS.length,
+    answeredCount: answered,
+    createdAt: nowISO(), createdBy: currentUser?.email||'demo'
+  };
+  
+  const quests = getQuestionarios();
+  quests.push(quest);
+  saveQuestionariosDB(quests);
+  addActivity(`Avaliação realizada: ${empresa?.razao||''}`, `Score: ${score.toFixed(1)} · ${quest.setor||'Geral'}`);
+  showToast('Avaliação salva com sucesso!','success');
+  clearQuest();
+  renderQuestHist();
+  refreshDashboard();
+  switchQTab(document.querySelector('.tab'), 'q-tab-hist');
+}
+
+function deleteQuest(id) {
+  showConfirm('Excluir avaliação?','Esta avaliação será removida permanentemente.','🗑',()=>{
+    saveQuestionariosDB(getQuestionarios().filter(q=>q.id!==id));
+    renderQuestHist(); refreshDashboard();
+    showToast('Avaliação excluída.','success');
+  });
+}
+
+function renderQuestHist() {
+  const quests = getQuestionarios().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const tbody = document.getElementById('quest-hist-tbody');
+  if(!quests.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhuma avaliação registrada</td></tr>'; return; }
+  tbody.innerHTML = quests.map(q=>{
+    const s = q.score;
+    const nivel = s>=8?['badge-green','Baixo']:s>=6?['badge-amber','Médio']:s>=4?['badge-red','Alto']:['badge-purple','Crítico'];
+    return `<tr>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtDate(q.data)}</td>
+      <td>${q.empresaNome}</td>
+      <td>${q.setor||'Geral'}</td>
+      <td>${q.colabNome||'Geral'}</td>
+      <td style="font-family:'DM Mono',monospace;font-weight:600">${s.toFixed(1)}</td>
+      <td><span class="badge ${nivel[0]}">${nivel[1]}</span></td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteQuest('${q.id}')">🗑</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function populateQuestSelects() {
+  const sel = document.getElementById('quest-empresa-select');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Selecione a empresa</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  sel.value = prev;
+}
+
+function updateQuestColabs() {
+  const empId = document.getElementById('quest-empresa-select').value;
+  const sel = document.getElementById('quest-colab-select');
+  const colabs = getColabs().filter(c=>c.empresaId===empId);
+  sel.innerHTML = '<option value="">Todos do setor/empresa</option>' + colabs.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+}
+
+function switchQTab(el, tabId) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('q-tab-new').style.display = tabId==='q-tab-new'?'block':'none';
+  document.getElementById('q-tab-hist').style.display = tabId==='q-tab-hist'?'block':'none';
+}
+
+// === DIAGNÓSTICO ===
+function populateDiagFilter() {
+  const sel = document.getElementById('diag-empresa-filter');
+  const prev = sel.value;
+  const empresas = getEmpresas();
+  sel.innerHTML = '<option value="">Selecione uma empresa</option>' + empresas.map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  sel.value = prev;
+}
+
+function renderDiagnostico() {
+  const empId = document.getElementById('diag-empresa-filter').value;
+  const container = document.getElementById('diagnostico-content');
+  if(!empId) {
+    container.innerHTML='<div class="empty-state"><div class="empty-icon">🔬</div><h3>Selecione uma empresa</h3><p>Escolha uma empresa acima para visualizar o diagnóstico</p></div>';
+    return;
+  }
+  const empresa = getEmpresas().find(e=>e.id===empId);
+  const quests = getQuestionarios().filter(q=>q.empresaId===empId);
+  if(!quests.length) {
+    container.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><h3>Nenhuma avaliação encontrada</h3><p>Realize avaliações para esta empresa para ver o diagnóstico</p></div>';
+    return;
+  }
+  
+  // Aggregate dim scores
+  const allDims = {};
+  quests.forEach(q => {
+    Object.entries(q.dimScores||{}).forEach(([dim,score]) => {
+      if(!allDims[dim]) allDims[dim]=[];
+      allDims[dim].push(score);
+    });
+  });
+  const avgDims = {};
+  Object.entries(allDims).forEach(([dim,scores]) => {
+    avgDims[dim] = scores.reduce((a,b)=>a+b,0)/scores.length;
+  });
+  
+  const dimBadge = (score) => {
+    if(score>=8) return ['badge-green','Baixo'];
+    if(score>=6) return ['badge-blue','Moderado'];
+    if(score>=4) return ['badge-amber','Alto'];
+    return ['badge-red','Crítico'];
+  };
+  const progColor = (score) => score>=8?'green':score>=6?'blue':score>=4?'amber':'red';
+  
+  const totalScore = quests.reduce((a,q)=>a+q.score,0)/quests.length;
+  const tsLevel = totalScore>=8?['badge-green','Baixo']:totalScore>=6?['badge-amber','Médio']:totalScore>=4?['badge-red','Alto']:['badge-purple','Crítico'];
+  
+  container.innerHTML = `
+    <div class="stats-grid" style="margin-bottom:16px">
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Empresa</span><div class="stat-icon blue">🏢</div></div><div class="stat-value" style="font-size:16px">${empresa?.razao||''}</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Avaliações</span><div class="stat-icon purple">📋</div></div><div class="stat-value">${quests.length}</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Score Médio</span><div class="stat-icon amber">📊</div></div><div class="stat-value" style="font-family:'DM Mono'">${totalScore.toFixed(1)}</div><div class="stat-change neutral"><span class="badge ${tsLevel[0]}">${tsLevel[1]}</span></div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Última Avaliação</span><div class="stat-icon green">📅</div></div><div class="stat-value" style="font-size:16px">${fmtDate(quests.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0].data)}</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Diagnóstico por Dimensão NR1</span><button class="btn btn-sm btn-accent" onclick="generateDiagPDF()">📄 Gerar PDF</button></div>
+      <div class="card-body">
+        ${Object.entries(avgDims).map(([dim,score])=>{
+          const [bc,bl]=dimBadge(score);
+          const pc=progColor(score);
+          return `<div class="dimension-row">
+            <div class="dimension-label"><b>${dim}</b></div>
+            <div class="dimension-bar"><div class="progress-bar"><div class="progress-fill ${pc}" style="width:${score*10}%"></div></div></div>
+            <div class="dimension-score" style="color:${pc==='green'?'var(--green)':pc==='amber'?'var(--amber)':pc==='red'?'var(--red)':'var(--accent)'}">${score.toFixed(1)}</div>
+            <div class="dimension-risk"><span class="badge ${bc}">${bl}</span></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// === RISCOS ===
+function getRiscos() { return DB.get('riscos'); }
+function saveRiscosDB(arr) { DB.set('riscos', arr); }
+
+const PROB_MAP = {1:'Muito Baixa',2:'Baixa',3:'Média',4:'Alta',5:'Muito Alta'};
+const IMP_MAP = {1:'Muito Baixo',2:'Baixo',3:'Médio',4:'Alto',5:'Crítico'};
+
+function calcRiscoScore() {
+  const prob = parseInt(document.getElementById('risco-prob').value)||3;
+  const imp = parseInt(document.getElementById('risco-impacto').value)||3;
+  const score = prob*imp;
+  document.getElementById('risco-score-display').textContent = score;
+  const badge = document.getElementById('risco-nivel-badge');
+  if(score>=12){badge.className='badge badge-purple';badge.textContent='Crítico';}
+  else if(score>=8){badge.className='badge badge-red';badge.textContent='Alto';}
+  else if(score>=5){badge.className='badge badge-amber';badge.textContent='Médio';}
+  else{badge.className='badge badge-blue';badge.textContent='Baixo';}
+}
+
+function populateRiscoEmpresaSelect() {
+  const sel = document.getElementById('risco-empresa');
+  sel.innerHTML = '<option value="">Selecione a empresa</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  const editId = document.getElementById('risco-edit-id').value;
+  if(editId) { const r=getRiscos().find(x=>x.id===editId); if(r) sel.value=r.empresaId||''; }
+}
+
+function populateRiscoFilter() {
+  const sel = document.getElementById('risco-empresa-filter');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Todas as empresas</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  sel.value=prev;
+}
+
+function saveRisco() {
+  const empresaId = document.getElementById('risco-empresa').value;
+  const descricao = document.getElementById('risco-descricao').value.trim();
+  if(!empresaId){showToast('Selecione a empresa','error');return;}
+  if(!descricao){showToast('Descrição é obrigatória','error');return;}
+  
+  const prob = parseInt(document.getElementById('risco-prob').value)||3;
+  const imp = parseInt(document.getElementById('risco-impacto').value)||3;
+  const score = prob*imp;
+  const empresa = getEmpresas().find(e=>e.id===empresaId);
+  const editId = document.getElementById('risco-edit-id').value;
+  const riscos = getRiscos();
+  
+  const risco = {
+    id: editId||uid(),
+    empresaId, empresaNome: empresa?.razao||'',
+    setor: document.getElementById('risco-setor').value.trim(),
+    categoria: document.getElementById('risco-categoria').value,
+    prob, imp, score,
+    probText: PROB_MAP[prob], impText: IMP_MAP[imp],
+    nivel: score>=12?'Crítico':score>=8?'Alto':score>=5?'Médio':'Baixo',
+    descricao, medidas: document.getElementById('risco-medidas').value.trim(),
+    status: document.getElementById('risco-status').value,
+    createdAt: editId?(riscos.find(r=>r.id===editId)||{}).createdAt:nowISO(),
+    updatedAt: nowISO()
+  };
+  
+  if(editId){const idx=riscos.findIndex(r=>r.id===editId);if(idx>=0)riscos[idx]=risco;}
+  else riscos.push(risco);
+  saveRiscosDB(riscos);
+  closeModal('modal-risco');
+  document.getElementById('risco-edit-id').value='';
+  renderRiscos(); refreshDashboard();
+  addActivity(editId?`Risco editado: ${descricao.slice(0,40)}`:`Novo risco: ${descricao.slice(0,40)}`, `${empresa?.razao||''} · Score: ${score} — ${risco.nivel}`);
+  showToast(editId?'Risco atualizado!':'Risco registrado!','success');
+}
+
+function editRisco(id) {
+  const r=getRiscos().find(x=>x.id===id);
+  if(!r) return;
+  document.getElementById('risco-edit-id').value=id;
+  document.getElementById('modal-risco-title').textContent='✏️ Editar Risco';
+  document.getElementById('risco-setor').value=r.setor||'';
+  document.getElementById('risco-categoria').value=r.categoria||'Carga de Trabalho';
+  document.getElementById('risco-prob').value=r.prob||3;
+  document.getElementById('risco-impacto').value=r.imp||3;
+  document.getElementById('risco-descricao').value=r.descricao||'';
+  document.getElementById('risco-medidas').value=r.medidas||'';
+  document.getElementById('risco-status').value=r.status||'Ativo';
+  calcRiscoScore();
+  openModal('modal-risco');
+}
+
+function deleteRisco(id) {
+  showConfirm('Excluir risco?','Este registro será removido permanentemente.','🗑',()=>{
+    saveRiscosDB(getRiscos().filter(r=>r.id!==id));
+    renderRiscos(); refreshDashboard();
+    showToast('Risco excluído.','success');
+  });
+}
+
+function filterRiscos() { renderRiscos(); }
+
+function renderRiscos() {
+  const empFilter = document.getElementById('risco-empresa-filter')?.value||'';
+  let riscos = getRiscos();
+  if(empFilter) riscos = riscos.filter(r=>r.empresaId===empFilter);
+  riscos.sort((a,b)=>b.score-a.score);
+  updateBadge('badge-riscos', getRiscos().filter(r=>r.nivel==='Crítico'||r.nivel==='Alto').length);
+  
+  // Critical panel
+  const criticos = getRiscos().filter(r=>r.score>=8).sort((a,b)=>b.score-a.score).slice(0,4);
+  const critPanel = document.getElementById('riscos-criticos-list');
+  if(!criticos.length) {
+    critPanel.innerHTML='<div class="empty-state" style="padding:20px"><div class="empty-icon" style="font-size:32px">✅</div><h3>Nenhum risco crítico</h3></div>';
+  } else {
+    critPanel.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;padding:16px">` + criticos.map(r=>{
+      const [bc,color]=r.score>=12?['badge-purple','rgba(167,139,250,.2)']:['badge-red','rgba(255,85,85,.2)'];
+      return `<div style="background:var(--bg3);border:1px solid ${color};border-radius:var(--r2);padding:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px;font-weight:600">${r.descricao?.slice(0,50)||r.categoria}</span>
+          <span class="badge ${bc}">${r.nivel}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${r.empresaNome} · ${r.setor||'Geral'}</div>
+        <div style="font-size:12px;color:var(--text3)">Score: ${r.score} · Prob: ${r.probText} · Impacto: ${r.impText}</div>
+      </div>`;
+    }).join('') + '</div>';
+  }
+  
+  const tbody = document.getElementById('riscos-tbody');
+  if(!riscos.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhum risco cadastrado</td></tr>'; return; }
+  
+  const nBadge = (nivel) => ({Crítico:'badge-purple',Alto:'badge-red',Médio:'badge-amber',Baixo:'badge-blue'})[nivel]||'badge-gray';
+  tbody.innerHTML = riscos.map(r=>`
+    <tr>
+      <td><b>${r.descricao?.slice(0,45)||r.categoria}${(r.descricao?.length||0)>45?'...':''}</b></td>
+      <td>${r.empresaNome}</td>
+      <td>${r.setor||'Geral'}</td>
+      <td><span class="badge ${nBadge(r.nivel==='Crítico'?'Crítico':r.probText==='Muito Alta'?'Alto':'Médio')}">${r.probText}</span></td>
+      <td><span class="badge ${nBadge(r.nivel)}">${r.impText}</span></td>
+      <td style="font-weight:600;font-family:'DM Mono';color:${r.score>=12?'var(--purple)':r.score>=8?'var(--red)':r.score>=5?'var(--amber)':'var(--green)'}">${r.score}</td>
+      <td><span class="badge ${r.status==='Ativo'?'badge-red':r.status==='Em controle'?'badge-amber':r.status==='Resolvido'?'badge-green':'badge-blue'}">${r.status}</span></td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-sm btn-secondary" onclick="editRisco('${r.id}')">✏</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteRisco('${r.id}')">🗑</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+// === AÇÕES ===
+function getAcoes() { return DB.get('acoes'); }
+function saveAcoesDB(arr) { DB.set('acoes', arr); }
+
+function populateAcaoEmpresaSelect() {
+  const sel = document.getElementById('acao-empresa');
+  sel.innerHTML='<option value="">Selecione a empresa</option>'+getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  const editId=document.getElementById('acao-edit-id').value;
+  if(editId){const a=getAcoes().find(x=>x.id===editId);if(a)sel.value=a.empresaId||'';}
+}
+
+function populatePlanoFilters() {
+  const sel=document.getElementById('plano-empresa-filter');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Todas as empresas</option>'+getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  sel.value=prev;
+}
+
+function saveAcao() {
+  const empId=document.getElementById('acao-empresa').value;
+  const desc=document.getElementById('acao-descricao').value.trim();
+  if(!empId){showToast('Selecione a empresa','error');return;}
+  if(!desc){showToast('Descrição é obrigatória','error');return;}
+  
+  const editId=document.getElementById('acao-edit-id').value;
+  const acoes=getAcoes();
+  const empresa=getEmpresas().find(e=>e.id===empId);
+  
+  const acao = {
+    id:editId||uid(),
+    empresaId:empId, empresaNome:empresa?.razao||'',
+    descricao:desc,
+    responsavel:document.getElementById('acao-responsavel').value.trim(),
+    prazo:document.getElementById('acao-prazo').value,
+    prioridade:document.getElementById('acao-prioridade').value,
+    status:document.getElementById('acao-status').value,
+    obs:document.getElementById('acao-obs').value.trim(),
+    createdAt:editId?(acoes.find(a=>a.id===editId)||{}).createdAt:nowISO(),
+    updatedAt:nowISO()
+  };
+  
+  // Check if overdue
+  if(acao.prazo && new Date(acao.prazo) < new Date() && acao.status!=='Concluído') acao.status='Atrasado';
+  
+  if(editId){const idx=acoes.findIndex(a=>a.id===editId);if(idx>=0)acoes[idx]=acao;}
+  else acoes.push(acao);
+  saveAcoesDB(acoes);
+  closeModal('modal-acao');
+  document.getElementById('acao-edit-id').value='';
+  renderAcoes(); refreshDashboard();
+  addActivity(editId?`Ação editada: ${desc.slice(0,40)}`:`Nova ação: ${desc.slice(0,40)}`, `${empresa?.razao||''} · ${acao.prioridade}`);
+  showToast(editId?'Ação atualizada!':'Ação adicionada ao plano!','success');
+}
+
+function editAcao(id) {
+  const a=getAcoes().find(x=>x.id===id);
+  if(!a) return;
+  document.getElementById('acao-edit-id').value=id;
+  document.getElementById('modal-acao-title').textContent='✏️ Editar Ação';
+  document.getElementById('btn-save-acao').textContent='💾 Atualizar';
+  document.getElementById('acao-descricao').value=a.descricao||'';
+  document.getElementById('acao-responsavel').value=a.responsavel||'';
+  document.getElementById('acao-prazo').value=a.prazo||'';
+  document.getElementById('acao-prioridade').value=a.prioridade||'Média';
+  document.getElementById('acao-status').value=a.status||'Pendente';
+  document.getElementById('acao-obs').value=a.obs||'';
+  openModal('modal-acao');
+}
+
+function deleteAcao(id) {
+  showConfirm('Excluir ação?','Esta ação será removida do plano permanentemente.','🗑',()=>{
+    saveAcoesDB(getAcoes().filter(a=>a.id!==id));
+    renderAcoes(); refreshDashboard();
+    showToast('Ação excluída.','success');
+  });
+}
+
+function filterAcoes() { renderAcoes(); }
+
+function renderAcoes() {
+  const empFilter=document.getElementById('plano-empresa-filter')?.value||'';
+  const statusFilter=document.getElementById('plano-status-filter')?.value||'';
+  
+  let acoes=getAcoes();
+  // Update overdue
+  acoes=acoes.map(a=>{
+    if(a.prazo && new Date(a.prazo) < new Date() && a.status==='Pendente') return {...a,status:'Atrasado'};
+    return a;
+  });
+  saveAcoesDB(acoes);
+  
+  const pend=acoes.filter(a=>a.status==='Pendente').length;
+  const andamento=acoes.filter(a=>a.status==='Em Andamento').length;
+  const conc=acoes.filter(a=>a.status==='Concluído').length;
+  const atr=acoes.filter(a=>a.status==='Atrasado').length;
+  document.getElementById('plano-stat-pend').textContent=pend;
+  document.getElementById('plano-stat-and').textContent=andamento;
+  document.getElementById('plano-stat-conc').textContent=conc;
+  document.getElementById('plano-stat-atr').textContent=atr;
+  updateBadge('badge-acoes', pend+atr);
+  
+  if(empFilter) acoes=acoes.filter(a=>a.empresaId===empFilter);
+  if(statusFilter) acoes=acoes.filter(a=>a.status===statusFilter);
+  acoes.sort((a,b)=>{const po={Alta:0,Média:1,Baixa:2};return (po[a.prioridade]||1)-(po[b.prioridade]||1);});
+  
+  const list=document.getElementById('acoes-list');
+  if(!acoes.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📌</div><h3>Nenhuma ação encontrada</h3><p>Ajuste os filtros ou adicione uma nova ação</p></div>';return;}
+  
+  const statusBadge={
+    'Pendente':'<span class="badge badge-amber">⏳ Pendente</span>',
+    'Em Andamento':'<span class="badge badge-blue">🔄 Em Andamento</span>',
+    'Concluído':'<span class="badge badge-green">✅ Concluído</span>',
+    'Atrasado':'<span class="badge badge-red">🚨 Atrasado</span>'
+  };
+  
+  list.innerHTML = acoes.map(a=>`
+    <div class="action-row">
+      <div class="action-priority priority-${a.prioridade==='Alta'?'high':a.prioridade==='Média'?'med':'low'}"></div>
+      <div class="action-info">
+        <div class="action-title">${a.descricao}</div>
+        <div class="action-meta">
+          <span>🏢 ${a.empresaNome}</span>
+          ${a.responsavel?`<span>👤 ${a.responsavel}</span>`:''}
+          ${a.prazo?`<span>📅 ${fmtDate(a.prazo)}</span>`:''}
+        </div>
+        ${a.obs?`<div style="font-size:12px;color:var(--text3);margin-top:4px">${a.obs}</div>`:''}
+      </div>
+      <div class="action-status">
+        ${statusBadge[a.status]||''}
+        <button class="btn btn-sm btn-secondary" onclick="editAcao('${a.id}')">✏</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteAcao('${a.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// === ACOMPANHAMENTOS ===
+function getAcomps() { return DB.get('acompanhamentos'); }
+function saveAcompsDB(arr) { DB.set('acompanhamentos', arr); }
+
+function populateAcompEmpresaSelect() {
+  const sel=document.getElementById('acomp-empresa');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Selecione a empresa</option>'+getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  sel.value=prev;
+}
+
+function saveAcomp() {
+  const empId=document.getElementById('acomp-empresa').value;
+  if(!empId){showToast('Selecione a empresa','error');return;}
+  const editId=document.getElementById('acomp-edit-id').value;
+  const acomps=getAcomps();
+  const empresa=getEmpresas().find(e=>e.id===empId);
+  
+  const acomp={
+    id:editId||uid(),
+    empresaId:empId, empresaNome:empresa?.razao||'',
+    data:document.getElementById('acomp-data').value||new Date().toISOString().split('T')[0],
+    acao:document.getElementById('acomp-acao').value.trim(),
+    responsavel:document.getElementById('acomp-responsavel').value.trim(),
+    resultado:document.getElementById('acomp-resultado').value,
+    evidencias:document.getElementById('acomp-evidencias').value.trim(),
+    proximo:document.getElementById('acomp-proximo').value.trim(),
+    createdAt:editId?(acomps.find(a=>a.id===editId)||{}).createdAt:nowISO(),
+    updatedAt:nowISO()
+  };
+  
+  if(editId){const idx=acomps.findIndex(a=>a.id===editId);if(idx>=0)acomps[idx]=acomp;}
+  else acomps.push(acomp);
+  saveAcompsDB(acomps);
+  closeModal('modal-acomp');
+  document.getElementById('acomp-edit-id').value='';
+  renderAcomp(); renderAcompResumo();
+  addActivity(`Acompanhamento registrado: ${empresa?.razao||''}`, acomp.resultado);
+  showToast('Acompanhamento salvo!','success');
+}
+
+function deleteAcomp(id) {
+  showConfirm('Excluir registro?','Este acompanhamento será removido permanentemente.','🗑',()=>{
+    saveAcompsDB(getAcomps().filter(a=>a.id!==id));
+    renderAcomp(); renderAcompResumo();
+    showToast('Registro excluído.','success');
+  });
+}
+
+function renderAcomp() {
+  const acomps=getAcomps().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const tbody=document.getElementById('acomp-tbody');
+  if(!acomps.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhum acompanhamento registrado</td></tr>';return;}
+  const rBadge={
+    'Positivo — Ação implantada':'badge-green',
+    'Parcial — Em andamento':'badge-amber',
+    'Negativo — Não realizado':'badge-red'
+  };
+  tbody.innerHTML=acomps.map(a=>`
+    <tr>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtDate(a.data)}</td>
+      <td>${a.empresaNome}</td>
+      <td>${a.acao||'—'}</td>
+      <td>${a.responsavel||'—'}</td>
+      <td><span class="badge ${rBadge[a.resultado]||'badge-gray'}">${(a.resultado||'').split(' — ')[0]}</span></td>
+      <td>${a.proximo||'—'}</td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-sm btn-danger" onclick="deleteAcomp('${a.id}')">🗑</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function renderAcompResumo() {
+  const quests=getQuestionarios();
+  const empresas=getEmpresas();
+  const container=document.getElementById('acomp-empresa-resumo');
+  if(!empresas.length||!quests.length){
+    container.innerHTML='<div class="empty-state" style="padding:20px"><p>Cadastre empresas e avaliações para ver evolução</p></div>';
+    return;
+  }
+  const empresasComAval=empresas.filter(e=>quests.some(q=>q.empresaId===e.id));
+  container.innerHTML=`<div style="display:flex;flex-direction:column;gap:12px">`+
+    empresasComAval.map(e=>{
+      const eQuests=quests.filter(q=>q.empresaId===e.id);
+      const avg=eQuests.reduce((a,q)=>a+q.score,0)/eQuests.length;
+      const color=avg>=8?'green':avg>=6?'amber':avg>=4?'red':'red';
+      const label=avg>=8?'Baixo':avg>=6?'Médio':avg>=4?'Alto':'Crítico';
+      return `<div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:13px">${e.razao}</span>
+          <span style="font-size:12px;color:var(--${color})">${label} → ${avg.toFixed(1)}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill ${color}" style="width:${avg*10}%"></div></div>
+      </div>`;
+    }).join('')+'</div>';
+}
+
+// === DASHBOARD ===
+function refreshDashboard() {
+  const empresas=getEmpresas();
+  const colabs=getColabs();
+  const quests=getQuestionarios();
+  const acoes=getAcoes();
+  const riscos=getRiscos();
+  
+  document.getElementById('stat-empresas').textContent=empresas.length;
+  document.getElementById('stat-colab').textContent=colabs.length;
+  document.getElementById('stat-aval').textContent=quests.length;
+  const pendAcoes=acoes.filter(a=>a.status==='Pendente'||a.status==='Atrasado').length;
+  document.getElementById('stat-acoes').textContent=pendAcoes;
+  const critRiscos=riscos.filter(r=>r.nivel==='Crítico').length;
+  document.getElementById('stat-riscos').textContent=critRiscos;
+  document.getElementById('dash-date').textContent='Atualizado '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  
+  // Risco legend
+  const nCrit=riscos.filter(r=>r.nivel==='Crítico').length;
+  const nAlto=riscos.filter(r=>r.nivel==='Alto').length;
+  const nMed=riscos.filter(r=>r.nivel==='Médio').length;
+  const nBaixo=riscos.filter(r=>r.nivel==='Baixo').length;
+  document.getElementById('leg-crit').textContent=nCrit;
+  document.getElementById('leg-alto').textContent=nAlto;
+  document.getElementById('leg-med').textContent=nMed;
+  document.getElementById('leg-baixo').textContent=nBaixo;
+  
+  // Recent companies
+  const tbody=document.getElementById('dash-empresas-tbody');
+  if(!empresas.length){tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:20px">Nenhuma empresa cadastrada</td></tr>';}
+  else {
+    const rNiv={};
+    riscos.forEach(r=>{if(!rNiv[r.empresaId]||r.score>rNiv[r.empresaId])rNiv[r.empresaId]=r.score;});
+    tbody.innerHTML=empresas.slice(-5).reverse().map(e=>{
+      const s=rNiv[e.id];
+      const nb=s>=12?'badge-purple':s>=8?'badge-red':s>=5?'badge-amber':s?'badge-blue':'badge-gray';
+      const nl=s>=12?'Crítico':s>=8?'Alto':s>=5?'Médio':s?'Baixo':'—';
+      return `<tr onclick="showPage('empresas')"><td><b style="font-size:13px">${e.razao}</b><br><span style="font-size:11px;color:var(--text3)">${e.cnpj||''}</span></td><td>${colabs.filter(c=>c.empresaId===e.id).length}</td><td><span class="badge ${nb}">${nl}</span></td></tr>`;
+    }).join('');
+  }
+  
+  // Charts
+  updateRiscoChart(nCrit,nAlto,nMed,nBaixo);
+  updateEvolucaoChart(quests);
+}
+
+function renderActivityTimeline() {
+  const logs=activityLog.slice(0,8);
+  const el=document.getElementById('activity-timeline');
+  if(!logs.length){el.innerHTML='<div class="timeline-item active"><div class="timeline-date">Agora</div><div class="timeline-text">Sistema iniciado</div></div>';return;}
+  el.innerHTML=logs.map((l,i)=>`
+    <div class="timeline-item ${i===0?'active':'done'}">
+      <div class="timeline-date">${l.date}</div>
+      <div class="timeline-text">${l.text}</div>
+      ${l.sub?`<div class="timeline-sub">${l.sub}</div>`:''}
+    </div>`).join('');
+}
+
+// === CHARTS ===
+function initCharts() {
+  // Evolução line chart
+  const ctx1=document.getElementById('chart-evolucao');
+  if(ctx1) {
+    chartEvolucao=new Chart(ctx1,{type:'line',data:{labels:['Jan','Fev','Mar','Abr','Mai','Jun'],datasets:[{label:'Avaliações',data:[0,0,0,0,0,0],borderColor:'#4f7cff',backgroundColor:'rgba(79,124,255,0.08)',fill:true,tension:.4,pointBackgroundColor:'#4f7cff',pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9aa3be',font:{size:12,family:'DM Sans'}}}},scales:{x:{ticks:{color:'#5a6480',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#5a6480',font:{size:11}},grid:{color:'rgba(255,255,255,0.04)'}}}}});
+  }
+  
+  // Riscos doughnut
+  const ctx2=document.getElementById('chart-riscos');
+  if(ctx2) {
+    chartRiscos=new Chart(ctx2,{type:'doughnut',data:{labels:['Crítico','Alto','Médio','Baixo'],datasets:[{data:[0,0,0,0],backgroundColor:['rgba(167,139,250,0.8)','rgba(255,85,85,0.8)','rgba(245,165,36,0.8)','rgba(34,208,122,0.8)'],borderColor:['#1e2436'],borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}});
+  }
+  
+  // Radar
+  const ctx3=document.getElementById('chart-radar');
+  if(ctx3) {
+    chartRadar=new Chart(ctx3,{type:'radar',data:{labels:['Org. Trabalho','Carga/Ritmo','Relações','Reconhecimento','Autonomia','Violência','Saúde'],datasets:[{label:'Score atual',data:[5,5,5,5,5,5,5],backgroundColor:'rgba(79,124,255,0.15)',borderColor:'#4f7cff',pointBackgroundColor:'#4f7cff',pointRadius:4},{label:'Meta (7.0)',data:[7,7,7,7,7,7,7],backgroundColor:'rgba(34,208,122,0.05)',borderColor:'rgba(34,208,122,0.5)',pointBackgroundColor:'#22d07a',pointRadius:3,borderDash:[4,4]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9aa3be',font:{size:11,family:'DM Sans'}}}},scales:{r:{ticks:{color:'#5a6480',backdropColor:'transparent',font:{size:10}},grid:{color:'rgba(255,255,255,0.06)'},pointLabels:{color:'#9aa3be',font:{size:11,family:'DM Sans'}},min:0,max:10}}}});
+  }
+}
+
+function updateRiscoChart(crit,alto,med,baixo) {
+  if(!chartRiscos) return;
+  chartRiscos.data.datasets[0].data=[crit,alto,med,baixo];
+  chartRiscos.update();
+}
+
+function updateEvolucaoChart(quests) {
+  if(!chartEvolucao) return;
+  const now=new Date();
+  const months=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const labels=[];
+  const counts=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    labels.push(months[d.getMonth()]);
+    const c=quests.filter(q=>{const qd=new Date(q.createdAt);return qd.getMonth()===d.getMonth()&&qd.getFullYear()===d.getFullYear();}).length;
+    counts.push(c);
+  }
+  chartEvolucao.data.labels=labels;
+  chartEvolucao.data.datasets[0].data=counts;
+  chartEvolucao.update();
+}
+
+function updateRadarChart(quests) {
+  if(!chartRadar) return;
+  const allDims={};
+  quests.forEach(q=>{Object.entries(q.dimScores||{}).forEach(([d,s])=>{if(!allDims[d])allDims[d]=[];allDims[d].push(s);});});
+  const dims=['Organização do Trabalho','Carga e Ritmo','Relações Interpessoais','Reconhecimento','Autonomia','Violência e Assédio','Saúde e Bem-estar'];
+  const scores=dims.map(d=>allDims[d]?allDims[d].reduce((a,b)=>a+b,0)/allDims[d].length:5);
+  chartRadar.data.datasets[0].data=scores;
+  chartRadar.update();
+}
+
+// === RELATÓRIOS ===
+function renderRelatorios() {
+  const container=document.getElementById('relatorios-gerados-list');
+  relatoriosGerados=DB.get('relatorios_gerados');
+  if(!relatoriosGerados.length){
+    container.innerHTML='<div class="empty-state" style="padding:40px 20px"><div class="empty-icon">📄</div><h3>Nenhum relatório gerado ainda</h3><p>Use os modelos ao lado para gerar relatórios</p></div>';
+    return;
+  }
+  container.innerHTML=relatoriosGerados.slice(0,10).map(r=>`
+    <div class="report-item">
+      <div class="report-icon" style="background:var(--accent-glow);color:var(--accent)">${r.icon||'📄'}</div>
+      <div class="report-info"><div class="report-name">${r.name}</div><div class="report-meta">Gerado em ${r.date} · ${r.format}</div></div>
+    </div>`).join('');
+}
+
+function logRelatorio(name,format,icon='📄'){
+  relatoriosGerados.unshift({name,format,icon,date:fmtDateTime(nowISO())});
+  if(relatoriosGerados.length>20)relatoriosGerados=relatoriosGerados.slice(0,20);
+  DB.set('relatorios_gerados',relatoriosGerados);
+  if(document.getElementById('page-relatorios').classList.contains('active'))renderRelatorios();
+}
+
+function generateFromModal(){
+  closeModal('modal-relatorio');
+  const tipo=document.getElementById('rel-tipo').value;
+  const fmt=document.getElementById('rel-formato').value;
+  if(fmt==='PDF'){
+    if(tipo.includes('Empresa')) generateEmpresasPDF();
+    else if(tipo.includes('Risco')) generateRiscosPDF();
+    else if(tipo.includes('Plano')||tipo.includes('Ação')) generatePlanoPDF();
+    else if(tipo.includes('Colaborador')) generateColabPDF();
+    else if(tipo.includes('Completo')) generateFullPDF();
+    else generateDiagPDF();
+  } else {
+    if(tipo.includes('Empresa')) exportEmpresasExcel();
+    else if(tipo.includes('Risco')) exportRiscosExcel();
+    else if(tipo.includes('Plano')||tipo.includes('Ação')) exportAcoesExcel();
+    else if(tipo.includes('Colaborador')) exportColabExcel();
+    else exportAllExcel();
+  }
+}
+
+// === PDF GENERATION ===
+const {jsPDF}=window.jspdf;
+
+function pdfHeader(doc, title, sub='') {
+  const config=DB.getObj('rel_config');
+  const consultorNome=config.nome||'NR1 Psicossocial — Sistema de Gestão';
+  const consultorSub=config.sub||'Avaliação de Riscos Psicossociais — NR1/2025';
+  doc.setFillColor(15,17,23);
+  doc.rect(0,0,210,30,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(16);doc.setFont('helvetica','bold');
+  doc.text('🛡 NR1 PSICOSSOCIAL',14,12);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');
+  doc.text(consultorNome,14,19);
+  doc.setFontSize(8);doc.setTextColor(154,163,190);
+  doc.text(`Gerado em: ${fmtDateTime(nowISO())}`,140,19,{align:'right'});
+  doc.setTextColor(30,30,30);
+  doc.setFontSize(14);doc.setFont('helvetica','bold');
+  doc.text(title,14,42);
+  if(sub){doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);doc.text(sub,14,49);}
+  return sub?55:48;
+}
+
+function pdfFooter(doc) {
+  const pages=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pages;i++){
+    doc.setPage(i);
+    doc.setFillColor(240,240,245);
+    doc.rect(0,287,210,10,'F');
+    doc.setFontSize(7);doc.setTextColor(100,100,100);
+    doc.text('NR1 Psicossocial — Sistema de Gestão de Riscos Psicossociais',14,293);
+    doc.text(`Página ${i} de ${pages}`,196,293,{align:'right'});
+  }
+}
+
+function generateEmpresasPDF(){
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'Relatório de Empresas','Dados cadastrais e colaboradores');
+  const empresas=getEmpresas();
+  const colabs=getColabs();
+  if(!empresas.length){doc.setFontSize(11);doc.setTextColor(100);doc.text('Nenhuma empresa cadastrada.',14,y+10);}
+  else {
+    empresas.forEach((e,i)=>{
+      if(y>260){doc.addPage();y=pdfHeader(doc,'Relatório de Empresas (cont.)');}
+      doc.setFillColor(240,244,255);doc.rect(12,y,186,8,'F');
+      doc.setFontSize(11);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+      doc.text(e.razao,14,y+5.5);y+=10;
+      doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
+      const fields=[
+        `CNPJ: ${e.cnpj||'—'}  |  CNAE: ${e.cnae||'—'}  |  Segmento: ${e.segmento||'—'}`,
+        `Responsável: ${e.responsavel||'—'}  |  Cargo: ${e.cargo||'—'}`,
+        `Cidade: ${e.cidade||'—'}, ${e.estado||'—'}  |  Colaboradores: ${colabs.filter(c=>c.empresaId===e.id).length}`,
+        e.tel||e.email?`Contato: ${e.tel||''} ${e.email||''}`:''
+      ].filter(Boolean);
+      fields.forEach(f=>{doc.text(f,14,y);y+=5;});
+      y+=4;
+    });
+  }
+  pdfFooter(doc);
+  doc.save('empresas_nr1.pdf');
+  logRelatorio('Relatório de Empresas','PDF','🏢');
+  showToast('PDF de Empresas gerado!','success');
+}
+
+function generateColabPDF(){
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'Relatório de Colaboradores');
+  const colabs=getColabs();
+  if(!colabs.length){doc.setFontSize(11);doc.setTextColor(100);doc.text('Nenhum colaborador cadastrado.',14,y+10);}
+  else {
+    doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(80,80,80);
+    doc.text('NOME',14,y);doc.text('CPF',80,y);doc.text('EMPRESA',110,y);doc.text('SETOR',155,y);doc.text('FUNÇÃO',180,y);
+    y+=4;doc.setDrawColor(200);doc.line(12,y,198,y);y+=3;
+    doc.setFont('helvetica','normal');
+    colabs.forEach(c=>{
+      if(y>275){doc.addPage();y=pdfHeader(doc,'Colaboradores (cont.)')+5;}
+      doc.text((c.nome||'').slice(0,28),14,y);
+      doc.text((c.cpf||'—').slice(0,15),80,y);
+      doc.text((c.empresaNome||'—').slice(0,20),110,y);
+      doc.text((c.setor||'—').slice(0,12),155,y);
+      doc.text((c.funcao||'—').slice(0,15),180,y);
+      y+=5;
+    });
+  }
+  pdfFooter(doc);
+  doc.save('colaboradores_nr1.pdf');
+  logRelatorio('Relatório de Colaboradores','PDF','👥');
+  showToast('PDF de Colaboradores gerado!','success');
+}
+
+function generateRiscosPDF(){
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'Relatório de Riscos Psicossociais','Matriz de riscos e medidas de controle');
+  const riscos=getRiscos().sort((a,b)=>b.score-a.score);
+  if(!riscos.length){doc.setFontSize(11);doc.setTextColor(100);doc.text('Nenhum risco registrado.',14,y+10);}
+  else {
+    riscos.forEach((r,i)=>{
+      if(y>255){doc.addPage();y=pdfHeader(doc,'Relatório de Riscos (cont.)');}
+      const color=r.nivel==='Crítico'?[167,139,250]:r.nivel==='Alto'?[255,85,85]:r.nivel==='Médio'?[245,165,36]:[34,208,122];
+      doc.setFillColor(...color,40);
+      doc.rect(12,y,4,20,'F');
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+      doc.text((r.descricao||r.categoria).slice(0,70),18,y+5);
+      doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
+      doc.text(`${r.empresaNome} · ${r.setor||'Geral'} · Score: ${r.score} (${r.nivel})`,18,y+10);
+      doc.text(`Probabilidade: ${r.probText} · Impacto: ${r.impText} · Status: ${r.status}`,18,y+15);
+      if(r.medidas) doc.text('Medidas: '+r.medidas.slice(0,80),18,y+19);
+      y+=24;
+    });
+  }
+  pdfFooter(doc);
+  doc.save('riscos_nr1.pdf');
+  logRelatorio('Relatório de Riscos','PDF','⚠️');
+  showToast('PDF de Riscos gerado!','success');
+}
+
+function generatePlanoPDF(){
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'Plano de Ação NR1','Medidas corretivas e preventivas');
+  const acoes=getAcoes().sort((a,b)=>{const p={Alta:0,Média:1,Baixa:2};return(p[a.prioridade]||1)-(p[b.prioridade]||1);});
+  if(!acoes.length){doc.setFontSize(11);doc.setTextColor(100);doc.text('Nenhuma ação cadastrada.',14,y+10);}
+  else {
+    acoes.forEach((a,i)=>{
+      if(y>260){doc.addPage();y=pdfHeader(doc,'Plano de Ação (cont.)');}
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+      doc.text(`${i+1}. ${a.descricao.slice(0,80)}`,14,y);y+=5;
+      doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
+      doc.text(`Empresa: ${a.empresaNome} · Responsável: ${a.responsavel||'—'} · Prazo: ${fmtDate(a.prazo)} · Status: ${a.status} · Prioridade: ${a.prioridade}`,14,y);
+      y+=4;if(a.obs){doc.text('Obs: '+a.obs.slice(0,100),14,y);y+=4;}
+      y+=2;
+    });
+  }
+  pdfFooter(doc);
+  doc.save('plano_acao_nr1.pdf');
+  logRelatorio('Plano de Ação','PDF','📌');
+  showToast('PDF do Plano de Ação gerado!','success');
+}
+
+function generateDiagPDF(){
+  const empId=document.getElementById('diag-empresa-filter')?.value;
+  const doc=new jsPDF();
+  const empresa=empId?getEmpresas().find(e=>e.id===empId):null;
+  let y=pdfHeader(doc,'Diagnóstico Psicossocial NR1', empresa?`Empresa: ${empresa.razao}`:'Todas as empresas');
+  
+  const quests=empId?getQuestionarios().filter(q=>q.empresaId===empId):getQuestionarios();
+  if(!quests.length){
+    doc.setFontSize(11);doc.setTextColor(100);
+    doc.text('Nenhuma avaliação encontrada para gerar diagnóstico.',14,y+10);
+  } else {
+    const avgScore=quests.reduce((a,q)=>a+q.score,0)/quests.length;
+    const allDims={};
+    quests.forEach(q=>Object.entries(q.dimScores||{}).forEach(([d,s])=>{if(!allDims[d])allDims[d]=[];allDims[d].push(s);}));
+    
+    doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+    doc.text(`Total de Avaliações: ${quests.length}`,14,y);
+    doc.text(`Score Médio Geral: ${avgScore.toFixed(2)}/10`,80,y);y+=8;
+    
+    doc.setFontSize(10);doc.text('DIAGNÓSTICO POR DIMENSÃO',14,y);y+=4;
+    doc.setDrawColor(200);doc.line(12,y,198,y);y+=4;
+    
+    Object.entries(allDims).forEach(([dim,scores])=>{
+      if(y>270){doc.addPage();y=pdfHeader(doc,'Diagnóstico (cont.)')+5;}
+      const avg=scores.reduce((a,b)=>a+b,0)/scores.length;
+      const nivel=avg>=8?'Baixo':avg>=6?'Moderado':avg>=4?'Alto':'Crítico';
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+      doc.text(dim,14,y);
+      doc.setFont('helvetica','normal');
+      doc.text(`Score: ${avg.toFixed(1)}/10`,100,y);
+      doc.text(`Nível: ${nivel}`,145,y);
+      y+=5;
+      // mini bar
+      doc.setFillColor(230,230,240);doc.rect(14,y,120,3,'F');
+      const fill=avg>=8?[34,208,122]:avg>=6?[79,124,255]:avg>=4?[245,165,36]:[255,85,85];
+      doc.setFillColor(...fill);doc.rect(14,y,avg*12,3,'F');
+      y+=7;
+    });
+  }
+  pdfFooter(doc);
+  doc.save(`diagnostico_nr1${empresa?'_'+empresa.razao.slice(0,20):''}.pdf`);
+  logRelatorio('Diagnóstico Psicossocial NR1','PDF','📋');
+  showToast('PDF do Diagnóstico gerado!','success');
+}
+
+function generateFullPDF(){
+  const doc=new jsPDF();
+  let y=pdfHeader(doc,'Relatório Completo NR1','Diagnóstico · Riscos · Plano de Ação');
+  const empresas=getEmpresas();const colabs=getColabs();const riscos=getRiscos();const acoes=getAcoes();const quests=getQuestionarios();
+  
+  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+  doc.text('RESUMO EXECUTIVO',14,y);y+=5;
+  doc.setDrawColor(200);doc.line(12,y,198,y);y+=4;
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(60,60,60);
+  doc.text(`Empresas avaliadas: ${empresas.length}`,14,y);y+=4;
+  doc.text(`Total de colaboradores: ${colabs.length}`,14,y);y+=4;
+  doc.text(`Avaliações realizadas: ${quests.length}`,14,y);y+=4;
+  doc.text(`Riscos identificados: ${riscos.length} (${riscos.filter(r=>r.nivel==='Crítico').length} críticos)`,14,y);y+=4;
+  doc.text(`Ações no plano: ${acoes.length} (${acoes.filter(a=>a.status==='Pendente').length} pendentes)`,14,y);y+=10;
+  
+  // Empresas
+  if(empresas.length){
+    doc.addPage();y=pdfHeader(doc,'Empresas Cadastradas')+5;
+    empresas.forEach((e,i)=>{
+      if(y>270){doc.addPage();y=15;}
+      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+      doc.text(`${i+1}. ${e.razao}`,14,y);y+=4;
+      doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
+      doc.text(`${e.cnpj||''}  ${e.segmento||''}  ${e.cidade||''}, ${e.estado||''}  Colab: ${colabs.filter(c=>c.empresaId===e.id).length}`,14,y);y+=6;
+    });
+  }
+  
+  // Riscos
+  if(riscos.length){
+    doc.addPage();y=pdfHeader(doc,'Riscos Psicossociais')+5;
+    riscos.sort((a,b)=>b.score-a.score).forEach((r,i)=>{
+      if(y>270){doc.addPage();y=15;}
+      doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
+      doc.text(`${i+1}. ${(r.descricao||r.categoria).slice(0,80)}`,14,y);y+=4;
+      doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
+      doc.text(`${r.empresaNome} · Score: ${r.score} (${r.nivel}) · ${r.status}`,14,y);y+=6;
+    });
+  }
+  
+  pdfFooter(doc);
+  doc.save('relatorio_completo_nr1.pdf');
+  logRelatorio('Relatório Completo NR1','PDF','📊');
+  showToast('PDF Completo gerado!','success');
+}
+
+// === EXCEL EXPORT ===
+function exportEmpresasExcel(){
+  const empresas=getEmpresas();
+  const colabs=getColabs();
+  if(!empresas.length){showToast('Nenhuma empresa cadastrada','error');return;}
+  const ws=XLSX.utils.json_to_sheet(empresas.map(e=>({
+    'Razão Social':e.razao,'Nome Fantasia':e.fantasia||'','CNPJ':e.cnpj||'','CNAE':e.cnae||'',
+    'Segmento':e.segmento||'','Colaboradores':colabs.filter(c=>c.empresaId===e.id).length,
+    'Responsável':e.responsavel||'','Cargo':e.cargo||'','Telefone':e.tel||'','E-mail':e.email||'',
+    'Cidade':e.cidade||'','Estado':e.estado||'','Endereço':e.endereco||'','Obs':e.obs||''
+  })));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Empresas');
+  XLSX.writeFile(wb,'empresas_nr1.xlsx');
+  logRelatorio('Relatório de Empresas','Excel','🏢');
+  showToast('Excel de Empresas exportado!','success');
+}
+
+function exportColabExcel(){
+  const colabs=getColabs();
+  if(!colabs.length){showToast('Nenhum colaborador cadastrado','error');return;}
+  const ws=XLSX.utils.json_to_sheet(colabs.map(c=>({
+    'Nome':c.nome,'CPF':c.cpf||'','Empresa':c.empresaNome||'','Setor':c.setor||'',
+    'Função':c.funcao||'','Tempo de Empresa':c.tempo||'','Jornada':c.jornada||'',
+    'Tipo':c.tipo||'','Descrição da Função':c.descFuncao||'','Ambiente':c.ambiente||''
+  })));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Colaboradores');
+  XLSX.writeFile(wb,'colaboradores_nr1.xlsx');
+  logRelatorio('Relatório de Colaboradores','Excel','👥');
+  showToast('Excel de Colaboradores exportado!','success');
+}
+
+function exportRiscosExcel(){
+  const riscos=getRiscos();
+  if(!riscos.length){showToast('Nenhum risco cadastrado','error');return;}
+  const ws=XLSX.utils.json_to_sheet(riscos.sort((a,b)=>b.score-a.score).map(r=>({
+    'Risco':r.descricao||r.categoria,'Empresa':r.empresaNome,'Setor':r.setor||'Geral',
+    'Categoria':r.categoria,'Probabilidade':r.probText,'Impacto':r.impText,
+    'Score':r.score,'Nível':r.nivel,'Status':r.status,'Medidas':r.medidas||''
+  })));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Riscos');
+  XLSX.writeFile(wb,'riscos_nr1.xlsx');
+  logRelatorio('Relatório de Riscos','Excel','⚠️');
+  showToast('Excel de Riscos exportado!','success');
+}
+
+function exportAcoesExcel(){
+  const acoes=getAcoes();
+  if(!acoes.length){showToast('Nenhuma ação cadastrada','error');return;}
+  const ws=XLSX.utils.json_to_sheet(acoes.map(a=>({
+    'Ação':a.descricao,'Empresa':a.empresaNome,'Responsável':a.responsavel||'—',
+    'Prazo':fmtDate(a.prazo),'Prioridade':a.prioridade,'Status':a.status,'Observações':a.obs||''
+  })));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Plano de Ação');
+  XLSX.writeFile(wb,'plano_acao_nr1.xlsx');
+  logRelatorio('Plano de Ação','Excel','📌');
+  showToast('Excel do Plano de Ação exportado!','success');
+}
+
+function exportQuestionariosExcel(){
+  const quests=getQuestionarios();
+  if(!quests.length){showToast('Nenhuma avaliação realizada','error');return;}
+  const ws=XLSX.utils.json_to_sheet(quests.map(q=>({
+    'Data':fmtDate(q.data),'Empresa':q.empresaNome,'Setor':q.setor||'Geral',
+    'Colaborador':q.colabNome||'Geral','Score':q.score,'Questões':q.questionsCount,'Respondidas':q.answeredCount
+  })));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Avaliações');
+  XLSX.writeFile(wb,'avaliacoes_nr1.xlsx');
+  showToast('Excel de Avaliações exportado!','success');
+}
+
+function exportAllExcel(){
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(getEmpresas().map(e=>({Empresa:e.razao,CNPJ:e.cnpj,Segmento:e.segmento,Cidade:e.cidade,Estado:e.estado}))),'Empresas');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(getColabs().map(c=>({Nome:c.nome,CPF:c.cpf,Empresa:c.empresaNome,Setor:c.setor,Função:c.funcao}))),'Colaboradores');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(getRiscos().map(r=>({Risco:r.descricao,Empresa:r.empresaNome,Score:r.score,Nível:r.nivel,Status:r.status}))),'Riscos');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(getAcoes().map(a=>({Ação:a.descricao,Empresa:a.empresaNome,Responsável:a.responsavel,Prazo:fmtDate(a.prazo),Status:a.status}))),'Plano de Ação');
+  XLSX.writeFile(wb,'relatorio_completo_nr1.xlsx');
+  logRelatorio('Relatório Completo NR1','Excel','📊');
+  showToast('Excel completo exportado!','success');
+}
+
+// === CONFIGURAÇÕES ===
+function loadPerfil(){
+  const cfg=DB.getObj('rel_config');
+  document.getElementById('config-rel-nome').value=cfg.nome||'';
+  document.getElementById('config-rel-sub').value=cfg.sub||'';
+  if(currentUser){
+    document.getElementById('config-nome').value=currentUser.name||'';
+    document.getElementById('config-email').value=currentUser.email||'';
+  }
+}
+
+function saveRelConfig(){
+  DB.setObj('rel_config',{
+    nome:document.getElementById('config-rel-nome').value.trim(),
+    sub:document.getElementById('config-rel-sub').value.trim()
+  });
+  showToast('Configurações salvas!','success');
+}
+
+function savePerfil(){
+  const nome=document.getElementById('config-nome').value.trim();
+  if(!nome){showToast('Nome é obrigatório','error');return;}
+  const users=DB.get('users');
+  const idx=users.findIndex(u=>u.id===currentUser.id);
+  if(idx>=0){users[idx].name=nome;DB.set('users',users);currentUser.name=nome;DB.setObj('session',{...DB.getObj('session'),name:nome});}
+  updateUserDisplay(currentUser);
+  showToast('Perfil atualizado!','success');
+}
+
+function changePassword(){
+  const np=document.getElementById('new-pass').value;
+  const cp=document.getElementById('conf-pass').value;
+  if(!np||!cp){showToast('Preencha ambos os campos','error');return;}
+  if(np.length<6){showToast('Senha deve ter no mínimo 6 caracteres','error');return;}
+  if(np!==cp){showToast('As senhas não coincidem','error');return;}
+  const users=DB.get('users');
+  const idx=users.findIndex(u=>u.id===currentUser.id);
+  if(idx>=0){users[idx].pass=btoa(np);DB.set('users',users);}
+  document.getElementById('new-pass').value='';
+  document.getElementById('conf-pass').value='';
+  showToast('Senha alterada com sucesso!','success');
+}
+
+function exportAllData(){
+  const data={
+    empresas:getEmpresas(),colaboradores:getColabs(),riscos:getRiscos(),
+    acoes:getAcoes(),questionarios:getQuestionarios(),acompanhamentos:getAcomps(),
+    exportedAt:nowISO()
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup_nr1.json';a.click();
+  showToast('Backup exportado!','success');
+}
+
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.empresas)DB.set('empresas',data.empresas);
+      if(data.colaboradores)DB.set('colaboradores',data.colaboradores);
+      if(data.riscos)DB.set('riscos',data.riscos);
+      if(data.acoes)DB.set('acoes',data.acoes);
+      if(data.questionarios)DB.set('questionarios',data.questionarios);
+      if(data.acompanhamentos)DB.set('acompanhamentos',data.acompanhamentos);
+      refreshDashboard();renderEmpresas();renderColabs();renderRiscos();renderAcoes();
+      showToast('Dados importados com sucesso!','success');
+    }catch(err){showToast('Arquivo inválido ou corrompido','error');}
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData(){
+  showConfirm('Limpar todos os dados?','Esta ação é IRREVERSÍVEL. Todos os dados serão apagados permanentemente.','⚠️',()=>{
+    ['empresas','colaboradores','questionarios','riscos','acoes','acompanhamentos','activity_log','relatorios_gerados'].forEach(k=>DB.set(k,[]));
+    activityLog=[];relatoriosGerados=[];
+    refreshDashboard();renderEmpresas();renderColabs();renderRiscos();renderAcoes();
+    showToast('Dados limpos com sucesso.','success');
+  });
+}
+
+// === BADGES ===
+function updateBadge(id,count,green=false){
+  const el=document.getElementById(id);if(!el)return;
+  el.textContent=count;
+  if(green){el.style.background='var(--green-bg)';el.style.color='var(--green)';}
+}
+
+// === GLOBAL SEARCH ===
+function globalSearch(q){
+  if(!q||q.length<2)return;
+  const term=q.toLowerCase();
+  const emp=getEmpresas().find(e=>e.razao?.toLowerCase().includes(term)||e.cnpj?.includes(term));
+  if(emp){showPage('empresas');setTimeout(()=>filterEmpresas(q),100);}
+  else{const c=getColabs().find(c=>c.nome?.toLowerCase().includes(term));if(c)showPage('colaboradores');}
+}
+
+// === RESPONSIVE ===
+function checkMobile(){
+  const isMobile=window.innerWidth<=768;
+  document.getElementById('menu-toggle').style.display=isMobile?'flex':'none';
+}
+
+// === INIT ===
+function initApp(){
+  document.getElementById('dash-date').textContent='Atualizado '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  initCharts();
+  refreshDashboard();
+  renderActivityTimeline();
+  // Show firebase banner if not configured
+  const cfg=DB.getObj('firebase_config');
+  if(!cfg.apiKey) document.getElementById('firebase-banner').classList.add('show');
+  // Load preferences
+  loadPerfil();
+  // Populate quest selects
+  populateQuestSelects();
+  renderQuestComp();
+  // Init date field
+  document.getElementById('quest-data').value=new Date().toISOString().split('T')[0];
+  document.getElementById('acomp-data').value=new Date().toISOString().split('T')[0];
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+    document.getElementById('confirm-overlay').classList.remove('open');
+    if(window.innerWidth<=768)document.getElementById('sidebar').classList.remove('open');
+  }
+});
+
+window.addEventListener('resize',checkMobile);
+
+// AUTO-LOGIN if session exists
+window.addEventListener('load',()=>{
+  checkMobile();
+  if(checkSession()){
+    updateUserDisplay(currentUser);
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').style.opacity='1';
+    document.getElementById('app').classList.add('visible');
+    initApp();
+  } else {
+    const cfg=DB.getObj('firebase_config');
+    if(!cfg.apiKey) document.getElementById('firebase-banner').classList.add('show');
+  }
+});
+</script>
+</body>
+</html>
