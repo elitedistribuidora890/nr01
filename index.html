@@ -10,6 +10,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Firebase SDKs (UMD - embutidos, sem import dinâmico) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- PDF.js para leitura de PDFs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -360,6 +365,22 @@ select.field option{background:var(--bg2)}
 .config-field label{display:block;font-size:11px;color:var(--text3);margin-bottom:4px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.5px}
 .config-field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px;color:var(--text);font-size:13px;font-family:'DM Mono',monospace}
 .config-field input:focus{outline:none;border-color:var(--accent)}
+
+/* NOTIFICATION PANEL */
+.notif-panel{position:fixed;top:68px;right:16px;width:340px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r3);box-shadow:0 16px 48px rgba(0,0,0,.5);z-index:300;display:none;overflow:hidden}
+.notif-panel.open{display:block}
+.notif-panel-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.notif-panel-title{font-size:14px;font-weight:600}
+.notif-list{max-height:360px;overflow-y:auto}
+.notif-item{display:flex;align-items:flex-start;gap:12px;padding:13px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.notif-item:hover{background:var(--bg3)}
+.notif-item:last-child{border-bottom:none}
+.notif-item.unread{background:var(--accent-glow)}
+.notif-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.notif-content{flex:1;min-width:0}
+.notif-text{font-size:13px;line-height:1.4;margin-bottom:2px}
+.notif-time{font-size:11px;color:var(--text3)}
+.notif-empty{padding:32px;text-align:center;color:var(--text3);font-size:13px}
 </style>
 </head>
 <body>
@@ -376,7 +397,7 @@ select.field option{background:var(--bg2)}
   </div>
 
   <div id="firebase-banner" class="firebase-banner">
-    ⚠️ <strong>Firebase não configurado.</strong> O sistema está funcionando em modo local (dados salvos no navegador). <a onclick="openModal('modal-firebase')">Configurar Firebase</a> para persistência em nuvem.
+    ⚠️ <strong>Firebase não conectado.</strong> O sistema está funcionando em modo local (dados salvos no navegador). Para ativar, preencha <code>FIREBASE_CONFIG</code> no início do código.
   </div>
 
   <div id="login-form">
@@ -481,8 +502,10 @@ select.field option{background:var(--bg2)}
         <div class="user-name" id="user-name-display" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Usuário</div>
         <div class="user-role" id="user-email-display" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">email</div>
       </div>
-      <div class="btn-icon" style="width:28px;height:28px;font-size:13px" onclick="doLogout()" title="Sair">↩</div>
     </div>
+    <button class="btn btn-danger" style="width:100%;margin-top:8px;justify-content:center;font-size:13px" onclick="doLogout()">
+      ↩ Sair do sistema
+    </button>
   </div>
 </aside>
 
@@ -492,8 +515,8 @@ select.field option{background:var(--bg2)}
     <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()" style="display:none">☰</button>
     <span class="topbar-title" id="topbar-title">Dashboard</span>
     <input type="text" class="topbar-search" id="global-search" placeholder="🔍  Buscar empresa, colaborador..." oninput="globalSearch(this.value)">
-    <div class="btn-icon topbar-notif" id="notif-btn" title="Notificações">🔔<span class="notif-dot" id="notif-dot"></span></div>
-    <div class="btn-icon" onclick="openModal('modal-firebase')" title="Configurar Firebase">🔧</div>
+    <div class="btn-icon topbar-notif" id="notif-btn" onclick="toggleNotifPanel()" title="Notificações">🔔<span class="notif-dot" id="notif-dot" style="display:none"></span></div>
+    <div class="btn-icon" onclick="openModal('modal-pdf-import')" title="Importar PDF">📥</div>
   </div>
 
   <!-- DASHBOARD PAGE -->
@@ -960,11 +983,15 @@ select.field option{background:var(--bg2)}
       </div>
       <div>
         <div class="card" style="margin-bottom:16px">
-          <div class="card-header"><span class="card-title">🔧 Integração Firebase</span></div>
+          <div class="card-header"><span class="card-title">☁️ Integração Firebase</span></div>
           <div class="card-body">
-            <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">Configure o Firebase para persistência em nuvem, autenticação real e sincronização entre dispositivos.</p>
-            <button class="btn btn-accent" onclick="openModal('modal-firebase')">⚙️ Configurar Firebase</button>
-            <div id="firebase-status" style="margin-top:12px;font-size:12px;color:var(--text3)">Status: Modo local (localStorage)</div>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">
+              Firebase configurado diretamente no código. Clique em sincronizar para enviar/buscar dados do Firestore.
+            </p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-accent" onclick="syncFromFirebase()">🔄 Sincronizar com Firebase</button>
+            </div>
+            <div id="firebase-status" style="margin-top:12px;font-size:12px;color:var(--text3)">Status: verificando...</div>
           </div>
         </div>
         <div class="card" style="margin-bottom:16px">
@@ -1005,32 +1032,6 @@ select.field option{background:var(--bg2)}
 <!-- MODALS -->
 
 <!-- Modal: Firebase Config -->
-<div class="modal-overlay" id="modal-firebase">
-<div class="modal" id="modal-firebase-inner">
-  <div class="modal-header">
-    <span class="modal-title">🔧 Configurar Firebase</span>
-    <button class="btn-close" onclick="closeModal('modal-firebase')">✕</button>
-  </div>
-  <div class="modal-body">
-    <p style="font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6">
-      Para usar o Firebase, crie um projeto em <strong style="color:var(--accent)">console.firebase.google.com</strong>, ative Authentication (Email/Password) e Firestore, e cole as credenciais abaixo.
-    </p>
-    <div class="config-field"><label>API Key</label><input class="field" id="fb-apikey" placeholder="AIzaSy..."></div>
-    <div class="config-field"><label>Auth Domain</label><input class="field" id="fb-authdomain" placeholder="projeto.firebaseapp.com"></div>
-    <div class="config-field"><label>Project ID</label><input class="field" id="fb-projectid" placeholder="meu-projeto-nr1"></div>
-    <div class="config-field"><label>Storage Bucket</label><input class="field" id="fb-storagebucket" placeholder="projeto.appspot.com"></div>
-    <div class="config-field"><label>Messaging Sender ID</label><input class="field" id="fb-senderid" placeholder="123456789"></div>
-    <div class="config-field"><label>App ID</label><input class="field" id="fb-appid" placeholder="1:123:web:abc"></div>
-    <div id="firebase-conn-status" style="margin-top:12px;font-size:12px;color:var(--text3)"></div>
-  </div>
-  <div class="modal-footer">
-    <button class="btn btn-secondary" onclick="closeModal('modal-firebase')">Cancelar</button>
-    <button class="btn btn-secondary" onclick="clearFirebaseConfig()">Limpar</button>
-    <button class="btn btn-accent" onclick="saveFirebaseConfig()">💾 Salvar e Conectar</button>
-  </div>
-</div>
-</div>
-
 <!-- Modal: Nova Empresa -->
 <div class="modal-overlay" id="modal-empresa">
 <div class="modal modal-lg">
@@ -1227,6 +1228,74 @@ select.field option{background:var(--bg2)}
 </div>
 </div>
 
+<!-- Modal: Importar PDF -->
+<div class="modal-overlay" id="modal-pdf-import">
+<div class="modal modal-lg">
+  <div class="modal-header">
+    <span class="modal-title">📥 Importar dados de PDF</span>
+    <button class="btn-close" onclick="closeModal('modal-pdf-import')">✕</button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">
+      Importe um PDF de laudo, PPRA, PCMSO ou relatório de riscos. O sistema extrai o texto e identifica automaticamente empresas, colaboradores e riscos.
+    </p>
+
+    <!-- Drop zone -->
+    <div id="pdf-dropzone" onclick="document.getElementById('pdf-file-input').click()"
+      style="border:2px dashed var(--border2);border-radius:var(--r2);padding:40px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px">
+      <div style="font-size:36px;margin-bottom:8px">📄</div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:4px">Clique ou arraste um PDF aqui</div>
+      <div style="font-size:12px;color:var(--text3)">Suporta PDFs com texto (laudo, PPRA, PCMSO, relatórios)</div>
+    </div>
+    <input type="file" id="pdf-file-input" accept=".pdf" style="display:none" onchange="handlePdfImport(this)">
+
+    <!-- Progress -->
+    <div id="pdf-progress" style="display:none;margin-bottom:16px">
+      <div style="font-size:13px;color:var(--text2);margin-bottom:6px" id="pdf-progress-text">Lendo PDF...</div>
+      <div class="progress-bar"><div class="progress-fill blue" id="pdf-progress-bar" style="width:0%"></div></div>
+    </div>
+
+    <!-- Preview do texto extraído -->
+    <div id="pdf-text-preview" style="display:none;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Texto extraído (prévia)</div>
+      <textarea id="pdf-extracted-text" class="field" rows="6" style="font-size:12px;font-family:'DM Mono',monospace;resize:vertical" readonly></textarea>
+    </div>
+
+    <!-- Dados reconhecidos -->
+    <div id="pdf-parsed-data" style="display:none">
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">📋 Dados identificados no PDF</div>
+      <div id="pdf-empresa-detected" style="margin-bottom:12px;display:none">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🏢 Empresa detectada</div>
+        <div class="card" style="padding:12px 16px">
+          <div id="pdf-empresa-name" style="font-size:14px;font-weight:600"></div>
+          <div id="pdf-empresa-cnpj" style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace"></div>
+        </div>
+      </div>
+      <div id="pdf-riscos-detected" style="margin-bottom:12px;display:none">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">⚠️ Riscos identificados</div>
+        <div id="pdf-riscos-list" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+      <div id="pdf-colabs-detected" style="margin-bottom:12px;display:none">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">👥 Colaboradores / Setores</div>
+        <div id="pdf-colabs-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+      </div>
+
+      <!-- Qual empresa vincular -->
+      <div style="margin-bottom:16px">
+        <label class="field-label">Vincular a empresa existente (opcional)</label>
+        <select class="field" id="pdf-empresa-select"><option value="">— Criar nova empresa com os dados do PDF —</option></select>
+      </div>
+
+      <div id="pdf-import-summary" style="background:var(--accent-glow);border:1px solid rgba(79,124,255,.2);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--text2);line-height:1.6"></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-pdf-import')">Cancelar</button>
+    <button class="btn btn-accent" id="btn-import-pdf" onclick="importPdfData()" style="display:none">✅ Importar dados</button>
+  </div>
+</div>
+</div>
+
 <!-- Confirm Dialog -->
 <div class="confirm-overlay" id="confirm-overlay">
 <div class="confirm-box">
@@ -1243,19 +1312,261 @@ select.field option{background:var(--bg2)}
 <!-- TOAST -->
 <div class="toast-container" id="toast-container"></div>
 
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-panel-header">
+    <span class="notif-panel-title">🔔 Notificações</span>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:12px;color:var(--accent);cursor:pointer" onclick="markAllRead()">Marcar lidas</span>
+      <button class="btn-close" onclick="closeNotifPanel()">✕</button>
+    </div>
+  </div>
+  <div class="notif-list" id="notif-list">
+    <div class="notif-empty">Sem notificações</div>
+  </div>
+</div>
+
 <script>
 // ============================================================
 // NR1 PSICOSSOCIAL — SISTEMA COMPLETO FUNCIONAL
-// Local Storage + Firebase opcional
+// Local Storage + Firebase (Firestore) opcional
 // ============================================================
 
-// === STATE ===
-const DB = {
-  get: (k) => { try { return JSON.parse(localStorage.getItem('nr1_'+k)||'[]'); } catch{ return []; } },
-  set: (k, v) => { try { localStorage.setItem('nr1_'+k, JSON.stringify(v)); } catch(e){} },
-  getObj: (k) => { try { return JSON.parse(localStorage.getItem('nr1_'+k)||'{}'); } catch{ return {}; } },
-  setObj: (k, v) => { try { localStorage.setItem('nr1_'+k, JSON.stringify(v)); } catch(e){} }
+// === FIREBASE — CREDENCIAIS FIXAS NO CÓDIGO ===
+// Substitua os valores abaixo pelas suas credenciais do Firebase Console
+const FIREBASE_CONFIG = {
+ apiKey: "AIzaSyBn58dQwxfp-WAIpU3jcGQJ1ZFhs7AHjTk",
+  authDomain: "flymidia-ccd8f.firebaseapp.com",
+  projectId: "flymidia-ccd8f",
+  storageBucket: "flymidia-ccd8f.firebasestorage.app",
+  messagingSenderId: "79513987797",
+  appId: "1:79513987797:web:1f3854bcaaf4500001d05c",
+  measurementId: "G-S89Y3ZTEG6"
 };
+
+let firebaseApp = null;
+let firestoreDB = null;
+let firebaseInitialized = false;
+let firebaseUserId = null;
+
+function initFirebase() {
+  // Usa as credenciais fixas acima
+  const cfg = FIREBASE_CONFIG;
+  if (!cfg.apiKey || cfg.apiKey === 'SUA_API_KEY_AQUI') {
+    console.warn('Firebase: preencha as credenciais em FIREBASE_CONFIG no código.');
+    return false;
+  }
+
+  try {
+    if (typeof firebase === 'undefined') {
+      console.error('SDK Firebase não carregado.');
+      return false;
+    }
+
+    if (firebase.apps.length === 0) {
+      firebaseApp = firebase.initializeApp(cfg);
+    } else {
+      firebaseApp = firebase.apps[0];
+    }
+
+    firestoreDB = firebase.firestore();
+    firebaseUserId = currentUser?.email?.replace(/[^a-z0-9]/gi, '_') || 'shared';
+    firebaseInitialized = true;
+
+    const statusEl2 = document.getElementById('firebase-status');
+    if (statusEl2) statusEl2.textContent = 'Status: ✅ Conectado ao Firestore';
+    document.getElementById('firebase-banner')?.classList.remove('show');
+    addNotification('Firebase conectado!', 'Dados serão sincronizados com a nuvem.', '☁️');
+    return true;
+  } catch (err) {
+    console.error('Firebase init error:', err);
+    return false;
+  }
+}
+
+// === DB LAYER — localStorage (imediato) + Firestore (async) ===
+function localGet(k) { try { return JSON.parse(localStorage.getItem('nr1_'+k)||'[]'); } catch{ return []; } }
+function localSet(k, v) { try { localStorage.setItem('nr1_'+k, JSON.stringify(v)); } catch(e){} }
+function localGetObj(k) { try { return JSON.parse(localStorage.getItem('nr1_'+k)||'{}'); } catch{ return {}; } }
+function localSetObj(k, v) { try { localStorage.setItem('nr1_'+k, JSON.stringify(v)); } catch(e){} }
+
+// Grava uma coleção inteira no Firestore como array em documento dedicado
+async function fbWrite(colecao, valor) {
+  if (!firebaseInitialized || !firestoreDB || !firebaseUserId) return;
+  try {
+    await firestoreDB
+      .collection('nr1_usuarios')
+      .doc(firebaseUserId)
+      .collection('dados')
+      .doc(colecao)
+      .set({ valor: JSON.stringify(valor), updatedAt: new Date().toISOString() });
+  } catch(e) { console.warn('Firestore write ['+colecao+'] error:', e.message); }
+}
+
+// Lê uma coleção do Firestore
+async function fbRead(colecao) {
+  if (!firebaseInitialized || !firestoreDB || !firebaseUserId) return null;
+  try {
+    const snap = await firestoreDB
+      .collection('nr1_usuarios')
+      .doc(firebaseUserId)
+      .collection('dados')
+      .doc(colecao)
+      .get();
+    if (snap.exists) return JSON.parse(snap.data().valor);
+  } catch(e) { console.warn('Firestore read ['+colecao+'] error:', e.message); }
+  return null;
+}
+
+const DB = {
+  get:    (k)    => localGet(k),
+  set:    (k, v) => { localSet(k, v);    fbWrite(k, v); },
+  getObj: (k)    => localGetObj(k),
+  setObj: (k, v) => { localSetObj(k, v); fbWrite(k, v); }
+};
+
+// Carrega todos os dados do Firestore para localStorage e atualiza a UI
+async function syncFromFirebase() {
+  if (!firebaseInitialized) { showToast('Firebase não conectado.', 'error'); return; }
+  showToast('Sincronizando com Firebase...', 'info');
+  const statusEl = document.getElementById('firebase-status');
+  if (statusEl) statusEl.textContent = 'Status: sincronizando...';
+
+  try {
+    const keys = ['empresas','colaboradores','riscos','acoes','questionarios','acompanhamentos','activity_log','relatorios_gerados'];
+    let temDados = false;
+
+    for (const k of keys) {
+      const val = await fbRead(k);
+      if (val !== null) {
+        localSet(k, val);
+        temDados = true;
+      }
+    }
+
+    if (temDados) {
+      activityLog      = localGet('activity_log');
+      relatoriosGerados = localGet('relatorios_gerados');
+      refreshDashboard();
+      renderEmpresas();
+      renderColabs();
+      renderRiscos();
+      renderAcoes();
+      showToast('Dados sincronizados com Firebase!', 'success');
+      addNotification('Sincronização concluída', 'Dados carregados do Firestore.', '🔄');
+      if (statusEl) statusEl.textContent = 'Status: ✅ Sincronizado';
+    } else {
+      // Nenhum dado no Firebase — envia os dados locais
+      showToast('Enviando dados locais ao Firebase...', 'info');
+      for (const k of keys) {
+        await fbWrite(k, localGet(k));
+      }
+      showToast('Dados locais enviados ao Firebase!', 'success');
+      if (statusEl) statusEl.textContent = 'Status: ✅ Dados enviados';
+    }
+  } catch(e) {
+    showToast('Erro na sincronização: ' + e.message, 'error');
+    if (statusEl) statusEl.textContent = 'Status: ❌ Erro — ' + e.message;
+  }
+}
+
+// === NOTIFICATIONS ===
+let notifications = [];
+
+function addNotification(text, sub='', icon='🔔', type='info') {
+  notifications.unshift({ id: Date.now(), text, sub, icon, type, time: new Date(), read: false });
+  if (notifications.length > 30) notifications = notifications.slice(0, 30);
+  updateNotifBadge();
+  renderNotifPanel();
+}
+
+function updateNotifBadge() {
+  const unread = notifications.filter(n => !n.read).length;
+  const dot = document.getElementById('notif-dot');
+  if (!dot) return;
+  if (unread > 0) { dot.style.display = 'block'; }
+  else { dot.style.display = 'none'; }
+}
+
+function toggleNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  const isOpen = panel.classList.contains('open');
+  if (isOpen) { closeNotifPanel(); }
+  else { panel.classList.add('open'); renderNotifPanel(); }
+}
+
+function closeNotifPanel() {
+  document.getElementById('notif-panel')?.classList.remove('open');
+}
+
+function markAllRead() {
+  notifications.forEach(n => n.read = true);
+  updateNotifBadge();
+  renderNotifPanel();
+}
+
+function renderNotifPanel() {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+  if (!notifications.length) {
+    list.innerHTML = '<div class="notif-empty">Sem notificações</div>';
+    return;
+  }
+  list.innerHTML = notifications.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" onclick="readNotif(${n.id})">
+      <div class="notif-icon">${n.icon}</div>
+      <div class="notif-content">
+        <div class="notif-text">${n.text}</div>
+        ${n.sub ? `<div class="notif-time">${n.sub}</div>` : ''}
+        <div class="notif-time">${fmtTimeAgo(n.time)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function readNotif(id) {
+  const n = notifications.find(x => x.id === id);
+  if (n) n.read = true;
+  updateNotifBadge();
+  renderNotifPanel();
+}
+
+function fmtTimeAgo(date) {
+  const diff = Math.floor((Date.now() - new Date(date)) / 1000);
+  if (diff < 60) return 'agora';
+  if (diff < 3600) return Math.floor(diff/60) + ' min atrás';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h atrás';
+  return new Date(date).toLocaleDateString('pt-BR');
+}
+
+// Gera notificações automáticas baseadas nos dados
+function checkAutoNotifications() {
+  const acoes = getAcoes();
+  const riscos = getRiscos();
+  const hoje = new Date();
+
+  // Ações vencidas
+  const vencidas = acoes.filter(a => a.status === 'Pendente' && a.prazo && new Date(a.prazo) < hoje);
+  if (vencidas.length > 0) {
+    addNotification(`${vencidas.length} ação(ões) atrasada(s)`, 'Verifique o Plano de Ação', '⏰', 'warning');
+  }
+
+  // Riscos críticos
+  const criticos = riscos.filter(r => r.nivel === 'Crítico' && r.status === 'Ativo');
+  if (criticos.length > 0) {
+    addNotification(`${criticos.length} risco(s) crítico(s) ativo(s)`, 'Atenção imediata necessária', '🔴', 'error');
+  }
+
+  // Ações vencem em 7 dias
+  const em7dias = acoes.filter(a => {
+    if (a.status !== 'Pendente' || !a.prazo) return false;
+    const prazo = new Date(a.prazo);
+    const diff = (prazo - hoje) / (1000*60*60*24);
+    return diff >= 0 && diff <= 7;
+  });
+  if (em7dias.length > 0) {
+    addNotification(`${em7dias.length} ação(ões) vencem em 7 dias`, 'Acompanhe o progresso', '📅', 'warning');
+  }
+}
 
 let currentUser = null;
 let confirmCallback = null;
@@ -1290,7 +1601,7 @@ function doLogin() {
   }
   
   currentUser = user;
-  DB.setObj('session', { userId: user.id, email: user.email, name: user.name });
+  localSetObj('session', { userId: user.id, email: user.email, name: user.name });
   loginSuccess(user);
 }
 
@@ -1308,7 +1619,7 @@ function doRegister() {
   users.push(user);
   DB.set('users', users);
   currentUser = user;
-  DB.setObj('session', { userId: user.id, email: user.email, name: user.name });
+  localSetObj('session', { userId: user.id, email: user.email, name: user.name });
   loginSuccess(user);
 }
 
@@ -1330,8 +1641,9 @@ function loginSuccess(user) {
 
 function doLogout() {
   showConfirm('Sair do sistema?', 'Sua sessão será encerrada.', '↩', () => {
-    DB.setObj('session', {});
+    localSetObj('session', {});
     currentUser = null;
+    firebaseInitialized = false; firestoreDB = null;
     document.getElementById('app').classList.remove('visible');
     setTimeout(() => { document.getElementById('login-screen').classList.remove('hidden'); }, 300);
     showPage('dashboard');
@@ -1339,7 +1651,7 @@ function doLogout() {
 }
 
 function checkSession() {
-  const session = DB.getObj('session');
+  const session = localGetObj('session');
   if (session && session.userId) {
     const users = DB.get('users');
     const user = users.find(u => u.id === session.userId);
@@ -1421,7 +1733,6 @@ function openModal(id) {
   if(id==='modal-risco') populateRiscoEmpresaSelect();
   if(id==='modal-acao') populateAcaoEmpresaSelect();
   if(id==='modal-acomp') populateAcompEmpresaSelect();
-  if(id==='modal-firebase') loadFirebaseConfig();
 }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e){ if(e.target===this) this.classList.remove('open'); }));
@@ -1447,37 +1758,6 @@ function showConfirm(title, msg, icon='⚠️', callback) {
 }
 function closeConfirm() { document.getElementById('confirm-overlay').classList.remove('open'); confirmCallback=null; }
 function confirmOk() { closeConfirm(); if(confirmCallback) confirmCallback(); }
-
-// === FIREBASE CONFIG ===
-function loadFirebaseConfig() {
-  const cfg = DB.getObj('firebase_config');
-  document.getElementById('fb-apikey').value = cfg.apiKey||'';
-  document.getElementById('fb-authdomain').value = cfg.authDomain||'';
-  document.getElementById('fb-projectid').value = cfg.projectId||'';
-  document.getElementById('fb-storagebucket').value = cfg.storageBucket||'';
-  document.getElementById('fb-senderid').value = cfg.messagingSenderId||'';
-  document.getElementById('fb-appid').value = cfg.appId||'';
-}
-function saveFirebaseConfig() {
-  const cfg = {
-    apiKey: document.getElementById('fb-apikey').value.trim(),
-    authDomain: document.getElementById('fb-authdomain').value.trim(),
-    projectId: document.getElementById('fb-projectid').value.trim(),
-    storageBucket: document.getElementById('fb-storagebucket').value.trim(),
-    messagingSenderId: document.getElementById('fb-senderid').value.trim(),
-    appId: document.getElementById('fb-appid').value.trim()
-  };
-  if (!cfg.apiKey || !cfg.projectId) { showToast('Preencha ao menos API Key e Project ID', 'error'); return; }
-  DB.setObj('firebase_config', cfg);
-  document.getElementById('firebase-conn-status').textContent = '✅ Configuração salva. Recarregue a página para conectar ao Firebase.';
-  document.getElementById('firebase-status').textContent = 'Status: Configuração salva — recarregue para ativar Firebase';
-  showToast('Configuração Firebase salva! Recarregue a página.', 'success');
-}
-function clearFirebaseConfig() {
-  DB.setObj('firebase_config', {});
-  loadFirebaseConfig();
-  showToast('Configuração Firebase removida', 'info');
-}
 
 // === EMPRESAS ===
 function getEmpresas() { return DB.get('empresas'); }
@@ -1618,8 +1898,8 @@ function renderEmpresas(filter='') {
         <div class="cs-item"><span class="cs-value">${riscoBadge(riscoNiveis[e.id])}</span>Risco</div>
       </div>
       <div style="display:flex;gap:6px;margin-top:14px">
-        <button class="btn btn-sm btn-secondary" onclick="editEmpresa('${e.id}')">✏ Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteEmpresa('${e.id}')">🗑</button>
+        <button class="btn btn-sm btn-secondary" style="flex:1" onclick="editEmpresa('${e.id}')">✏ Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteEmpresa('${e.id}')" title="Excluir empresa">🗑 Excluir</button>
       </div>
     </div>
   `).join('') + `
@@ -2866,7 +3146,7 @@ function savePerfil(){
   if(!nome){showToast('Nome é obrigatório','error');return;}
   const users=DB.get('users');
   const idx=users.findIndex(u=>u.id===currentUser.id);
-  if(idx>=0){users[idx].name=nome;DB.set('users',users);currentUser.name=nome;DB.setObj('session',{...DB.getObj('session'),name:nome});}
+  if(idx>=0){users[idx].name=nome;DB.set('users',users);currentUser.name=nome;localSetObj('session',{...localGetObj('session'),name:nome});}
   updateUserDisplay(currentUser);
   showToast('Perfil atualizado!','success');
 }
@@ -2952,9 +3232,6 @@ function initApp(){
   initCharts();
   refreshDashboard();
   renderActivityTimeline();
-  // Show firebase banner if not configured
-  const cfg=DB.getObj('firebase_config');
-  if(!cfg.apiKey) document.getElementById('firebase-banner').classList.add('show');
   // Load preferences
   loadPerfil();
   // Populate quest selects
@@ -2963,6 +3240,14 @@ function initApp(){
   // Init date field
   document.getElementById('quest-data').value=new Date().toISOString().split('T')[0];
   document.getElementById('acomp-data').value=new Date().toISOString().split('T')[0];
+
+  // === Firebase init (credenciais fixas no código) ===
+  const ok = initFirebase();
+  if (ok) syncFromFirebase();
+  else document.getElementById('firebase-banner')?.classList.add('show');
+
+  // === Notificações automáticas ===
+  setTimeout(() => checkAutoNotifications(), 1500);
 }
 
 // Keyboard shortcuts
@@ -2986,10 +3271,293 @@ window.addEventListener('load',()=>{
     document.getElementById('app').classList.add('visible');
     initApp();
   } else {
-    const cfg=DB.getObj('firebase_config');
-    if(!cfg.apiKey) document.getElementById('firebase-banner').classList.add('show');
+    // Mostra banner se Firebase não configurado (credencial placeholder)
+    if (FIREBASE_CONFIG.apiKey === 'SUA_API_KEY_AQUI') {
+      document.getElementById('firebase-banner').classList.add('show');
+    }
   }
 });
+
+// Fecha painel de notificações ao clicar fora
+document.addEventListener('click', function(e){
+  const panel = document.getElementById('notif-panel');
+  const btn = document.getElementById('notif-btn');
+  if (panel && panel.classList.contains('open') && !panel.contains(e.target) && !btn.contains(e.target)) {
+    closeNotifPanel();
+  }
+});
+
+// === PDF IMPORT ===
+// Configura worker do PDF.js
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+let pdfParsedResult = null;
+
+// Drag & drop no dropzone
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('pdf-dropzone');
+  if (!dz) return;
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor='var(--accent)'; dz.style.background='var(--accent-glow)'; });
+  dz.addEventListener('dragleave', () => { dz.style.borderColor='var(--border2)'; dz.style.background=''; });
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.style.borderColor='var(--border2)'; dz.style.background='';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') processPdfFile(file);
+    else showToast('Selecione um arquivo PDF válido', 'error');
+  });
+});
+
+function handlePdfImport(input) {
+  const file = input.files[0];
+  if (file) processPdfFile(file);
+}
+
+async function processPdfFile(file) {
+  if (typeof pdfjsLib === 'undefined') {
+    showToast('PDF.js não carregado. Verifique sua conexão.', 'error');
+    return;
+  }
+
+  document.getElementById('pdf-progress').style.display = 'block';
+  document.getElementById('pdf-text-preview').style.display = 'none';
+  document.getElementById('pdf-parsed-data').style.display = 'none';
+  document.getElementById('btn-import-pdf').style.display = 'none';
+  setProgress('Lendo arquivo PDF...', 10);
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    setProgress('Carregando PDF...', 20);
+
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    const totalPages = pdf.numPages;
+    let fullText = '';
+
+    for (let i = 1; i <= totalPages; i++) {
+      setProgress(`Extraindo texto — página ${i} de ${totalPages}...`, 20 + Math.round((i/totalPages)*50));
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const pageText = content.items.map(item => item.str).join(' ');
+      fullText += pageText + '\n';
+    }
+
+    setProgress('Analisando conteúdo...', 80);
+
+    // Mostra prévia do texto
+    document.getElementById('pdf-extracted-text').value = fullText.slice(0, 3000) + (fullText.length > 3000 ? '\n...(texto truncado na prévia)' : '');
+    document.getElementById('pdf-text-preview').style.display = 'block';
+
+    // Parse dos dados
+    pdfParsedResult = parsePdfText(fullText);
+    renderPdfParsed(pdfParsedResult);
+    populatePdfEmpresaSelect();
+
+    setProgress('Concluído!', 100);
+    setTimeout(() => { document.getElementById('pdf-progress').style.display = 'none'; }, 800);
+
+  } catch(err) {
+    console.error(err);
+    showToast('Erro ao ler PDF: ' + err.message, 'error');
+    document.getElementById('pdf-progress').style.display = 'none';
+  }
+}
+
+function setProgress(text, pct) {
+  document.getElementById('pdf-progress-text').textContent = text;
+  document.getElementById('pdf-progress-bar').style.width = pct + '%';
+}
+
+// Extrai dados relevantes do texto do PDF
+function parsePdfText(text) {
+  const result = { empresa: null, cnpj: null, riscos: [], setores: [], colabs: [] };
+
+  // CNPJ
+  const cnpjMatch = text.match(/\d{2}[\.\s]?\d{3}[\.\s]?\d{3}[\/\.\s]?\d{4}[-\.\s]?\d{2}/);
+  if (cnpjMatch) result.cnpj = cnpjMatch[0].replace(/\s/g,'');
+
+  // Nome da empresa — padrões comuns em laudos
+  const empPatterns = [
+    /(?:razão social|empresa|empregadora|contratante|cliente)[:\s]+([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^\n,\.]{5,60})/i,
+    /(?:LTDA|S\.A\.|EIRELI|ME|EPP|S\/A)[,\s]*([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^\n]{3,50})/i,
+    /([A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-Z\s]{5,40}(?:LTDA|S\.A\.|EIRELI|ME|EPP|S\/A))/,
+  ];
+  for (const pat of empPatterns) {
+    const m = text.match(pat);
+    if (m) { result.empresa = (m[1]||m[0]).trim().slice(0,80); break; }
+  }
+
+  // Riscos psicossociais — palavras-chave
+  const riscoKeywords = [
+    { keys: ['assédio moral','assédio'], cat: 'Violência / Assédio', nivel: 'Alto' },
+    { keys: ['assédio sexual'], cat: 'Violência / Assédio', nivel: 'Crítico' },
+    { keys: ['sobrecarga','excesso de trabalho','jornada excessiva'], cat: 'Carga de Trabalho', nivel: 'Alto' },
+    { keys: ['estresse','stress','burnout'], cat: 'Saúde e Bem-estar', nivel: 'Alto' },
+    { keys: ['conflito interpessoal','conflito entre','relacionamento ruim'], cat: 'Relações Interpessoais', nivel: 'Médio' },
+    { keys: ['falta de reconhecimento','reconhecimento insuficiente'], cat: 'Reconhecimento', nivel: 'Médio' },
+    { keys: ['autonomia reduzida','falta de autonomia','sem autonomia'], cat: 'Autonomia e Controle', nivel: 'Médio' },
+    { keys: ['comunicação deficiente','falta de comunicação','ruído de comunicação'], cat: 'Comunicação', nivel: 'Médio' },
+    { keys: ['pressão','pressão excessiva','metas abusivas'], cat: 'Carga de Trabalho', nivel: 'Alto' },
+    { keys: ['insalubridade','periculosidade'], cat: 'Condições Físicas', nivel: 'Alto' },
+    { keys: ['ansiedade','depressão','adoecimento','afastamento'], cat: 'Saúde e Bem-estar', nivel: 'Alto' },
+    { keys: ['discriminação','preconceito'], cat: 'Violência / Assédio', nivel: 'Alto' },
+    { keys: ['trabalho noturno','turno noturno'], cat: 'Organização do Trabalho', nivel: 'Médio' },
+  ];
+  const textLow = text.toLowerCase();
+  const addedCats = new Set();
+  for (const rk of riscoKeywords) {
+    for (const kw of rk.keys) {
+      if (textLow.includes(kw) && !addedCats.has(rk.cat)) {
+        addedCats.add(rk.cat);
+        // Tenta extrair contexto ao redor da palavra
+        const idx = textLow.indexOf(kw);
+        const ctx = text.slice(Math.max(0,idx-30), idx+80).replace(/\n/g,' ').trim();
+        result.riscos.push({ categoria: rk.cat, nivel: rk.nivel, descricao: ctx.slice(0,120), keyword: kw });
+        break;
+      }
+    }
+  }
+
+  // Setores comuns
+  const setorPatterns = ['administrativo','produção','manutenção','rh','recursos humanos','financeiro','comercial','operacional','logística','ti','tecnologia','qualidade','segurança'];
+  for (const s of setorPatterns) {
+    if (textLow.includes(s)) result.setores.push(s.charAt(0).toUpperCase()+s.slice(1));
+  }
+
+  return result;
+}
+
+function renderPdfParsed(data) {
+  const container = document.getElementById('pdf-parsed-data');
+  container.style.display = 'block';
+
+  // Empresa
+  const empBlock = document.getElementById('pdf-empresa-detected');
+  if (data.empresa || data.cnpj) {
+    empBlock.style.display = 'block';
+    document.getElementById('pdf-empresa-name').textContent = data.empresa || 'Nome não identificado';
+    document.getElementById('pdf-empresa-cnpj').textContent = data.cnpj ? 'CNPJ: ' + data.cnpj : '';
+  } else {
+    empBlock.style.display = 'none';
+  }
+
+  // Riscos
+  const riscoBlock = document.getElementById('pdf-riscos-detected');
+  const riscoList = document.getElementById('pdf-riscos-list');
+  if (data.riscos.length) {
+    riscoBlock.style.display = 'block';
+    riscoList.innerHTML = data.riscos.map(r => `
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;display:flex;gap:10px;align-items:flex-start">
+        <span class="badge ${r.nivel==='Crítico'?'badge-purple':r.nivel==='Alto'?'badge-red':'badge-amber'}" style="flex-shrink:0">${r.nivel}</span>
+        <div>
+          <div style="font-size:13px;font-weight:500">${r.categoria}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">${r.descricao}</div>
+        </div>
+      </div>`).join('');
+  } else {
+    riscoBlock.style.display = 'none';
+  }
+
+  // Setores
+  const colabBlock = document.getElementById('pdf-colabs-detected');
+  const colabList = document.getElementById('pdf-colabs-list');
+  if (data.setores.length) {
+    colabBlock.style.display = 'block';
+    colabList.innerHTML = data.setores.map(s => `<span class="badge badge-blue">${s}</span>`).join('');
+  } else {
+    colabBlock.style.display = 'none';
+  }
+
+  // Resumo
+  const parts = [];
+  if (data.empresa) parts.push(`🏢 Empresa: <strong>${data.empresa}</strong>`);
+  if (data.riscos.length) parts.push(`⚠️ ${data.riscos.length} risco(s) psicossocial(is) identificado(s)`);
+  if (data.setores.length) parts.push(`🏷️ ${data.setores.length} setor(es) detectado(s): ${data.setores.join(', ')}`);
+  if (!parts.length) parts.push('ℹ️ Nenhum dado estruturado identificado. Verifique se o PDF contém texto selecionável.');
+
+  document.getElementById('pdf-import-summary').innerHTML = parts.join('<br>');
+  document.getElementById('btn-import-pdf').style.display = 'flex';
+}
+
+function populatePdfEmpresaSelect() {
+  const sel = document.getElementById('pdf-empresa-select');
+  sel.innerHTML = '<option value="">— Criar nova empresa com os dados do PDF —</option>';
+  getEmpresas().forEach(e => { sel.innerHTML += `<option value="${e.id}">${e.razao}</option>`; });
+}
+
+function importPdfData() {
+  if (!pdfParsedResult) return;
+  const data = pdfParsedResult;
+  const empresaId = document.getElementById('pdf-empresa-select').value;
+  let targetEmpresaId = empresaId;
+  let targetEmpresaNome = '';
+
+  // Cria empresa se não selecionou uma existente e há dados
+  if (!empresaId && data.empresa) {
+    const novaEmpresa = {
+      id: uid(), razao: data.empresa, fantasia: '', cnpj: data.cnpj||'',
+      cnae: '', segmento: 'Indústria', numColaboradores: 0,
+      responsavel: '', cargo: '', tel: '', email: '', cidade: '', estado: 'BA',
+      endereco: '', obs: 'Importado de PDF',
+      color: CC_COLORS[Math.floor(Math.random()*CC_COLORS.length)],
+      createdAt: nowISO(), updatedAt: nowISO(), createdBy: currentUser?.email||'pdf'
+    };
+    const empresas = getEmpresas();
+    empresas.push(novaEmpresa);
+    saveEmpresasDB(empresas);
+    targetEmpresaId = novaEmpresa.id;
+    targetEmpresaNome = novaEmpresa.razao;
+    addActivity('Empresa importada de PDF: ' + novaEmpresa.razao);
+  } else if (empresaId) {
+    const emp = getEmpresas().find(e => e.id === empresaId);
+    targetEmpresaNome = emp?.razao || '';
+  }
+
+  // Importa riscos
+  let riscoCount = 0;
+  if (data.riscos.length && targetEmpresaId) {
+    const riscos = getRiscos();
+    const nivelScore = { 'Crítico': 16, 'Alto': 12, 'Médio': 6, 'Baixo': 2 };
+    const nivelNivel = { 'Crítico': 'Crítico', 'Alto': 'Alto', 'Médio': 'Médio', 'Baixo': 'Baixo' };
+    const prob = { 'Crítico': 4, 'Alto': 4, 'Médio': 3, 'Baixo': 2 };
+    const imp  = { 'Crítico': 4, 'Alto': 3, 'Médio': 2, 'Baixo': 1 };
+    const probText = { 1:'Muito Baixa',2:'Baixa',3:'Média',4:'Alta',5:'Muito Alta' };
+    const impText  = { 1:'Muito Baixo',2:'Baixo',3:'Médio',4:'Alto',5:'Crítico' };
+
+    data.riscos.forEach(r => {
+      const p = prob[r.nivel]||3, i = imp[r.nivel]||3;
+      riscos.push({
+        id: uid(), empresaId: targetEmpresaId, empresaNome: targetEmpresaNome,
+        setor: data.setores[0]||'Geral', categoria: r.categoria,
+        descricao: r.descricao || r.categoria,
+        prob: p, probText: probText[p], imp: i, impText: impText[i],
+        score: p*i, nivel: r.nivel, medidas: '', status: 'Ativo',
+        createdAt: nowISO(), updatedAt: nowISO()
+      });
+      riscoCount++;
+    });
+    saveRiscosDB(riscos);
+    addActivity(`${riscoCount} riscos importados de PDF`, targetEmpresaNome);
+  }
+
+  closeModal('modal-pdf-import');
+  refreshDashboard();
+  if(document.getElementById('page-empresas').classList.contains('active')) renderEmpresas();
+  if(document.getElementById('page-riscos').classList.contains('active')) renderRiscos();
+
+  let msg = [];
+  if (data.empresa && !empresaId) msg.push('empresa criada');
+  if (riscoCount) msg.push(`${riscoCount} riscos importados`);
+  showToast('PDF importado: ' + (msg.length ? msg.join(', ') : 'sem dados novos') + '!', 'success');
+  addNotification('PDF importado com sucesso', msg.join(', '), '📥');
+
+  // Reset
+  pdfParsedResult = null;
+  document.getElementById('pdf-file-input').value = '';
+  document.getElementById('pdf-text-preview').style.display = 'none';
+  document.getElementById('pdf-parsed-data').style.display = 'none';
+  document.getElementById('btn-import-pdf').style.display = 'none';
+}
 </script>
 </body>
 </html>
