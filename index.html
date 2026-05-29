@@ -13,6 +13,7 @@
 <!-- Firebase SDKs (UMD - embutidos, sem import dinâmico) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <!-- PDF.js para leitura de PDFs -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
@@ -230,6 +231,7 @@ select.field option{background:var(--bg2)}
 .toast.error{border-left:3px solid var(--red)}
 .toast.info{border-left:3px solid var(--accent)}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:none;opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
 
 /* QUESTIONNAIRE */
 .question-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:12px;transition:border-color .2s}
@@ -388,11 +390,16 @@ select.field option{background:var(--bg2)}
 <!-- LOGIN SCREEN -->
 <div id="login-screen">
 <div class="login-card">
-  <div class="login-logo">
-    <div class="login-logo-icon">🛡️</div>
+  <div class="login-logo" style="margin-bottom:28px">
+    <div style="width:48px;height:48px;background:var(--accent);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+        <path d="M16 2L4 8v8c0 7 5 13.5 12 15.5C23 29.5 28 23 28 16V8L16 2z" fill="white" fill-opacity="0.2" stroke="white" stroke-width="1.5"/>
+        <path d="M11 16l4 4 7-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
     <div>
-      <div class="login-logo-text">NR1 Psicossocial</div>
-      <div class="login-logo-sub">Sistema de Gestão</div>
+      <div class="login-logo-text" style="font-size:20px;font-weight:700;color:var(--text)">NR1 Psicossocial</div>
+      <div class="login-logo-sub" style="font-size:12px;color:var(--text2)">Sistema de Gestão de Riscos · NR1/2025</div>
     </div>
   </div>
 
@@ -420,7 +427,11 @@ select.field option{background:var(--bg2)}
       Não tem conta? <a onclick="showRegister()">Criar conta</a> · <a onclick="showReset()">Esqueci a senha</a>
     </div>
   </div>
-
+  <script>
+function doLogin() {
+   console.log("Login funcionando");
+}
+</script>
   <div id="register-form" style="display:none">
     <h1 class="login-title">Criar conta</h1>
     <p class="login-sub">Preencha os dados para criar sua conta</p>
@@ -447,7 +458,13 @@ select.field option{background:var(--bg2)}
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <div class="brand-icon">🛡️</div>
+    <div class="brand-icon" style="background:none;padding:0;width:38px;height:38px">
+      <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" width="38" height="38">
+        <rect width="38" height="38" rx="9" fill="#4f7cff"/>
+        <path d="M19 5L8 10v8c0 6.627 4.701 12.832 11 14.5C25.299 30.832 30 24.627 30 18v-8L19 5z" fill="white" fill-opacity="0.15" stroke="white" stroke-width="1.5"/>
+        <path d="M14 18.5l3.5 3.5 7-7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
     <div>
       <div class="brand-name">NR1 Psicossocial</div>
       <div class="brand-tag">Gestão de Riscos</div>
@@ -468,9 +485,22 @@ select.field option{background:var(--bg2)}
       <span class="nav-icon">👥</span>Colaboradores
       <span class="nav-badge green" id="badge-colab" style="background:var(--green-bg);color:var(--green)">0</span>
     </div>
-    <div class="nav-section-title">Avaliação</div>
+    <div class="nav-section-title">RH</div>
+    <div class="nav-item" onclick="showPage('rh-avaldesempenho',this)">
+      <span class="nav-icon">📊</span>Avaliação de Desempenho
+    </div>
+    <div class="nav-item" onclick="showPage('rh-climaorg',this)">
+      <span class="nav-icon">🌡️</span>Clima Organizacional
+    </div>
+    <div class="nav-item" onclick="showPage('rh-cargos',this)">
+      <span class="nav-icon">🗂️</span>Descrição de Cargos
+    </div>
+    <div class="nav-item" onclick="showPage('rh-processos',this)">
+      <span class="nav-icon">🔄</span>Processos Seletivos
+    </div>
+    <div class="nav-section-title">NR1</div>
     <div class="nav-item" onclick="showPage('questionarios',this)">
-      <span class="nav-icon">📋</span>Questionários NR1
+      <span class="nav-icon">📋</span>Questionários
     </div>
     <div class="nav-item" onclick="showPage('diagnosticos',this)">
       <span class="nav-icon">🔬</span>Diagnósticos
@@ -479,6 +509,12 @@ select.field option{background:var(--bg2)}
       <span class="nav-icon">⚠️</span>Gestão de Riscos
       <span class="nav-badge" id="badge-riscos">0</span>
     </div>
+    <div class="nav-item" onclick="showPage('nr1-gerenciamento',this)">
+      <span class="nav-icon">🛠️</span>Gerenciamento
+    </div>
+    <div class="nav-item" onclick="showPage('nr1-documentos',this)">
+      <span class="nav-icon">📑</span>Documentos (LGPD/Lista)
+    </div>
     <div class="nav-section-title">Ação</div>
     <div class="nav-item" onclick="showPage('plano',this)">
       <span class="nav-icon">📌</span>Plano de Ação
@@ -486,6 +522,9 @@ select.field option{background:var(--bg2)}
     </div>
     <div class="nav-item" onclick="showPage('acompanhamento',this)">
       <span class="nav-icon">📈</span>Acompanhamentos
+    </div>
+    <div class="nav-item" onclick="showPage('visitas',this)">
+      <span class="nav-icon">🚗</span>Visitas Técnicas
     </div>
     <div class="nav-section-title">Relatórios</div>
     <div class="nav-item" onclick="showPage('relatorios',this)">
@@ -503,7 +542,7 @@ select.field option{background:var(--bg2)}
         <div class="user-role" id="user-email-display" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">email</div>
       </div>
     </div>
-    <button class="btn btn-danger" style="width:100%;margin-top:8px;justify-content:center;font-size:13px" onclick="doLogout()">
+    <button class="btn btn-danger" style="width:100%;margin-top:8px;justify-content:center;font-size:13px" onclick="doLogout() ">
       ↩ Sair do sistema
     </button>
   </div>
@@ -511,12 +550,26 @@ select.field option{background:var(--bg2)}
 
 <!-- MAIN CONTENT -->
 <div class="main-content">
-  <div class="topbar">
+  <div class="topbar" style="background:var(--bg2);border-bottom:2px solid var(--accent);box-shadow:0 2px 16px rgba(79,124,255,0.08)">
     <button class="btn-icon" id="menu-toggle" onclick="toggleSidebar()" style="display:none">☰</button>
-    <span class="topbar-title" id="topbar-title">Dashboard</span>
-    <input type="text" class="topbar-search" id="global-search" placeholder="🔍  Buscar empresa, colaborador..." oninput="globalSearch(this.value)">
-    <div class="btn-icon topbar-notif" id="notif-btn" onclick="toggleNotifPanel()" title="Notificações">🔔<span class="notif-dot" id="notif-dot" style="display:none"></span></div>
-    <div class="btn-icon" onclick="openModal('modal-pdf-import')" title="Importar PDF">📥</div>
+    <div style="display:flex;align-items:center;gap:10px;flex:1">
+      <div style="display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+          <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.25C17.25 22.15 21 17.25 21 12V7L12 2z" fill="#4f7cff" opacity="0.15" stroke="#4f7cff" stroke-width="1.5"/>
+          <path d="M9 12l2.5 2.5L15.5 10" stroke="#4f7cff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="topbar-title" id="topbar-title" style="font-size:16px;font-weight:600;letter-spacing:-.2px">Dashboard</span>
+      </div>
+    </div>
+    <input type="text" class="topbar-search" id="global-search" placeholder="Buscar empresa, colaborador..." oninput="globalSearch(this.value)" style="width:260px">
+    <button class="btn btn-sm btn-secondary" onclick="openModal('modal-pdf-import')" title="Importar PDF" style="gap:5px;white-space:nowrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Importar PDF
+    </button>
+    <div class="btn-icon topbar-notif" id="notif-btn" onclick="toggleNotifPanel()" title="Notificações" style="position:relative">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span class="notif-dot" id="notif-dot" style="display:none"></span>
+    </div>
   </div>
 
   <!-- DASHBOARD PAGE -->
@@ -721,7 +774,67 @@ select.field option{background:var(--bg2)}
       </div>
     </div>
   </div>
+<!-- MODAL QUESTIONÁRIO -->
+<div class="modal-overlay" id="modal-questionario">
+  <div class="modal">
 
+    <div class="modal-header">
+      <h2>Novo Questionário</h2>
+
+      <button onclick="closeModal('modal-questionario')">
+        ✕
+      </button>
+    </div>
+
+    <div class="modal-body">
+
+      <div class="form-group">
+        <label>Título</label>
+        <input type="text" class="input" placeholder="Título do questionário">
+      </div>
+
+      <div class="form-group">
+        <label>Descrição</label>
+        <textarea class="input" rows="4" placeholder="Descrição"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Tipo</label>
+
+        <select class="input">
+          <option>Pesquisa de Clima</option>
+          <option>Avaliação</option>
+          <option>Satisfação</option>
+          <option>Feedback</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+
+        <select class="input">
+          <option>Ativo</option>
+          <option>Inativo</option>
+        </select>
+      </div>
+
+      <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
+
+        <button class="btn"
+          onclick="closeModal('modal-questionario')">
+          Cancelar
+        </button>
+
+        <button class="btn btn-accent">
+          Salvar Questionário
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
   <!-- DIAGNÓSTICOS PAGE -->
   <div class="page" id="page-diagnosticos">
     <div class="page-header">
@@ -877,72 +990,738 @@ select.field option{background:var(--bg2)}
     </div>
   </div>
 
+  <!-- RH: AVALIAÇÃO DE DESEMPENHO PAGE -->
+  <div class="page" id="page-rh-avaldesempenho">
+    <div class="page-header">
+      <div><div class="page-title">Avaliação de Desempenho</div><div class="page-sub">Formulários e histórico de avaliações de colaboradores</div></div>
+      <div class="page-actions">
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="rh-aval-empresa-filter" onchange="filterRhAval()">
+          <option value="">Todas as empresas</option>
+        </select>
+        <button class="btn btn-accent" onclick="openModal('modal-rh-aval')">+ Nova Avaliação</button>
+      </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Total</span><div class="stat-icon blue">📊</div></div><div class="stat-value" id="rh-aval-total">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Pendentes</span><div class="stat-icon amber">⏳</div></div><div class="stat-value" id="rh-aval-pend" style="color:var(--amber)">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Concluídas</span><div class="stat-icon green">✅</div></div><div class="stat-value" id="rh-aval-conc" style="color:var(--green)">0</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Histórico de Avaliações de Desempenho</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data</th><th>Colaborador</th><th>Empresa</th><th>Cargo</th><th>Avaliador</th><th>Score</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="rh-aval-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhuma avaliação registrada</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- RH: CLIMA ORGANIZACIONAL PAGE -->
+  <div class="page" id="page-rh-climaorg">
+    <div class="page-header">
+      <div><div class="page-title">Clima Organizacional</div><div class="page-sub">Pesquisas de clima e bem-estar no trabalho</div></div>
+      <div class="page-actions">
+        <button class="btn btn-accent" onclick="openModal('modal-rh-clima')">+ Nova Pesquisa</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Pesquisas de Clima Organizacional</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data</th><th>Empresa</th><th>Período</th><th>Participantes</th><th>Score Geral</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="rh-clima-tbody"><tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhuma pesquisa registrada</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- MODAL RH CLIMA -->
+<div class="modal-overlay" id="modal-rh-clima">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🌡️ Nova Pesquisa de Clima</span>
+      <button class="btn-close" onclick="closeModal('modal-rh-clima')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa *</label>
+          <select class="field" id="rh-clima-empresa">
+            <option value="">Selecione a empresa</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Período</label>
+          <input class="field" id="rh-clima-periodo" placeholder="Ex: Janeiro/2026">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Participantes</label>
+          <input type="number" class="field" id="rh-clima-participantes" placeholder="0" min="0">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Score Geral (0-100)</label>
+          <input type="number" class="field" id="rh-clima-score" placeholder="Ex: 75" min="0" max="100">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-rh-clima')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveRhClima()">💾 Salvar Pesquisa</button>
+    </div>
+  </div>
+</div>
+
+  <!-- RH: DESCRIÇÃO DE CARGOS PAGE -->
+  <div class="page" id="page-rh-cargos">
+    <div class="page-header">
+      <div><div class="page-title">Descrição de Cargos</div><div class="page-sub">Cadastro e gestão de cargos e funções</div></div>
+      <div class="page-actions">
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="rh-cargo-empresa-filter">
+          <option value="">Todas as empresas</option>
+        </select>
+        <button class="btn btn-accent" onclick="openModal('modal-rh-cargo')">+ Novo Cargo</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px" id="rh-cargos-grid">
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🗂️</div>
+        <h3>Nenhum cargo cadastrado</h3>
+        <p>Clique em "+ Novo Cargo" para adicionar</p>
+      </div>
+    </div>
+  </div>
+<!-- MODAL RH CARGOS -->
+<div class="modal-overlay" id="modal-rh-cargo">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🗂️ Novo Cargo</span>
+      <button class="btn-close" onclick="closeModal('modal-rh-cargo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa</label>
+          <select class="field" id="rh-cargo-empresa">
+            <option value="">Todos / Geral</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Nome do Cargo *</label>
+          <input class="field" id="rh-cargo-nome" placeholder="Ex: Analista de RH">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Nível</label>
+          <select class="field" id="rh-cargo-nivel">
+            <option>Júnior</option><option>Pleno</option><option>Sênior</option>
+            <option>Especialista</option><option>Líder</option><option>Gerente</option><option>Diretor</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Departamento</label>
+          <input class="field" id="rh-cargo-dept" placeholder="Ex: Recursos Humanos">
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Responsabilidades</label>
+          <textarea class="field" id="rh-cargo-resp" rows="3" placeholder="Principais responsabilidades do cargo..."></textarea>
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Requisitos</label>
+          <textarea class="field" id="rh-cargo-req" rows="2" placeholder="Formação, experiência, competências..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-rh-cargo')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveRhCargo()">💾 Salvar Cargo</button>
+    </div>
+  </div>
+</div>
+  <!-- RH: PROCESSOS SELETIVOS PAGE -->
+  <div class="page" id="page-rh-processos">
+    <div class="page-header">
+      <div><div class="page-title">Processos Seletivos</div><div class="page-sub">Acompanhamento de contratações e seleções</div></div>
+      <div class="page-actions">
+        <button class="btn btn-accent" onclick="openModal('modal-rh-processo')">+ Novo Processo</button>
+      </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Abertos</span><div class="stat-icon blue">📂</div></div><div class="stat-value" id="rh-proc-abertos" style="color:var(--accent)">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Em Andamento</span><div class="stat-icon amber">🔄</div></div><div class="stat-value" id="rh-proc-andamento" style="color:var(--amber)">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Concluídos</span><div class="stat-icon green">✅</div></div><div class="stat-value" id="rh-proc-conc" style="color:var(--green)">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Cancelados</span><div class="stat-icon red">❌</div></div><div class="stat-value" id="rh-proc-canc" style="color:var(--red)">0</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Processos Seletivos</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Vaga</th><th>Empresa</th><th>Abertura</th><th>Candidatos</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="rh-proc-tbody"><tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhum processo seletivo registrado</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- MODAL RH PROCESSO SELETIVO -->
+<div class="modal-overlay" id="modal-rh-processo">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🔄 Novo Processo Seletivo</span>
+      <button class="btn-close" onclick="closeModal('modal-rh-processo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa *</label>
+          <select class="field" id="rh-proc-empresa">
+            <option value="">Selecione a empresa</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Vaga / Cargo *</label>
+          <input class="field" id="rh-proc-vaga" placeholder="Ex: Analista de RH">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Responsável</label>
+          <input class="field" id="rh-proc-responsavel" placeholder="Nome do responsável">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Nº de Candidatos</label>
+          <input type="number" class="field" id="rh-proc-candidatos" placeholder="0" min="0">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-rh-processo')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveRhProcesso()">💾 Salvar Processo</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL RH AVALIAÇÃO -->
+<div class="modal-overlay" id="modal-rh-aval">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📊 Nova Avaliação de Desempenho</span>
+      <button class="btn-close" onclick="closeModal('modal-rh-aval')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa *</label>
+          <select class="field" id="rh-aval-empresa">
+            <option value="">Selecione a empresa</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Colaborador</label>
+          <input class="field" id="rh-aval-colab" placeholder="Nome do colaborador">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Cargo</label>
+          <input class="field" id="rh-aval-cargo" placeholder="Cargo do colaborador">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Avaliador</label>
+          <input class="field" id="rh-aval-avaliador" placeholder="Nome do avaliador">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Score (0-10)</label>
+          <input type="number" class="field" id="rh-aval-score" placeholder="0 a 10" min="0" max="10" step="0.1">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Data</label>
+          <input type="date" class="field" id="rh-aval-data">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-rh-aval')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveRhAval()">💾 Salvar Avaliação</button>
+    </div>
+  </div>
+</div>
+  <!-- NR1: GERENCIAMENTO PAGE -->
+  <div class="page" id="page-nr1-gerenciamento">
+    <div class="page-header">
+      <div><div class="page-title">Gerenciamento NR1</div><div class="page-sub">Monitoramento de colaboradores, treinamentos e planos de ação</div></div>
+      <div class="page-actions">
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="ger-empresa-filter" onchange="renderGerenciamento()">
+          <option value="">Selecione uma empresa</option>
+        </select>
+        <button class="btn btn-accent" onclick="openModal('modal-treinamento')">+ Registrar Treinamento</button>
+      </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Treinamentos</span><div class="stat-icon blue">🎓</div></div><div class="stat-value" id="ger-stat-trein">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Palestras</span><div class="stat-icon purple">🎤</div></div><div class="stat-value" id="ger-stat-palest">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Colaboradores Monitorados</span><div class="stat-icon green">👥</div></div><div class="stat-value" id="ger-stat-colab">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Pendências</span><div class="stat-icon amber">⚠️</div></div><div class="stat-value" id="ger-stat-pend" style="color:var(--amber)">0</div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title">Treinamentos e Palestras</span>
+        <button class="btn btn-sm btn-secondary" onclick="exportTreinamentosExcel()">📊 Excel</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data</th><th>Tipo</th><th>Tema</th><th>Empresa</th><th>Participantes</th><th>Responsável</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="treinamentos-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhum treinamento registrado</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Monitoramento por Colaborador</span></div>
+      <div class="card-body" id="ger-colab-monitor">
+        <div class="empty-state" style="padding:20px">
+          <div class="empty-icon">👥</div>
+          <h3>Selecione uma empresa</h3>
+          <p>Escolha uma empresa acima para ver o monitoramento</p>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- MODAL TREINAMENTO -->
+<div class="modal-overlay" id="modal-treinamento">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🎓 Registrar Treinamento / Palestra</span>
+      <button class="btn-close" onclick="closeModal('modal-treinamento')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa *</label>
+          <select class="field" id="trein-empresa">
+            <option value="">Selecione a empresa</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Tipo</label>
+          <select class="field" id="trein-tipo">
+            <option>Treinamento</option>
+            <option>Palestra</option>
+            <option>Workshop</option>
+            <option>Dinâmica</option>
+          </select>
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Tema *</label>
+          <select class="field" id="trein-tema-sel" onchange="syncTreinTema(this)">
+            <option value="">— Selecione um tema ou digite abaixo —</option>
+            <option>Pesquisa de Feedback</option>
+            <option>Gestão de Estresse e Burnout</option>
+            <option>Ansiedade no Ambiente de Trabalho</option>
+            <option>Saúde Mental e Clima Organizacional</option>
+            <option>Inteligência Emocional para Líderes</option>
+            <option>Carreira Positiva</option>
+            <option>Análise de Perfil Comportamental</option>
+            <option>Prevenção ao Assédio Moral</option>
+            <option>Plantão Emocional</option>
+            <option>NR35 — Trabalho em Altura</option>
+            <option>NR33 — Espaços Confinados</option>
+            <option>Treinamento da Equipe de RH</option>
+            <option>Escola de Líderes</option>
+            <option>Janeiro Branco — Saúde Mental</option>
+            <option>Novembro Azul — Saúde do Homem</option>
+            <option>Outubro Rosa — Saúde da Mulher</option>
+            <option>Outro (preencha abaixo)</option>
+          </select>
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Tema (personalizado)</label>
+          <input class="field" id="trein-tema" placeholder="Digite o tema do treinamento ou selecione acima" oninput="syncTreinSel()">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Responsável / Instrutor</label>
+          <input class="field" id="trein-responsavel" placeholder="Nome do responsável">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Nº de Participantes</label>
+          <input type="number" class="field" id="trein-participantes" placeholder="0" min="0">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Data</label>
+          <input type="date" class="field" id="trein-data">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Status</label>
+          <select class="field" id="trein-status">
+            <option>Pendente</option>
+            <option>Realizado</option>
+            <option>Cancelado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-treinamento')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveTreinamento()">💾 Salvar Treinamento</button>
+    </div>
+  </div>
+</div>
+  <!-- NR1: DOCUMENTOS PAGE -->
+  <div class="page" id="page-nr1-documentos">
+    <div class="page-header">
+      <div><div class="page-title">Documentos NR1</div><div class="page-sub">Lista de presença, LGPD e termos de conscientização</div></div>
+      <div class="page-actions">
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="doc-empresa-filter">
+          <option value="">Selecione uma empresa</option>
+        </select>
+        <button class="btn btn-accent" onclick="openModal('modal-lista-presenca')">+ Lista de Presença</button>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📋 Listas de Presença</span><button class="btn btn-sm btn-accent" onclick="openModal('modal-lista-presenca')">+ Nova</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Data</th><th>Empresa</th><th>Evento</th><th>Participantes</th><th>Ações</th></tr></thead>
+            <tbody id="lista-presenca-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">Nenhuma lista registrada</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">🔐 Termos LGPD</span><button class="btn btn-sm btn-accent" onclick="openModal('modal-lgpd')">+ Registrar</button></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Data</th><th>Colaborador</th><th>Empresa</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="lgpd-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">Nenhum termo registrado</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">📜 Termos de Conscientização</span><button class="btn btn-sm btn-accent" onclick="openModal('modal-termo-consciencia')">+ Novo Termo</button></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data</th><th>Empresa</th><th>Tipo</th><th>Colaboradores</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="termos-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Nenhum termo registrado</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <!-- MODAL LGPD -->
+<div class="modal-overlay" id="modal-lgpd">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🔐 Registrar Termo LGPD</span>
+      <button class="btn-close" onclick="closeModal('modal-lgpd')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa</label>
+          <select class="field" id="lgpd-empresa">
+            <option value="">Selecione a empresa</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Colaborador</label>
+          <input class="field" id="lgpd-colab" placeholder="Nome do colaborador">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Tipo de Solicitação</label>
+          <select class="field" id="lgpd-tipo">
+            <option>Acesso aos Dados</option>
+            <option>Correção de Dados</option>
+            <option>Exclusão de Dados</option>
+            <option>Revogação de Consentimento</option>
+            <option>Consentimento de Uso</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Status</label>
+          <select class="field" id="lgpd-status">
+            <option>Pendente</option>
+            <option>Em análise</option>
+            <option>Concluído</option>
+          </select>
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Descrição</label>
+          <textarea class="field" id="lgpd-desc" rows="3" placeholder="Detalhes da solicitação..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-lgpd')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveLgpd()">💾 Salvar Termo</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL TERMO DE CONSCIÊNCIA -->
+<div class="modal-overlay" id="modal-termo-consciencia">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📜 Novo Termo de Conscientização</span>
+      <button class="btn-close" onclick="closeModal('modal-termo-consciencia')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa</label>
+          <select class="field" id="termo-empresa">
+            <option value="">Selecione a empresa</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Colaborador</label>
+          <input class="field" id="termo-colab" placeholder="Nome do colaborador">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Tipo de Termo</label>
+          <select class="field" id="termo-tipo">
+            <option>Uso de Equipamentos</option>
+            <option>Segurança da Informação</option>
+            <option>Confidencialidade</option>
+            <option>Conduta Interna</option>
+            <option>NR1 — Riscos Psicossociais</option>
+            <option>LGPD — Proteção de Dados</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Data</label>
+          <input type="date" class="field" id="termo-data">
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Descrição / Detalhes</label>
+          <textarea class="field" id="termo-desc" rows="3" placeholder="Detalhes do termo..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-termo-consciencia')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveTermoConsciencia()">💾 Salvar Termo</button>
+    </div>
+  </div>
+</div>
+<!-- MODAL LISTA DE PRESENÇA -->
+<div class="modal-overlay" id="modal-lista-presenca">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📋 Nova Lista de Presença</span>
+      <button class="btn-close" onclick="closeModal('modal-lista-presenca')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa</label>
+          <select class="field" id="presenca-empresa">
+            <option value="">Selecione a empresa</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Data</label>
+          <input type="date" class="field" id="presenca-data">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Evento / Treinamento</label>
+          <input class="field" id="presenca-evento" placeholder="Nome do evento ou treinamento">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Nº de Participantes</label>
+          <input type="number" class="field" id="presenca-participantes" placeholder="0" min="0">
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Responsável</label>
+          <input class="field" id="presenca-responsavel" placeholder="Nome do responsável">
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Observações</label>
+          <textarea class="field" id="presenca-obs" rows="2" placeholder="Observações adicionais..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-lista-presenca')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveListaPresenca()">💾 Salvar Lista</button>
+    </div>
+  </div>
+</div>
+  <!-- VISITAS TÉCNICAS PAGE -->
+  <div class="page" id="page-visitas">
+    <div class="page-header">
+      <div><div class="page-title">Visitas Técnicas</div><div class="page-sub">Controle em tempo real de visitas, ações identificadas e entregues</div></div>
+      <div class="page-actions">
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="visita-empresa-filter" onchange="filterVisitas()">
+          <option value="">Todas as empresas</option>
+        </select>
+        <button class="btn btn-accent" onclick="openModal('modal-visita')">+ Registrar Visita</button>
+      </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Total Visitas</span><div class="stat-icon blue">🚗</div></div><div class="stat-value" id="vis-stat-total">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Ações Identificadas</span><div class="stat-icon amber">🎯</div></div><div class="stat-value" id="vis-stat-ident" style="color:var(--amber)">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Ações Resolvidas</span><div class="stat-icon green">✅</div></div><div class="stat-value" id="vis-stat-resol" style="color:var(--green)">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Pendentes</span><div class="stat-icon red">⏳</div></div><div class="stat-value" id="vis-stat-pend" style="color:var(--red)">0</div></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title">Registro de Visitas Técnicas</span>
+        <button class="btn btn-sm btn-secondary" onclick="exportVisitasExcel()">📊 Excel</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data</th><th>Empresa</th><th>Consultor</th><th>Ações Identificadas</th><th>Resolvidas</th><th>Pendentes</th><th>Próxima Visita</th><th>Ações</th></tr></thead>
+          <tbody id="visitas-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhuma visita registrada</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">📊 Progresso por Empresa (Tempo Real)</span></div>
+      <div class="card-body" id="visitas-progresso">
+        <div class="empty-state" style="padding:20px">
+          <div class="empty-icon">📊</div>
+          <h3>Nenhuma visita registrada ainda</h3>
+          <p>Registre visitas para acompanhar o progresso de cada empresa</p>
+        </div>
+      </div>
+    </div>
+  </div>
+<!-- MODAL VISITA -->
+<div class="modal-overlay" id="modal-visita">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🚗 Nova Visita Técnica</span>
+      <button class="btn-close" onclick="closeModal('modal-visita')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa *</label>
+          <select class="field" id="visita-empresa">
+            <option value="">Selecione a empresa</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Consultor / Responsável</label>
+          <input class="field" id="visita-consultor" placeholder="Nome do consultor">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Data da Visita</label>
+          <input type="date" class="field" id="visita-data">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Próxima Visita</label>
+          <input type="date" class="field" id="visita-proxima">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Ações Identificadas</label>
+          <input type="number" class="field" id="visita-acoes-ident" placeholder="0" min="0">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Ações Resolvidas</label>
+          <input type="number" class="field" id="visita-acoes-resol" placeholder="0" min="0">
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Observações</label>
+          <textarea class="field" id="visita-obs" rows="3" placeholder="Observações sobre a visita..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-visita')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveVisita()">💾 Salvar Visita</button>
+    </div>
+  </div>
+</div>
   <!-- RELATÓRIOS PAGE -->
   <div class="page" id="page-relatorios">
     <div class="page-header">
-      <div><div class="page-title">Relatórios</div><div class="page-sub">Geração e exportação de documentos</div></div>
+      <div><div class="page-title">Relatórios</div><div class="page-sub">Geração inteligente com IA (Groq) e exportação de documentos</div></div>
+      <div class="page-actions">
+        <button class="btn btn-secondary btn-sm" onclick="showPage('configuracoes')">⚙️ Configurar API Groq</button>
+      </div>
     </div>
+
+    <!-- Aviso API -->
+    <div id="groq-api-banner" style="display:none;background:var(--amber-bg);border:1px solid rgba(245,165,36,.3);border-radius:var(--r2);padding:14px 18px;margin-bottom:20px;font-size:13px;color:var(--amber);display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">⚠️</span>
+      <span>API Key da Groq não configurada. Vá em <b>Configurações → Integração IA (Groq)</b> e insira sua chave para usar geração com IA. Os relatórios PDF continuam funcionando normalmente.</span>
+    </div>
+
     <div class="grid-2">
       <div class="card">
-        <div class="card-header"><span class="card-title">Modelos de Relatório</span></div>
-        <div>
-          <div class="report-item">
-            <div class="report-icon" style="background:var(--accent-glow);color:var(--accent)">📋</div>
-            <div class="report-info"><div class="report-name">Relatório Diagnóstico NR1</div><div class="report-meta">Diagnóstico completo de riscos psicossociais</div></div>
+        <div class="card-header">
+          <span class="card-title">🤖 Geração com IA</span>
+          <span style="font-size:11px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:3px 10px;border-radius:20px;font-weight:600">GROQ AI</span>
+        </div>
+        <div style="padding:4px 0">
+          <div class="report-item" style="border-bottom:1px solid var(--border)">
+            <div class="report-icon" style="background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.2));color:#8b5cf6">🧠</div>
+            <div class="report-info"><div class="report-name">Análise Diagnóstica NR1</div><div class="report-meta">IA analisa riscos e gera recomendações técnicas</div></div>
             <div class="report-actions">
+              <button class="btn btn-sm" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none" onclick="openGroqModal('diagnostico')">✨ Gerar com IA</button>
               <button class="btn btn-sm btn-accent" onclick="generateDiagPDF()">PDF</button>
-              <button class="btn btn-sm btn-secondary" onclick="exportEmpresasExcel()">Excel</button>
             </div>
           </div>
-          <div class="report-item">
-            <div class="report-icon" style="background:var(--green-bg);color:var(--green)">🏢</div>
-            <div class="report-info"><div class="report-name">Relatório de Empresas</div><div class="report-meta">Dados cadastrais e colaboradores</div></div>
+          <div class="report-item" style="border-bottom:1px solid var(--border)">
+            <div class="report-icon" style="background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.2));color:#8b5cf6">📊</div>
+            <div class="report-info"><div class="report-name">Relatório de Riscos + Plano</div><div class="report-meta">IA prioriza riscos e sugere plano de ação</div></div>
             <div class="report-actions">
-              <button class="btn btn-sm btn-accent" onclick="generateEmpresasPDF()">PDF</button>
-              <button class="btn btn-sm btn-secondary" onclick="exportEmpresasExcel()">Excel</button>
-            </div>
-          </div>
-          <div class="report-item">
-            <div class="report-icon" style="background:var(--amber-bg);color:var(--amber)">⚠️</div>
-            <div class="report-info"><div class="report-name">Relatório de Riscos</div><div class="report-meta">Matriz de riscos e medidas de controle</div></div>
-            <div class="report-actions">
+              <button class="btn btn-sm" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none" onclick="openGroqModal('riscos')">✨ Gerar com IA</button>
               <button class="btn btn-sm btn-accent" onclick="generateRiscosPDF()">PDF</button>
-              <button class="btn btn-sm btn-secondary" onclick="exportRiscosExcel()">Excel</button>
             </div>
           </div>
-          <div class="report-item">
-            <div class="report-icon" style="background:var(--red-bg);color:var(--red)">📌</div>
-            <div class="report-info"><div class="report-name">Plano de Ação</div><div class="report-meta">Ações, responsáveis, prazos e status</div></div>
+          <div class="report-item" style="border-bottom:1px solid var(--border)">
+            <div class="report-icon" style="background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.2));color:#8b5cf6">🏢</div>
+            <div class="report-info"><div class="report-name">Relatório Executivo de Empresa</div><div class="report-meta">IA gera resumo executivo completo por empresa</div></div>
             <div class="report-actions">
+              <button class="btn btn-sm" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none" onclick="openGroqModal('empresa')">✨ Gerar com IA</button>
+              <button class="btn btn-sm btn-accent" onclick="generateEmpresasPDF()">PDF</button>
+            </div>
+          </div>
+          <div class="report-item" style="border-bottom:1px solid var(--border)">
+            <div class="report-icon" style="background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.2));color:#8b5cf6">📈</div>
+            <div class="report-info"><div class="report-name">Plano de Ação Inteligente</div><div class="report-meta">IA estrutura e prioriza ações com prazos sugeridos</div></div>
+            <div class="report-actions">
+              <button class="btn btn-sm" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none" onclick="openGroqModal('plano')">✨ Gerar com IA</button>
               <button class="btn btn-sm btn-accent" onclick="generatePlanoPDF()">PDF</button>
-              <button class="btn btn-sm btn-secondary" onclick="exportAcoesExcel()">Excel</button>
             </div>
           </div>
           <div class="report-item">
-            <div class="report-icon" style="background:var(--purple-bg);color:var(--purple)">👥</div>
-            <div class="report-info"><div class="report-name">Relatório de Colaboradores</div><div class="report-meta">Lista completa de colaboradores</div></div>
+            <div class="report-icon" style="background:linear-gradient(135deg,rgba(99,102,241,.2),rgba(139,92,246,.2));color:#8b5cf6">📋</div>
+            <div class="report-info"><div class="report-name">Relatório Completo NR1 + IA</div><div class="report-meta">Todos os dados + análise e conclusão gerados por IA</div></div>
             <div class="report-actions">
-              <button class="btn btn-sm btn-accent" onclick="generateColabPDF()">PDF</button>
-              <button class="btn btn-sm btn-secondary" onclick="exportColabExcel()">Excel</button>
-            </div>
-          </div>
-          <div class="report-item">
-            <div class="report-icon" style="background:var(--cyan-bg);color:var(--cyan)">📈</div>
-            <div class="report-info"><div class="report-name">Relatório Completo NR1</div><div class="report-meta">Todos os dados em um único documento</div></div>
-            <div class="report-actions">
+              <button class="btn btn-sm" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none" onclick="openGroqModal('completo')">✨ Gerar com IA</button>
               <button class="btn btn-sm btn-accent" onclick="generateFullPDF()">PDF</button>
-              <button class="btn btn-sm btn-secondary" onclick="exportAllExcel()">Excel</button>
             </div>
           </div>
         </div>
       </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Relatórios Gerados</span></div>
-        <div id="relatorios-gerados-list">
-          <div class="empty-state" style="padding:40px 20px">
-            <div class="empty-icon">📄</div>
-            <h3>Nenhum relatório gerado ainda</h3>
-            <p>Use os modelos ao lado para gerar relatórios</p>
+
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><span class="card-title">📄 Exportações Rápidas</span></div>
+          <div style="padding:4px 0">
+            <div class="report-item" style="border-bottom:1px solid var(--border)">
+              <div class="report-icon" style="background:var(--green-bg);color:var(--green)">🏢</div>
+              <div class="report-info"><div class="report-name">Empresas</div><div class="report-meta">Cadastro completo</div></div>
+              <div class="report-actions"><button class="btn btn-sm btn-secondary" onclick="exportEmpresasExcel()">📊 Excel</button></div>
+            </div>
+            <div class="report-item" style="border-bottom:1px solid var(--border)">
+              <div class="report-icon" style="background:var(--purple-bg);color:var(--purple)">👥</div>
+              <div class="report-info"><div class="report-name">Colaboradores</div><div class="report-meta">Lista completa</div></div>
+              <div class="report-actions"><button class="btn btn-sm btn-secondary" onclick="exportColabExcel()">📊 Excel</button></div>
+            </div>
+            <div class="report-item" style="border-bottom:1px solid var(--border)">
+              <div class="report-icon" style="background:var(--amber-bg);color:var(--amber)">⚠️</div>
+              <div class="report-info"><div class="report-name">Riscos</div><div class="report-meta">Matriz completa</div></div>
+              <div class="report-actions"><button class="btn btn-sm btn-secondary" onclick="exportRiscosExcel()">📊 Excel</button></div>
+            </div>
+            <div class="report-item">
+              <div class="report-icon" style="background:var(--red-bg);color:var(--red)">📌</div>
+              <div class="report-info"><div class="report-name">Plano de Ação</div><div class="report-meta">Todas as ações</div></div>
+              <div class="report-actions"><button class="btn btn-sm btn-secondary" onclick="exportAcoesExcel()">📊 Excel</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">📁 Histórico de Relatórios</span></div>
+          <div id="relatorios-gerados-list">
+            <div class="empty-state" style="padding:40px 20px">
+              <div class="empty-icon">📄</div>
+              <h3>Nenhum relatório gerado ainda</h3>
+              <p>Use os botões acima para gerar</p>
+            </div>
           </div>
         </div>
       </div>
@@ -983,7 +1762,34 @@ select.field option{background:var(--bg2)}
       </div>
       <div>
         <div class="card" style="margin-bottom:16px">
-          <div class="card-header"><span class="card-title">☁️ Integração Firebase</span></div>
+          <div class="card-header">
+            <span class="card-title">🤖 Integração IA (Groq)</span>
+            <span style="font-size:11px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:3px 10px;border-radius:20px;font-weight:600">GROQ AI</span>
+          </div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">
+              Insira sua API Key da <b>Groq</b> para habilitar geração de relatórios com IA. A chave fica salva localmente apenas para testes.
+              <br><a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">Obter chave gratuita em console.groq.com →</a>
+            </p>
+            <div class="form-row">
+              <label class="field-label">Groq API Key</label>
+              <div style="display:flex;gap:8px">
+                <input class="field" type="password" id="groq-api-key" placeholder="gsk_..." style="flex:1;font-family:'DM Mono',monospace">
+                <button class="btn btn-accent" onclick="saveGroqKey()">💾 Salvar</button>
+                <button class="btn btn-secondary" onclick="testGroqKey()">🔌 Testar</button>
+              </div>
+            </div>
+            <div id="groq-status" style="margin-top:10px;font-size:12px;color:var(--text3)"></div>
+            <div class="form-row" style="margin-top:12px">
+              <label class="field-label">Modelo Groq</label>
+              <select class="field" id="groq-model" style="max-width:320px">
+                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Recomendado)</option>
+                <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Mais rápido)</option>
+                <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (Contexto longo)</option>
+              </select>
+            </div>
+          </div>
+        </div>
           <div class="card-body">
             <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">
               Firebase configurado diretamente no código. Clique em sincronizar para enviar/buscar dados do Firestore.
@@ -995,12 +1801,38 @@ select.field option{background:var(--bg2)}
           </div>
         </div>
         <div class="card" style="margin-bottom:16px">
-          <div class="card-header"><span class="card-title">📄 Cabeçalho dos Relatórios</span></div>
+          <div class="card-header">
+            <span class="card-title">📄 Cabeçalho dos Relatórios</span>
+            <button class="btn btn-sm btn-secondary" onclick="openModal('modal-cabecalho-preview')">👁 Visualizar</button>
+          </div>
           <div class="card-body">
-            <div class="form-row"><label class="field-label">Nome do Consultor/Empresa</label><input class="field" id="config-rel-nome" placeholder="Ex: João Consultor — NR1 Assessoria"></div>
-            <div class="form-row"><label class="field-label">Subtítulo / Especialidade</label><input class="field" id="config-rel-sub" placeholder="Ex: Especialista em Riscos Psicossociais"></div>
-            <div style="display:flex;justify-content:flex-end">
-              <button class="btn btn-accent" onclick="saveRelConfig()">Salvar</button>
+            <div class="form-grid">
+              <div class="form-row"><label class="field-label">Nome do Consultor / Empresa</label><input class="field" id="config-rel-nome" placeholder="Ex: João Silva — NR1 Assessoria" oninput="updateCabecalhoPreview()"></div>
+              <div class="form-row"><label class="field-label">Subtítulo / Especialidade</label><input class="field" id="config-rel-sub" placeholder="Ex: Especialista em Riscos Psicossociais" oninput="updateCabecalhoPreview()"></div>
+              <div class="form-row"><label class="field-label">CRQ / CRP / CRP / Registro</label><input class="field" id="config-rel-crp" placeholder="Ex: CRP 03/12345" oninput="updateCabecalhoPreview()"></div>
+              <div class="form-row"><label class="field-label">Telefone / WhatsApp</label><input class="field" id="config-rel-tel" placeholder="Ex: (71) 99999-9999" oninput="updateCabecalhoPreview()"></div>
+              <div class="form-row"><label class="field-label">E-mail profissional</label><input class="field" id="config-rel-email" placeholder="Ex: contato@nr1assessoria.com.br" oninput="updateCabecalhoPreview()"></div>
+              <div class="form-row"><label class="field-label">Cidade / Estado</label><input class="field" id="config-rel-cidade" placeholder="Ex: Salvador — BA" oninput="updateCabecalhoPreview()"></div>
+              <div class="form-row full"><label class="field-label">Site / CNPJ (opcional)</label><input class="field" id="config-rel-site" placeholder="Ex: www.nr1assessoria.com.br  |  CNPJ: 00.000.000/0001-00" oninput="updateCabecalhoPreview()"></div>
+            </div>
+            <div style="margin-top:8px;padding:14px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)">
+              <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-weight:600">Pré-visualização do cabeçalho</div>
+              <div id="cabecalho-mini-preview" style="background:#fff;border-radius:4px;padding:10px 14px;font-family:Arial,sans-serif">
+                <div style="display:flex;align-items:center;gap:10px;padding-bottom:8px;border-bottom:2px solid #1a2a5e">
+                  <div style="width:36px;height:36px;background:#1a2a5e;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;flex-shrink:0">🛡</div>
+                  <div style="flex:1">
+                    <div id="prev-nome" style="font-size:13px;font-weight:700;color:#1a2a5e">NR1 Psicossocial — Sistema de Gestão</div>
+                    <div id="prev-sub" style="font-size:10px;color:#555">Avaliação de Riscos Psicossociais — NR1/2025</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div id="prev-crp" style="font-size:9px;color:#888"></div>
+                    <div id="prev-tel" style="font-size:9px;color:#888"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:12px">
+              <button class="btn btn-accent" onclick="saveRelConfig()">💾 Salvar cabeçalho</button>
             </div>
           </div>
         </div>
@@ -1030,6 +1862,83 @@ select.field option{background:var(--bg2)}
 </div>
 
 <!-- MODALS -->
+
+<!-- Modal: Geração com IA Groq -->
+<div class="modal-overlay" id="modal-groq">
+<div class="modal modal-lg" style="max-width:780px">
+  <div class="modal-header" style="background:linear-gradient(135deg,#1a1a2e,#16213e);border-bottom:1px solid rgba(99,102,241,.3)">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🤖</div>
+      <div>
+        <div class="modal-title" id="groq-modal-title" style="color:#e8ecf4">Gerar Relatório com IA</div>
+        <div style="font-size:11px;color:#9aa3be;margin-top:1px">Powered by Groq · <span id="groq-modal-model" style="color:#8b5cf6"></span></div>
+      </div>
+    </div>
+    <button class="btn-close" onclick="closeModal('modal-groq')" style="color:#9aa3be">✕</button>
+  </div>
+  <div class="modal-body" style="padding:0">
+
+    <!-- Seleção de empresa -->
+    <div style="padding:20px 24px;border-bottom:1px solid var(--border)">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa (opcional — deixe vazio para todas)</label>
+          <select class="field" id="groq-empresa-sel">
+            <option value="">Todas as empresas</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Tom do relatório</label>
+          <select class="field" id="groq-tom">
+            <option value="tecnico">Técnico / Formal</option>
+            <option value="executivo">Executivo / Resumido</option>
+            <option value="detalhado">Detalhado / Completo</option>
+          </select>
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Instruções adicionais (opcional)</label>
+          <input class="field" id="groq-instrucoes" placeholder="Ex: Foco nos riscos críticos, inclua recomendações para líderes...">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button id="btn-groq-gerar" class="btn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;flex:1;justify-content:center;font-size:14px;font-weight:600;padding:11px" onclick="gerarRelatorioGroq()">
+          <span id="groq-btn-icon">✨</span> <span id="groq-btn-text">Gerar com IA</span>
+        </button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-groq')">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Área de resultado -->
+    <div id="groq-result-area" style="padding:24px;display:none">
+      <!-- Loading -->
+      <div id="groq-loading" style="display:none;text-align:center;padding:40px 20px">
+        <div style="display:inline-block;width:48px;height:48px;border:3px solid var(--border2);border-top-color:#8b5cf6;border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px"></div>
+        <div style="font-size:15px;font-weight:500;color:var(--text)">Gerando relatório com IA...</div>
+        <div id="groq-loading-status" style="font-size:13px;color:var(--text3);margin-top:6px">Conectando à Groq API...</div>
+      </div>
+      <!-- Resultado -->
+      <div id="groq-output" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:14px;font-weight:600;color:var(--text)">✅ Relatório gerado!</span>
+            <span id="groq-tokens-info" style="font-size:11px;color:var(--text3);background:var(--bg3);padding:2px 8px;border-radius:10px"></span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm btn-secondary" onclick="copiarTextoGroq()">📋 Copiar</button>
+            <button class="btn btn-sm btn-accent" onclick="exportarGroqPDF()">📄 Exportar PDF</button>
+          </div>
+        </div>
+        <div id="groq-text-output" style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:20px;font-size:13.5px;line-height:1.8;color:var(--text);white-space:pre-wrap;max-height:440px;overflow-y:auto;font-family:'DM Sans',sans-serif"></div>
+      </div>
+      <!-- Erro -->
+      <div id="groq-error" style="display:none;background:var(--red-bg);border:1px solid rgba(255,85,85,.2);border-radius:var(--r2);padding:16px;color:var(--red);font-size:13px">
+        <b>❌ Erro:</b> <span id="groq-error-msg"></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
 
 <!-- Modal: Firebase Config -->
 <!-- Modal: Nova Empresa -->
@@ -1200,7 +2109,97 @@ select.field option{background:var(--bg2)}
 </div>
 </div>
 
-<!-- Modal: Registrar Acompanhamento -->
+<!-- Modal: Visualizar Cabeçalho PDF -->
+<div class="modal-overlay" id="modal-cabecalho-preview">
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title">👁 Prévia do Cabeçalho do Documento</span>
+    <button class="btn-close" onclick="closeModal('modal-cabecalho-preview')">✕</button>
+  </div>
+  <div class="modal-body">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5">Veja como ficará o cabeçalho em seus documentos PDF exportados. As informações são editáveis em <strong>Configurações → Cabeçalho dos Relatórios</strong>.</p>
+    <div style="background:#fff;border-radius:var(--r);padding:0;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.2)">
+      <!-- Header simulado -->
+      <div id="pdf-preview-header" style="background:#1a2a5e;padding:18px 22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:48px;height:48px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">🛡️</div>
+            <div>
+              <div id="prev-modal-nome" style="font-size:16px;font-weight:700;color:#fff;font-family:Arial,sans-serif">NR1 Psicossocial — Sistema de Gestão</div>
+              <div id="prev-modal-sub" style="font-size:11px;color:rgba(255,255,255,.75);font-family:Arial,sans-serif;margin-top:2px">Avaliação de Riscos Psicossociais — NR1/2025</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div id="prev-modal-crp" style="font-size:10px;color:rgba(255,255,255,.85);font-family:Arial,sans-serif"></div>
+            <div id="prev-modal-tel" style="font-size:10px;color:rgba(255,255,255,.75);font-family:Arial,sans-serif;margin-top:2px"></div>
+            <div id="prev-modal-email" style="font-size:10px;color:rgba(255,255,255,.7);font-family:Arial,sans-serif;margin-top:1px"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Linha de título do relatório -->
+      <div style="padding:16px 22px 8px;border-bottom:1px solid #eee">
+        <div style="font-size:16px;font-weight:700;color:#222;font-family:Arial,sans-serif">Título do Relatório</div>
+        <div style="font-size:11px;color:#888;font-family:Arial,sans-serif;margin-top:3px">Subtítulo da seção / empresa</div>
+        <div id="prev-modal-info" style="font-size:9px;color:#aaa;font-family:Arial,sans-serif;margin-top:6px"></div>
+      </div>
+      <!-- Rodapé simulado -->
+      <div style="background:#f5f5f8;padding:8px 22px;display:flex;justify-content:space-between;align-items:center">
+        <div id="prev-modal-footer" style="font-size:8px;color:#999;font-family:Arial,sans-serif">NR1 Psicossocial — Sistema de Gestão de Riscos Psicossociais</div>
+        <div style="font-size:8px;color:#999;font-family:Arial,sans-serif">Página 1 de N</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;background:var(--accent-glow);border:1px solid rgba(79,124,255,.2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--text2)">
+      💡 O cabeçalho aparece em todos os PDFs: Diagnóstico, Riscos, Plano de Ação, Colaboradores e Relatório Completo.
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-cabecalho-preview')">Fechar</button>
+    <button class="btn btn-accent" onclick="closeModal('modal-cabecalho-preview');showPage('configuracoes')">✏ Editar Cabeçalho</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal: Exportar documentos da empresa -->
+<div class="modal-overlay" id="modal-export-empresa">
+<div class="modal">
+  <div class="modal-header">
+    <span class="modal-title" id="modal-export-empresa-title">📦 Exportar Documentos da Empresa</span>
+    <button class="btn-close" onclick="closeModal('modal-export-empresa')">✕</button>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" id="export-empresa-id">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.5">Selecione os documentos que deseja exportar para esta empresa:</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="exp-diagnostico" checked style="width:16px;height:16px;accent-color:var(--accent)">
+        <div><div style="font-size:13.5px;font-weight:500">📊 Diagnóstico Psicossocial</div><div style="font-size:12px;color:var(--text2)">Avaliações e scores por dimensão NR1</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="exp-riscos" checked style="width:16px;height:16px;accent-color:var(--accent)">
+        <div><div style="font-size:13.5px;font-weight:500">⚠️ Relatório de Riscos</div><div style="font-size:12px;color:var(--text2)">Riscos identificados com score e medidas</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="exp-plano" checked style="width:16px;height:16px;accent-color:var(--accent)">
+        <div><div style="font-size:13.5px;font-weight:500">📌 Plano de Ação</div><div style="font-size:12px;color:var(--text2)">Ações corretivas e preventivas</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="exp-colaboradores" style="width:16px;height:16px;accent-color:var(--accent)">
+        <div><div style="font-size:13.5px;font-weight:500">👥 Colaboradores</div><div style="font-size:12px;color:var(--text2)">Lista de colaboradores da empresa</div></div>
+      </label>
+      <label style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--border2)'" onmouseout="this.style.borderColor='var(--border)'">
+        <input type="checkbox" id="exp-completo" style="width:16px;height:16px;accent-color:var(--accent)">
+        <div><div style="font-size:13.5px;font-weight:500">📋 Relatório Completo (único PDF)</div><div style="font-size:12px;color:var(--text2)">Todos os dados em um único documento</div></div>
+      </label>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('modal-export-empresa')">Cancelar</button>
+    <button class="btn btn-accent" onclick="doExportEmpresaDocs()">📥 Exportar Selecionados</button>
+  </div>
+</div>
+</div>
+
+
 <div class="modal-overlay" id="modal-acomp">
 <div class="modal">
   <div class="modal-header">
@@ -1325,7 +2324,6 @@ select.field option{background:var(--bg2)}
     <div class="notif-empty">Sem notificações</div>
   </div>
 </div>
-
 <script>
 // ============================================================
 // NR1 PSICOSSOCIAL — SISTEMA COMPLETO FUNCIONAL
@@ -1402,7 +2400,6 @@ async function fbWrite(colecao, valor) {
       .set({ valor: JSON.stringify(valor), updatedAt: new Date().toISOString() });
   } catch(e) { console.warn('Firestore write ['+colecao+'] error:', e.message); }
 }
-
 // Lê uma coleção do Firestore
 async function fbRead(colecao) {
   if (!firebaseInitialized || !firestoreDB || !firebaseUserId) return null;
@@ -1705,7 +2702,7 @@ function showPage(id, el) {
   else document.querySelectorAll('.nav-item').forEach(n => {
     if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
-  const titles={dashboard:'Dashboard',empresas:'Empresas',colaboradores:'Colaboradores',questionarios:'Questionários NR1',diagnosticos:'Diagnóstico Psicossocial',riscos:'Gestão de Riscos',plano:'Plano de Ação',acompanhamento:'Acompanhamentos',relatorios:'Relatórios',configuracoes:'Configurações'};
+  const titles={dashboard:'Dashboard',empresas:'Empresas',colaboradores:'Colaboradores',questionarios:'Questionários NR1',diagnosticos:'Diagnóstico Psicossocial',riscos:'Gestão de Riscos',plano:'Plano de Ação',acompanhamento:'Acompanhamentos',relatorios:'Relatórios',configuracoes:'Configurações','rh-avaldesempenho':'Avaliação de Desempenho','rh-climaorg':'Clima Organizacional','rh-cargos':'Descrição de Cargos','rh-processos':'Processos Seletivos','nr1-gerenciamento':'Gerenciamento NR1','nr1-documentos':'Documentos LGPD','visitas':'Visitas Técnicas'};
   document.getElementById('topbar-title').textContent = titles[id]||id;
   // Page-specific refresh
   if(id==='dashboard') refreshDashboard();
@@ -1718,6 +2715,13 @@ function showPage(id, el) {
   if(id==='acompanhamento') { renderAcomp(); renderAcompResumo(); }
   if(id==='relatorios') renderRelatorios();
   if(id==='configuracoes') loadPerfil();
+  if(id==='rh-avaldesempenho') { populateRhAvalFilter(); filterRhAval(); }
+  if(id==='rh-climaorg') renderRhClima();
+  if(id==='rh-cargos') { populateRhCargoFilter(); renderRhCargos(); }
+  if(id==='rh-processos') renderRhProcessos();
+  if(id==='nr1-gerenciamento') { populateGerEmpresaFilter(); renderGerenciamento(); }
+  if(id==='visitas') { populateVisitaFilter(); filterVisitas(); }
+  if(id==='nr1-documentos') { renderLgpd(); renderTermos(); renderListaPresenca(); populateDocEmpresaFilter(); }
 }
 
 function toggleSidebar() {
@@ -1726,15 +2730,42 @@ function toggleSidebar() {
 
 // === MODALS ===
 function openModal(id) {
-  document.getElementById(id).classList.add('open');
-  // Populate selects when opening
-  if(id==='modal-empresa') populateEmpresaModal();
-  if(id==='modal-colaborador') populateColabEmpresaSelect();
-  if(id==='modal-risco') populateRiscoEmpresaSelect();
-  if(id==='modal-acao') populateAcaoEmpresaSelect();
-  if(id==='modal-acomp') populateAcompEmpresaSelect();
+  const modal = document.getElementById(id);
+
+  if (!modal) {
+    console.error('Modal não encontrado:', id);
+    return;
+  }
+
+  // Populate empresa selects for modals that need them
+  const empSelMap = {
+    'modal-rh-clima': 'rh-clima-empresa',
+    'modal-rh-cargo': 'rh-cargo-empresa',
+    'modal-rh-processo': 'rh-proc-empresa',
+    'modal-rh-aval': 'rh-aval-empresa',
+    'modal-treinamento': 'trein-empresa',
+    'modal-visita': 'visita-empresa',
+    'modal-lgpd': 'lgpd-empresa',
+    'modal-termo-consciencia': 'termo-empresa',
+    'modal-lista-presenca': 'presenca-empresa',
+  };
+  if (empSelMap[id]) {
+    const sel = document.getElementById(empSelMap[id]);
+    if (sel) {
+      const prev = sel.value;
+      sel.innerHTML = `<option value="">Selecione a empresa</option>` + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+      if(prev) sel.value = prev;
+    }
+  }
+
+  modal.classList.add('open');
 }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function closeModal(id) {
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.remove('open');
+}
 document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e){ if(e.target===this) this.classList.remove('open'); }));
 
 // === TOAST ===
@@ -1899,7 +2930,8 @@ function renderEmpresas(filter='') {
       </div>
       <div style="display:flex;gap:6px;margin-top:14px">
         <button class="btn btn-sm btn-secondary" style="flex:1" onclick="editEmpresa('${e.id}')">✏ Editar</button>
-        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteEmpresa('${e.id}')" title="Excluir empresa">🗑 Excluir</button>
+        <button class="btn btn-sm btn-success" onclick="event.stopPropagation();exportEmpresaDocs('${e.id}')" title="Exportar todos os documentos desta empresa">📦 Docs</button>
+        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteEmpresa('${e.id}')" title="Excluir empresa">🗑</button>
       </div>
     </div>
   `).join('') + `
@@ -2814,42 +3846,97 @@ function generateFromModal(){
 }
 
 // === PDF GENERATION ===
-const {jsPDF}=window.jspdf;
-
 function pdfHeader(doc, title, sub='') {
   const config=DB.getObj('rel_config');
-  const consultorNome=config.nome||'NR1 Psicossocial — Sistema de Gestão';
-  const consultorSub=config.sub||'Avaliação de Riscos Psicossociais — NR1/2025';
-  doc.setFillColor(15,17,23);
-  doc.rect(0,0,210,30,'F');
+  const consultorNome=config.nome||'NR1 Psicossocial — Assessoria em Riscos Psicossociais';
+  const consultorSub=config.sub||'Avaliação e Gestão de Riscos Psicossociais — NR1/2025';
+  const consultorCrp=config.crp||'';
+  const consultorTel=config.tel||'';
+  const consultorEmail=config.email||'';
+  const consultorCidade=config.cidade||'';
+
+  // === FAIXA DE HEADER AZUL INSTITUCIONAL ===
+  doc.setFillColor(26,42,94); // Azul escuro institucional
+  doc.rect(0,0,210,36,'F');
+
+  // Barra de acento lateral esquerda
+  doc.setFillColor(79,124,255);
+  doc.rect(0,0,5,36,'F');
+
+  // Logo / ícone — escudo estilizado
+  doc.setFillColor(255,255,255);
+  doc.roundedRect(10,6,22,22,3,3,'F');
+  doc.setFillColor(26,42,94);
+  doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.setTextColor(26,42,94);
+  doc.text('NR1',21,21,{align:'center'});
+
+  // Texto do header
   doc.setTextColor(255,255,255);
-  doc.setFontSize(16);doc.setFont('helvetica','bold');
-  doc.text('🛡 NR1 PSICOSSOCIAL',14,12);
-  doc.setFontSize(9);doc.setFont('helvetica','normal');
-  doc.text(consultorNome,14,19);
-  doc.setFontSize(8);doc.setTextColor(154,163,190);
-  doc.text(`Gerado em: ${fmtDateTime(nowISO())}`,140,19,{align:'right'});
-  doc.setTextColor(30,30,30);
-  doc.setFontSize(14);doc.setFont('helvetica','bold');
-  doc.text(title,14,42);
-  if(sub){doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);doc.text(sub,14,49);}
-  return sub?55:48;
+  doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text('NR1 PSICOSSOCIAL', 38, 14);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.setTextColor(180,190,220);
+  doc.text(consultorNome, 38, 21);
+  if(consultorSub){ doc.setFontSize(7); doc.text(consultorSub, 38, 27); }
+
+  // Info do consultor à direita
+  doc.setTextColor(180,190,220);
+  doc.setFontSize(7);
+  let infoY=12;
+  if(consultorCrp){ doc.text(consultorCrp, 196, infoY, {align:'right'}); infoY+=5; }
+  if(consultorTel){ doc.text(consultorTel, 196, infoY, {align:'right'}); infoY+=5; }
+  if(consultorEmail){ doc.text(consultorEmail, 196, infoY, {align:'right'}); infoY+=5; }
+  if(consultorCidade){ doc.text(consultorCidade, 196, infoY, {align:'right'}); }
+
+  // Linha divisória de cor
+  doc.setFillColor(79,124,255);
+  doc.rect(0,36,210,1.5,'F');
+
+  // Título do relatório
+  doc.setFontSize(16);doc.setFont('helvetica','bold');doc.setTextColor(20,20,40);
+  doc.text(title,14,50);
+
+  // Subtítulo e data
+  if(sub){
+    doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(80,90,110);
+    doc.text(sub,14,57);
+  }
+  doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(150,155,170);
+  doc.text(`Gerado em: ${fmtDateTime(nowISO())}  |  Documento confidencial`,196,sub?57:50,{align:'right'});
+
+  // Linha separadora abaixo do título
+  doc.setDrawColor(220,225,235);
+  doc.setLineWidth(0.4);
+  doc.line(14,sub?61:54,196,sub?61:54);
+
+  return sub?65:58;
 }
 
 function pdfFooter(doc) {
+  const config=DB.getObj('rel_config');
   const pages=doc.internal.getNumberOfPages();
   for(let i=1;i<=pages;i++){
     doc.setPage(i);
-    doc.setFillColor(240,240,245);
-    doc.rect(0,287,210,10,'F');
-    doc.setFontSize(7);doc.setTextColor(100,100,100);
-    doc.text('NR1 Psicossocial — Sistema de Gestão de Riscos Psicossociais',14,293);
-    doc.text(`Página ${i} de ${pages}`,196,293,{align:'right'});
+    // Fundo do rodapé
+    doc.setFillColor(245,247,252);
+    doc.rect(0,284,210,14,'F');
+    // Barra de cor superior do rodapé
+    doc.setFillColor(79,124,255);
+    doc.rect(0,284,210,1.2,'F');
+    doc.setFillColor(26,42,94);
+    doc.rect(0,285.2,210,0.6,'F');
+    // Textos
+    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(80,90,110);
+    doc.text(config.nome||'NR1 Psicossocial — Sistema de Gestão de Riscos Psicossociais',14,291);
+    doc.text('Documento confidencial — uso restrito',14,295.5);
+    doc.setTextColor(26,42,94);doc.setFont('helvetica','bold');
+    doc.text(`Página ${i} / ${pages}`,196,293,{align:'right'});
   }
 }
 
 function generateEmpresasPDF(){
-  const doc=new jsPDF();
+  const doc=new window.jspdf.jsPDF();
   let y=pdfHeader(doc,'Relatório de Empresas','Dados cadastrais e colaboradores');
   const empresas=getEmpresas();
   const colabs=getColabs();
@@ -2878,7 +3965,7 @@ function generateEmpresasPDF(){
 }
 
 function generateColabPDF(){
-  const doc=new jsPDF();
+  const doc=new window.jspdf.jsPDF();
   let y=pdfHeader(doc,'Relatório de Colaboradores');
   const colabs=getColabs();
   if(!colabs.length){doc.setFontSize(11);doc.setTextColor(100);doc.text('Nenhum colaborador cadastrado.',14,y+10);}
@@ -2904,7 +3991,7 @@ function generateColabPDF(){
 }
 
 function generateRiscosPDF(){
-  const doc=new jsPDF();
+  const doc=new window.jspdf.jsPDF();
   let y=pdfHeader(doc,'Relatório de Riscos Psicossociais','Matriz de riscos e medidas de controle');
   const riscos=getRiscos().sort((a,b)=>b.score-a.score);
   if(!riscos.length){doc.setFontSize(11);doc.setTextColor(100);doc.text('Nenhum risco registrado.',14,y+10);}
@@ -2930,7 +4017,7 @@ function generateRiscosPDF(){
 }
 
 function generatePlanoPDF(){
-  const doc=new jsPDF();
+  const doc=new window.jspdf.jsPDF();
   let y=pdfHeader(doc,'Plano de Ação NR1','Medidas corretivas e preventivas');
   const acoes=getAcoes().sort((a,b)=>{const p={Alta:0,Média:1,Baixa:2};return(p[a.prioridade]||1)-(p[b.prioridade]||1);});
   if(!acoes.length){doc.setFontSize(11);doc.setTextColor(100);doc.text('Nenhuma ação cadastrada.',14,y+10);}
@@ -2953,7 +4040,7 @@ function generatePlanoPDF(){
 
 function generateDiagPDF(){
   const empId=document.getElementById('diag-empresa-filter')?.value;
-  const doc=new jsPDF();
+  const doc=new window.jspdf.jsPDF();
   const empresa=empId?getEmpresas().find(e=>e.id===empId):null;
   let y=pdfHeader(doc,'Diagnóstico Psicossocial NR1', empresa?`Empresa: ${empresa.razao}`:'Todas as empresas');
   
@@ -2997,41 +4084,94 @@ function generateDiagPDF(){
 }
 
 function generateFullPDF(){
-  const doc=new jsPDF();
-  let y=pdfHeader(doc,'Relatório Completo NR1','Diagnóstico · Riscos · Plano de Ação');
+  const doc=new window.jspdf.jsPDF();
   const empresas=getEmpresas();const colabs=getColabs();const riscos=getRiscos();const acoes=getAcoes();const quests=getQuestionarios();
   
-  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
-  doc.text('RESUMO EXECUTIVO',14,y);y+=5;
-  doc.setDrawColor(200);doc.line(12,y,198,y);y+=4;
-  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(60,60,60);
-  doc.text(`Empresas avaliadas: ${empresas.length}`,14,y);y+=4;
-  doc.text(`Total de colaboradores: ${colabs.length}`,14,y);y+=4;
-  doc.text(`Avaliações realizadas: ${quests.length}`,14,y);y+=4;
-  doc.text(`Riscos identificados: ${riscos.length} (${riscos.filter(r=>r.nivel==='Crítico').length} críticos)`,14,y);y+=4;
-  doc.text(`Ações no plano: ${acoes.length} (${acoes.filter(a=>a.status==='Pendente').length} pendentes)`,14,y);y+=10;
+  // === CAPA / RESUMO EXECUTIVO ===
+  let y=pdfHeader(doc,'Relatório Completo NR1','Diagnóstico · Riscos · Plano de Ação — Documento Institucional');
   
-  // Empresas
+  // Bloco resumo executivo
+  doc.setFillColor(245,248,255);
+  doc.roundedRect(12,y,186,38,3,3,'F');
+  doc.setFillColor(26,42,94);
+  doc.roundedRect(12,y,3,38,1.5,1.5,'F');
+  
+  doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(26,42,94);
+  doc.text('RESUMO EXECUTIVO',20,y+8);
+  
+  doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.setTextColor(40,50,70);
+  const resumoItems=[
+    [`Empresas avaliadas:`, `${empresas.length}`],
+    [`Total de colaboradores:`, `${colabs.length}`],
+    [`Avaliações realizadas:`, `${quests.length}`],
+    [`Riscos identificados:`, `${riscos.length} (${riscos.filter(r=>r.nivel==='Crítico').length} críticos, ${riscos.filter(r=>r.nivel==='Alto').length} altos)`],
+    [`Ações no plano:`, `${acoes.length} (${acoes.filter(a=>a.status==='Pendente').length} pendentes)`],
+  ];
+  resumoItems.forEach(([label,val],i)=>{
+    const col = i%2===0?20:105;
+    const row = y+16+Math.floor(i/2)*7;
+    doc.setFont('helvetica','bold');doc.setTextColor(80,90,110);doc.text(label,col,row);
+    doc.setFont('helvetica','normal');doc.setTextColor(26,42,94);doc.text(val,col+48,row);
+  });
+  y+=46;
+  
+  // Data e assinatura
+  doc.setFontSize(8);doc.setTextColor(130,140,155);
+  doc.text(`Data de geração: ${fmtDateTime(nowISO())}`,14,y);
+  y+=10;
+  
+  // === EMPRESAS ===
   if(empresas.length){
-    doc.addPage();y=pdfHeader(doc,'Empresas Cadastradas')+5;
+    doc.addPage();y=pdfHeader(doc,'1. Empresas Cadastradas',`Total: ${empresas.length} empresa(s)`);
     empresas.forEach((e,i)=>{
-      if(y>270){doc.addPage();y=15;}
-      doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
-      doc.text(`${i+1}. ${e.razao}`,14,y);y+=4;
-      doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
-      doc.text(`${e.cnpj||''}  ${e.segmento||''}  ${e.cidade||''}, ${e.estado||''}  Colab: ${colabs.filter(c=>c.empresaId===e.id).length}`,14,y);y+=6;
+      if(y>265){doc.addPage();y=pdfHeader(doc,'1. Empresas (cont.)')+5;}
+      doc.setFillColor(i%2===0?248:252,249,252);
+      doc.rect(12,y-3,186,14,'F');
+      doc.setFontSize(9.5);doc.setFont('helvetica','bold');doc.setTextColor(20,30,50);
+      doc.text(`${i+1}. ${e.razao}`,16,y+3.5);
+      doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(80,90,110);
+      doc.text(`CNPJ: ${e.cnpj||'—'}  |  ${e.segmento||'—'}  |  ${e.cidade||''}${e.estado?', '+e.estado:''}  |  Colaboradores: ${colabs.filter(c=>c.empresaId===e.id).length}`,16,y+8.5);
+      y+=16;
     });
   }
   
-  // Riscos
+  // === RISCOS ===
   if(riscos.length){
-    doc.addPage();y=pdfHeader(doc,'Riscos Psicossociais')+5;
+    doc.addPage();y=pdfHeader(doc,'2. Riscos Psicossociais Identificados',`Total: ${riscos.length} risco(s) · Ordenados por grau de criticidade`);
+    const nivelColor={
+      'Crítico':[167,139,250],'Alto':[255,85,85],'Médio':[245,165,36],'Baixo':[34,208,122]
+    };
     riscos.sort((a,b)=>b.score-a.score).forEach((r,i)=>{
-      if(y>270){doc.addPage();y=15;}
-      doc.setFontSize(8);doc.setFont('helvetica','bold');doc.setTextColor(30,30,30);
-      doc.text(`${i+1}. ${(r.descricao||r.categoria).slice(0,80)}`,14,y);y+=4;
-      doc.setFont('helvetica','normal');doc.setTextColor(80,80,80);
-      doc.text(`${r.empresaNome} · Score: ${r.score} (${r.nivel}) · ${r.status}`,14,y);y+=6;
+      if(y>260){doc.addPage();y=pdfHeader(doc,'2. Riscos (cont.)')+5;}
+      const c=nivelColor[r.nivel]||[100,100,100];
+      doc.setFillColor(245,248,255);
+      doc.roundedRect(12,y,186,20,2,2,'F');
+      doc.setFillColor(...c);
+      doc.roundedRect(12,y,3,20,1.5,1.5,'F');
+      doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(20,30,50);
+      doc.text(`${i+1}. ${(r.descricao||r.categoria).slice(0,78)}`,18,y+6);
+      doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(80,90,110);
+      doc.text(`Empresa: ${r.empresaNome}  |  Setor: ${r.setor||'Geral'}  |  Score: ${r.score}  |  Nível: ${r.nivel}  |  Status: ${r.status}`,18,y+12);
+      if(r.medidas) doc.text(`Medidas: ${r.medidas.slice(0,80)}`,18,y+17);
+      y+=24;
+    });
+  }
+  
+  // === PLANO DE AÇÃO ===
+  if(acoes.length){
+    doc.addPage();y=pdfHeader(doc,'3. Plano de Ação',`Total: ${acoes.length} ação(ões)`);
+    acoes.sort((a,b)=>{const p={Alta:0,Média:1,Baixa:2};return(p[a.prioridade]||1)-(p[b.prioridade]||1);}).forEach((a,i)=>{
+      if(y>265){doc.addPage();y=pdfHeader(doc,'3. Plano de Ação (cont.)')+5;}
+      const pColor=a.prioridade==='Alta'?[255,85,85]:a.prioridade==='Média'?[245,165,36]:[34,208,122];
+      doc.setFillColor(248,249,252);
+      doc.roundedRect(12,y,186,18,2,2,'F');
+      doc.setFillColor(...pColor);
+      doc.roundedRect(12,y,3,18,1.5,1.5,'F');
+      doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(20,30,50);
+      doc.text(`${i+1}. ${a.descricao.slice(0,78)}`,18,y+6);
+      doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(80,90,110);
+      doc.text(`Empresa: ${a.empresaNome}  |  Responsável: ${a.responsavel||'—'}  |  Prazo: ${fmtDate(a.prazo)}  |  Status: ${a.status}  |  Prior.: ${a.prioridade}`,18,y+12);
+      y+=21;
     });
   }
   
@@ -3127,18 +4267,44 @@ function loadPerfil(){
   const cfg=DB.getObj('rel_config');
   document.getElementById('config-rel-nome').value=cfg.nome||'';
   document.getElementById('config-rel-sub').value=cfg.sub||'';
+  if(document.getElementById('config-rel-crp')) document.getElementById('config-rel-crp').value=cfg.crp||'';
+  if(document.getElementById('config-rel-tel')) document.getElementById('config-rel-tel').value=cfg.tel||'';
+  if(document.getElementById('config-rel-email')) document.getElementById('config-rel-email').value=cfg.email||'';
+  if(document.getElementById('config-rel-cidade')) document.getElementById('config-rel-cidade').value=cfg.cidade||'';
   if(currentUser){
     document.getElementById('config-nome').value=currentUser.name||'';
     document.getElementById('config-email').value=currentUser.email||'';
   }
+  updateCabecalhoPreview();
 }
 
+function updateCabecalhoPreview(){
+  const nome=document.getElementById('config-rel-nome')?.value||'NR1 Psicossocial — Sistema de Gestão';
+  const sub=document.getElementById('config-rel-sub')?.value||'Avaliação de Riscos Psicossociais — NR1/2025';
+  const crp=document.getElementById('config-rel-crp')?.value||'';
+  const tel=document.getElementById('config-rel-tel')?.value||'';
+  const email=document.getElementById('config-rel-email')?.value||'';
+  if(document.getElementById('prev-nome')) document.getElementById('prev-nome').textContent=nome;
+  if(document.getElementById('prev-sub')) document.getElementById('prev-sub').textContent=sub;
+  if(document.getElementById('prev-crp')) document.getElementById('prev-crp').textContent=crp;
+  if(document.getElementById('prev-tel')) document.getElementById('prev-tel').textContent=tel;
+  if(document.getElementById('prev-modal-nome')) document.getElementById('prev-modal-nome').textContent=nome;
+  if(document.getElementById('prev-modal-sub')) document.getElementById('prev-modal-sub').textContent=sub;
+  if(document.getElementById('prev-modal-crp')) document.getElementById('prev-modal-crp').textContent=crp;
+  if(document.getElementById('prev-modal-tel')) document.getElementById('prev-modal-tel').textContent=tel;
+  if(document.getElementById('prev-modal-email')) document.getElementById('prev-modal-email').textContent=email;
+  if(document.getElementById('prev-modal-footer')) document.getElementById('prev-modal-footer').textContent=nome;
+}
 function saveRelConfig(){
   DB.setObj('rel_config',{
     nome:document.getElementById('config-rel-nome').value.trim(),
-    sub:document.getElementById('config-rel-sub').value.trim()
+    sub:document.getElementById('config-rel-sub').value.trim(),
+    crp:document.getElementById('config-rel-crp')?.value.trim()||'',
+    tel:document.getElementById('config-rel-tel')?.value.trim()||'',
+    email:document.getElementById('config-rel-email')?.value.trim()||'',
+    cidade:document.getElementById('config-rel-cidade')?.value.trim()||''
   });
-  showToast('Configurações salvas!','success');
+  showToast('Cabeçalho dos relatórios salvo!','success');
 }
 
 function savePerfil(){
@@ -3558,6 +4724,689 @@ function importPdfData() {
   document.getElementById('pdf-parsed-data').style.display = 'none';
   document.getElementById('btn-import-pdf').style.display = 'none';
 }
+
+function populateDocEmpresaFilter(){
+  const selectors=['doc-empresa-filter'];
+  selectors.forEach(sid=>{
+    const sel=document.getElementById(sid);
+    if(!sel)return;
+    const prev=sel.value;
+    sel.innerHTML='<option value="">Selecione uma empresa</option>'+getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+    if(prev)sel.value=prev;
+  });
+}
+function populateRhCargoFilter(){
+  const sel=document.getElementById('rh-cargo-empresa-filter');
+  if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Todas as empresas</option>'+getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  if(prev)sel.value=prev;
+}
+function populateRhAvalFilter(){
+  const sel=document.getElementById('rh-aval-empresa-filter');
+  if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Todas as empresas</option>'+getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  sel.value=prev;
+}
+function populateGerEmpresaFilter(){
+  const sel=document.getElementById('ger-empresa-filter');
+  if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Selecione uma empresa</option>'+getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  sel.value=prev;
+}
+function populateVisitaFilter(){
+  const sel=document.getElementById('visita-empresa-filter');
+  if(!sel)return;
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Todas as empresas</option>'+getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  sel.value=prev;
+}
+
+// === FUNÇÕES RH / VISITAS (módulos complementares) ===
+function filterRhAval() {
+  const f=document.getElementById('rh-aval-empresa-filter')?.value||'';
+  const avs=DB.get('rh_avaliacoes').filter(a=>!f||a.empresaId===f);
+  const tbody=document.getElementById('rh-aval-tbody');
+  document.getElementById('rh-aval-total').textContent=avs.length;
+  document.getElementById('rh-aval-pend').textContent=avs.filter(a=>a.status==='Pendente').length;
+  document.getElementById('rh-aval-conc').textContent=avs.filter(a=>a.status==='Concluída').length;
+  if(!avs.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhuma avaliação registrada</td></tr>';return;}
+  tbody.innerHTML=avs.map(a=>`<tr><td>${fmtDate(a.data)}</td><td>${a.colab||'—'}</td><td>${a.empresa||'—'}</td><td>${a.cargo||'—'}</td><td>${a.avaliador||'—'}</td><td style="font-family:'DM Mono'">${a.score||'—'}</td><td><span class="badge ${a.status==='Concluída'?'badge-green':'badge-amber'}">${a.status||'Pendente'}</span></td><td><button class="btn btn-sm btn-danger" onclick="deleteRhAval('${a.id}')">🗑</button></td></tr>`).join('');
+}
+function deleteRhAval(id){showConfirm('Excluir avaliação?','Esta avaliação será removida.','🗑',()=>{DB.set('rh_avaliacoes',DB.get('rh_avaliacoes').filter(a=>a.id!==id));filterRhAval();showToast('Avaliação excluída.','success');});}
+function renderGerenciamento() {
+  const f=document.getElementById('ger-empresa-filter')?.value||'';
+  const trein=DB.get('treinamentos').filter(t=>!f||t.empresaId===f);
+  document.getElementById('ger-stat-trein').textContent=trein.filter(t=>t.tipo==='Treinamento').length;
+  document.getElementById('ger-stat-palest').textContent=trein.filter(t=>t.tipo==='Palestra').length;
+  document.getElementById('ger-stat-colab').textContent=f?getColabs().filter(c=>c.empresaId===f).length:getColabs().length;
+  document.getElementById('ger-stat-pend').textContent=trein.filter(t=>t.status==='Pendente').length;
+  const tbody=document.getElementById('treinamentos-tbody');
+  if(!trein.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhum treinamento registrado</td></tr>';return;}
+  tbody.innerHTML=trein.map(t=>`<tr><td>${fmtDate(t.data)}</td><td>${t.tipo||'—'}</td><td>${t.tema||'—'}</td><td>${t.empresa||'—'}</td><td>${t.participantes||0}</td><td>${t.responsavel||'—'}</td><td><span class="badge ${t.status==='Concluído'?'badge-green':'badge-amber'}">${t.status||'Pendente'}</span></td><td><button class="btn btn-sm btn-danger" onclick="deleteTrein('${t.id}')">🗑</button></td></tr>`).join('');
+}
+function deleteTrein(id){showConfirm('Excluir treinamento?','','🗑',()=>{DB.set('treinamentos',DB.get('treinamentos').filter(t=>t.id!==id));renderGerenciamento();showToast('Treinamento excluído.','success');});}
+function exportTreinamentosExcel(){
+  const trein=DB.get('treinamentos');
+  if(!trein.length){showToast('Nenhum treinamento cadastrado','error');return;}
+  const ws=XLSX.utils.json_to_sheet(trein.map(t=>({'Data':fmtDate(t.data),'Tipo':t.tipo,'Tema':t.tema,'Empresa':t.empresa,'Participantes':t.participantes,'Responsável':t.responsavel,'Status':t.status})));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Treinamentos');
+  XLSX.writeFile(wb,'treinamentos_nr1.xlsx');
+  showToast('Excel exportado!','success');
+}
+function filterVisitas(){
+  const f=document.getElementById('visita-empresa-filter')?.value||'';
+  renderVisitas(f);
+}
+function renderVisitas(f=''){
+  const visitas=DB.get('visitas').filter(v=>!f||v.empresaId===f);
+  document.getElementById('vis-stat-total').textContent=visitas.length;
+  const totalIdent=visitas.reduce((a,v)=>a+(v.acoes_ident||0),0);
+  const totalResol=visitas.reduce((a,v)=>a+(v.acoes_resol||0),0);
+  document.getElementById('vis-stat-ident').textContent=totalIdent;
+  document.getElementById('vis-stat-resol').textContent=totalResol;
+  document.getElementById('vis-stat-pend').textContent=Math.max(0,totalIdent-totalResol);
+  const tbody=document.getElementById('visitas-tbody');
+  if(!visitas.length){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhuma visita registrada</td></tr>';return;}
+  tbody.innerHTML=visitas.sort((a,b)=>new Date(b.data)-new Date(a.data)).map(v=>`<tr><td>${fmtDate(v.data)}</td><td>${v.empresa||'—'}</td><td>${v.consultor||'—'}</td><td>${v.acoes_ident||0}</td><td>${v.acoes_resol||0}</td><td>${Math.max(0,(v.acoes_ident||0)-(v.acoes_resol||0))}</td><td>${fmtDate(v.proxima_visita)}</td><td><div style="display:flex;gap:5px"><button class="btn btn-sm btn-danger" onclick="deleteVisita('${v.id}')">🗑</button></div></td></tr>`).join('');
+  const progresso=document.getElementById('visitas-progresso');
+  if(progresso){
+    const empresasComVisita=[...new Set(visitas.map(v=>v.empresaId))];
+    if(!empresasComVisita.length){progresso.innerHTML='<div class="empty-state" style="padding:20px"><p>Sem dados de progresso</p></div>';return;}
+    progresso.innerHTML='<div style="display:flex;flex-direction:column;gap:12px">'+empresasComVisita.map(eid=>{
+      const emp=getEmpresas().find(e=>e.id===eid);
+      const vEmp=visitas.filter(v=>v.empresaId===eid);
+      const ident=vEmp.reduce((a,v)=>a+(v.acoes_ident||0),0);
+      const resol=vEmp.reduce((a,v)=>a+(v.acoes_resol||0),0);
+      const pct=ident>0?Math.round(resol/ident*100):0;
+      return `<div><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px">${emp?.razao||eid}</span><span style="font-size:12px;color:var(--accent)">${pct}% resolvido (${resol}/${ident})</span></div><div class="progress-bar"><div class="progress-fill ${pct>=80?'green':pct>=50?'amber':'red'}" style="width:${pct}%"></div></div></div>`;
+    }).join('')+'</div>';
+  }
+}
+function deleteVisita(id){showConfirm('Excluir visita?','','🗑',()=>{DB.set('visitas',DB.get('visitas').filter(v=>v.id!==id));filterVisitas();showToast('Visita excluída.','success');});}
+function exportVisitasExcel(){
+  const visitas=DB.get('visitas');
+  if(!visitas.length){showToast('Nenhuma visita cadastrada','error');return;}
+  const ws=XLSX.utils.json_to_sheet(visitas.map(v=>({'Data':fmtDate(v.data),'Empresa':v.empresa,'Consultor':v.consultor,'Ações Identificadas':v.acoes_ident||0,'Ações Resolvidas':v.acoes_resol||0,'Próxima Visita':fmtDate(v.proxima_visita)})));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Visitas');
+  XLSX.writeFile(wb,'visitas_nr1.xlsx');
+  showToast('Excel de visitas exportado!','success');
+}
+function doExportEmpresaDocs(){
+  const empresaId=document.getElementById('export-empresa-id').value;
+  const inc={diag:document.getElementById('exp-diagnostico')?.checked,riscos:document.getElementById('exp-riscos')?.checked,plano:document.getElementById('exp-plano')?.checked,colab:document.getElementById('exp-colaboradores')?.checked,full:document.getElementById('exp-completo')?.checked};
+  closeModal('modal-export-empresa');
+  if(inc.full){generateFullPDF();return;}
+  if(inc.diag){setTimeout(()=>generateDiagPDF(),100);}
+  if(inc.riscos){setTimeout(()=>generateRiscosPDF(),inc.diag?1500:100);}
+  if(inc.plano){setTimeout(()=>generatePlanoPDF(),(inc.diag||inc.riscos)?2500:100);}
+  if(inc.colab){setTimeout(()=>generateColabPDF(),(inc.diag||inc.riscos||inc.plano)?3500:100);}
+  showToast('Exportando documentos selecionados...','info');
+}
+function exportEmpresaDocs(id){
+  document.getElementById('export-empresa-id').value=id;
+  const emp=getEmpresas().find(e=>e.id===id);
+  if(emp) document.getElementById('modal-export-empresa-title').textContent='📦 Exportar Documentos — '+emp.razao;
+  openModal('modal-export-empresa');
+}
+
+// Saves for RH modals (stub saves)
+function saveRhAval(){
+  const empId=document.getElementById('rh-aval-empresa')?.value;
+  if(!empId){showToast('Selecione a empresa','error');return;}
+  const avs=DB.get('rh_avaliacoes');
+  const emp=getEmpresas().find(e=>e.id===empId);
+  avs.push({id:uid(),empresaId:empId,empresa:emp?.razao||'',colab:document.getElementById('rh-aval-colab')?.value||'',cargo:document.getElementById('rh-aval-cargo')?.value||'',avaliador:document.getElementById('rh-aval-avaliador')?.value||'',score:document.getElementById('rh-aval-score')?.value||'',data:document.getElementById('rh-aval-data')?.value||new Date().toISOString().split('T')[0],status:'Pendente',createdAt:nowISO()});
+  DB.set('rh_avaliacoes',avs);
+  closeModal('modal-rh-aval');
+  filterRhAval();
+  showToast('Avaliação registrada!','success');
+}
+function saveRhClima(){
+  const empId=document.getElementById('rh-clima-empresa')?.value;
+  if(!empId){showToast('Selecione a empresa','error');return;}
+  const pesqs=DB.get('rh_clima');
+  const emp=getEmpresas().find(e=>e.id===empId);
+  pesqs.push({id:uid(),empresaId:empId,empresa:emp?.razao||'',periodo:document.getElementById('rh-clima-periodo')?.value||'',participantes:parseInt(document.getElementById('rh-clima-participantes')?.value)||0,score:document.getElementById('rh-clima-score')?.value||'',status:'Em andamento',data:new Date().toISOString().split('T')[0],createdAt:nowISO()});
+  DB.set('rh_clima',pesqs);
+  closeModal('modal-rh-clima');
+  renderRhClima();
+  showToast('Pesquisa registrada!','success');
+}
+function renderRhClima(){
+  const pesqs=DB.get('rh_clima');
+  const tbody=document.getElementById('rh-clima-tbody');
+  if(!tbody)return;
+  if(!pesqs.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhuma pesquisa registrada</td></tr>';return;}
+  tbody.innerHTML=pesqs.map(p=>`<tr><td>${fmtDate(p.data)}</td><td>${p.empresa||'—'}</td><td>${p.periodo||'—'}</td><td>${p.participantes||0}</td><td>${p.score||'—'}</td><td><span class="badge badge-blue">${p.status}</span></td><td><button class="btn btn-sm btn-danger" onclick="deleteRhClima('${p.id}')">🗑</button></td></tr>`).join('');
+}
+function deleteRhClima(id){DB.set('rh_clima',DB.get('rh_clima').filter(p=>p.id!==id));renderRhClima();showToast('Pesquisa excluída.','success');}
+function saveRhCargo(){
+  const empId=document.getElementById('rh-cargo-empresa')?.value;
+  const cargo=document.getElementById('rh-cargo-nome')?.value.trim();
+  if(!cargo){showToast('Nome do cargo é obrigatório','error');return;}
+  const cargos=DB.get('rh_cargos');
+  const emp=getEmpresas().find(e=>e.id===empId);
+  cargos.push({id:uid(),empresaId:empId||'',empresa:emp?.razao||'',cargo,nivel:document.getElementById('rh-cargo-nivel')?.value||'Júnior',responsabilidades:document.getElementById('rh-cargo-resp')?.value||'',requisitos:document.getElementById('rh-cargo-req')?.value||'',createdAt:nowISO()});
+  DB.set('rh_cargos',cargos);
+  closeModal('modal-rh-cargo');
+  renderRhCargos();
+  showToast('Cargo cadastrado!','success');
+}
+function renderRhCargos(){
+  const cargos=DB.get('rh_cargos');
+  const grid=document.getElementById('rh-cargos-grid');
+  if(!grid)return;
+  if(!cargos.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🗂️</div><h3>Nenhum cargo cadastrado</h3><p>Clique em "+ Novo Cargo" para adicionar</p></div>';return;}
+  grid.innerHTML=cargos.map(c=>`<div class="company-card cc-blue"><div class="company-name">${c.cargo}</div><div class="company-cnpj">${c.nivel||''}</div><div style="font-size:12px;color:var(--text2);margin-bottom:10px">${c.empresa||'Todos'}</div>${c.responsabilidades?`<div style="font-size:12px;color:var(--text3);margin-bottom:10px">${c.responsabilidades.slice(0,80)}</div>`:''}<button class="btn btn-sm btn-danger" onclick="deleteRhCargo('${c.id}')">🗑 Excluir</button></div>`).join('');
+}
+function deleteRhCargo(id){DB.set('rh_cargos',DB.get('rh_cargos').filter(c=>c.id!==id));renderRhCargos();showToast('Cargo excluído.','success');}
+function saveRhProcesso(){
+  const empId=document.getElementById('rh-proc-empresa')?.value;
+  const vaga=document.getElementById('rh-proc-vaga')?.value.trim();
+  if(!vaga){showToast('Nome da vaga é obrigatório','error');return;}
+  const procs=DB.get('rh_processos');
+  const emp=getEmpresas().find(e=>e.id===empId);
+  procs.push({id:uid(),empresaId:empId||'',empresa:emp?.razao||'',vaga,responsavel:document.getElementById('rh-proc-responsavel')?.value||'',candidatos:parseInt(document.getElementById('rh-proc-candidatos')?.value)||0,status:'Aberto',data:new Date().toISOString().split('T')[0],createdAt:nowISO()});
+  DB.set('rh_processos',procs);
+  closeModal('modal-rh-processo');
+  renderRhProcessos();
+  showToast('Processo seletivo registrado!','success');
+}
+function renderRhProcessos(){
+  const procs=DB.get('rh_processos');
+  document.getElementById('rh-proc-abertos').textContent=procs.filter(p=>p.status==='Aberto').length;
+  document.getElementById('rh-proc-andamento').textContent=procs.filter(p=>p.status==='Em Andamento').length;
+  document.getElementById('rh-proc-conc').textContent=procs.filter(p=>p.status==='Concluído').length;
+  document.getElementById('rh-proc-canc').textContent=procs.filter(p=>p.status==='Cancelado').length;
+  const tbody=document.getElementById('rh-proc-tbody');
+  if(!tbody)return;
+  if(!procs.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhum processo registrado</td></tr>';return;}
+  tbody.innerHTML=procs.map(p=>`<tr><td>${p.vaga}</td><td>${p.empresa||'—'}</td><td>${fmtDate(p.data)}</td><td>${p.candidatos||0}</td><td>${p.responsavel||'—'}</td><td><span class="badge ${p.status==='Aberto'?'badge-blue':p.status==='Concluído'?'badge-green':p.status==='Cancelado'?'badge-red':'badge-amber'}">${p.status}</span></td><td><button class="btn btn-sm btn-danger" onclick="deleteRhProc('${p.id}')">🗑</button></td></tr>`).join('');
+}
+function deleteRhProc(id){DB.set('rh_processos',DB.get('rh_processos').filter(p=>p.id!==id));renderRhProcessos();showToast('Processo excluído.','success');}
+function syncTreinTema(sel){
+  const v=sel.value;
+  const inp=document.getElementById('trein-tema');
+  if(v&&v!=='Outro (preencha abaixo)'){inp.value=v;}
+}
+function syncTreinSel(){
+  const v=document.getElementById('trein-tema').value;
+  const sel=document.getElementById('trein-tema-sel');
+  // If user typed something that doesn't match, reset select
+  const opts=Array.from(sel.options).map(o=>o.value);
+  if(!opts.includes(v)) sel.value='';
+}
+function saveTreinamento(){
+  const empId=document.getElementById('trein-empresa')?.value;
+  if(!empId){showToast('Selecione a empresa','error');return;}
+  const tema=document.getElementById('trein-tema')?.value.trim();
+  if(!tema){showToast('Tema é obrigatório','error');return;}
+  const trein=DB.get('treinamentos');
+  const emp=getEmpresas().find(e=>e.id===empId);
+  trein.push({id:uid(),empresaId:empId,empresa:emp?.razao||'',tipo:document.getElementById('trein-tipo')?.value||'Treinamento',tema,responsavel:document.getElementById('trein-responsavel')?.value||'',participantes:parseInt(document.getElementById('trein-participantes')?.value)||0,data:document.getElementById('trein-data')?.value||new Date().toISOString().split('T')[0],status:document.getElementById('trein-status')?.value||'Pendente',createdAt:nowISO()});
+  DB.set('treinamentos',trein);
+  closeModal('modal-treinamento');
+  renderGerenciamento();
+  addActivity('Treinamento registrado: '+tema, emp?.razao||'');
+  showToast('Treinamento registrado!','success');
+}
+
+// === LGPD ===
+function saveLgpd(){
+  const empId=document.getElementById('lgpd-empresa')?.value||'';
+  const colab=document.getElementById('lgpd-colab')?.value.trim();
+  const tipo=document.getElementById('lgpd-tipo')?.value||'Acesso aos Dados';
+  const status=document.getElementById('lgpd-status')?.value||'Pendente';
+  const desc=document.getElementById('lgpd-desc')?.value.trim()||'';
+  const emp=getEmpresas().find(e=>e.id===empId);
+  const items=DB.get('lgpd_termos');
+  items.push({id:uid(),empresaId:empId,empresa:emp?.razao||'',colab:colab||'—',tipo,status,desc,data:new Date().toISOString().split('T')[0],createdAt:nowISO()});
+  DB.set('lgpd_termos',items);
+  closeModal('modal-lgpd');
+  renderLgpd();
+  showToast('Termo LGPD registrado!','success');
+}
+function renderLgpd(){
+  const items=DB.get('lgpd_termos');
+  const tbody=document.getElementById('lgpd-tbody');
+  if(!tbody)return;
+  if(!items.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">Nenhum termo registrado</td></tr>';return;}
+  tbody.innerHTML=items.map(i=>`<tr><td>${fmtDate(i.data)}</td><td>${i.colab||'—'}</td><td>${i.empresa||'—'}</td><td><span class="badge ${i.status==='Concluído'?'badge-green':i.status==='Em análise'?'badge-amber':'badge-gray'}">${i.status}</span></td><td><button class="btn btn-sm btn-danger" onclick="deleteLgpd('${i.id}')">🗑</button></td></tr>`).join('');
+}
+function deleteLgpd(id){DB.set('lgpd_termos',DB.get('lgpd_termos').filter(i=>i.id!==id));renderLgpd();showToast('Termo excluído.','success');}
+
+// === TERMOS DE CONSCIENTIZAÇÃO ===
+function saveTermoConsciencia(){
+  const empId=document.getElementById('termo-empresa')?.value||'';
+  const colab=document.getElementById('termo-colab')?.value.trim();
+  const tipo=document.getElementById('termo-tipo')?.value||'';
+  const desc=document.getElementById('termo-desc')?.value.trim()||'';
+  const data=document.getElementById('termo-data')?.value||new Date().toISOString().split('T')[0];
+  const emp=getEmpresas().find(e=>e.id===empId);
+  const items=DB.get('termos_consciencia');
+  items.push({id:uid(),empresaId:empId,empresa:emp?.razao||'',colab:colab||'—',tipo,desc,data,status:'Assinado',createdAt:nowISO()});
+  DB.set('termos_consciencia',items);
+  closeModal('modal-termo-consciencia');
+  renderTermos();
+  showToast('Termo de conscientização salvo!','success');
+}
+function renderTermos(){
+  const items=DB.get('termos_consciencia');
+  const tbody=document.getElementById('termos-tbody');
+  if(!tbody)return;
+  if(!items.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">Nenhum termo registrado</td></tr>';return;}
+  tbody.innerHTML=items.map(i=>`<tr><td>${fmtDate(i.data)}</td><td>${i.empresa||'—'}</td><td>${i.tipo||'—'}</td><td>${i.colab||'—'}</td><td><span class="badge badge-green">${i.status}</span></td><td><button class="btn btn-sm btn-danger" onclick="deleteTermo('${i.id}')">🗑</button></td></tr>`).join('');
+}
+function deleteTermo(id){DB.set('termos_consciencia',DB.get('termos_consciencia').filter(i=>i.id!==id));renderTermos();showToast('Termo excluído.','success');}
+
+// === LISTA DE PRESENÇA ===
+function saveListaPresenca(){
+  const empId=document.getElementById('presenca-empresa')?.value||'';
+  const evento=document.getElementById('presenca-evento')?.value.trim();
+  if(!evento){showToast('Nome do evento é obrigatório','error');return;}
+  const emp=getEmpresas().find(e=>e.id===empId);
+  const items=DB.get('listas_presenca');
+  items.push({id:uid(),empresaId:empId,empresa:emp?.razao||'',evento,data:document.getElementById('presenca-data')?.value||new Date().toISOString().split('T')[0],participantes:parseInt(document.getElementById('presenca-participantes')?.value)||0,responsavel:document.getElementById('presenca-responsavel')?.value.trim()||'',obs:document.getElementById('presenca-obs')?.value.trim()||'',createdAt:nowISO()});
+  DB.set('listas_presenca',items);
+  closeModal('modal-lista-presenca');
+  renderListaPresenca();
+  showToast('Lista de presença salva!','success');
+}
+function renderListaPresenca(){
+  const items=DB.get('listas_presenca');
+  const tbody=document.getElementById('lista-presenca-tbody');
+  if(!tbody)return;
+  if(!items.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px">Nenhuma lista registrada</td></tr>';return;}
+  tbody.innerHTML=items.map(i=>`<tr><td>${fmtDate(i.data)}</td><td>${i.empresa||'—'}</td><td>${i.evento}</td><td>${i.participantes||0}</td><td><button class="btn btn-sm btn-danger" onclick="deleteListaPresenca('${i.id}')">🗑</button></td></tr>`).join('');
+}
+function deleteListaPresenca(id){DB.set('listas_presenca',DB.get('listas_presenca').filter(i=>i.id!==id));renderListaPresenca();showToast('Lista excluída.','success');}
+
+
+// ============================================================
+// === GROQ AI INTEGRATION ===
+// ============================================================
+
+const GROQ_PROMPTS = {
+  diagnostico: (dados) => `Você é um especialista em segurança do trabalho e saúde ocupacional, com foco na NR1 (Norma Regulamentadora 1 — Disposições Gerais e Gerenciamento de Riscos Ocupacionais) do Brasil. Elabore um RELATÓRIO DIAGNÓSTICO NR1 PSICOSSOCIAL completo, técnico e profissional com base nos dados abaixo.
+
+DADOS DO SISTEMA:
+${dados}
+
+O relatório deve conter:
+1. **SUMÁRIO EXECUTIVO** — síntese dos principais achados
+2. **PERFIL ORGANIZACIONAL** — análise do porte, setor e contexto
+3. **DIAGNÓSTICO DOS RISCOS PSICOSSOCIAIS** — análise de cada risco identificado por categoria (Organização do Trabalho, Carga e Ritmo, Relações Interpessoais, Reconhecimento, Autonomia, Violência/Assédio, Saúde e Bem-estar)
+4. **NÍVEL DE EXPOSIÇÃO** — classificação geral (Baixo / Médio / Alto / Crítico) com justificativa técnica
+5. **FATORES AGRAVANTES E PROTETORES** — análise crítica dos fatores encontrados
+6. **RECOMENDAÇÕES TÉCNICAS** — medidas de controle e eliminação de riscos, com base na hierarquia de controles da NR1
+7. **CONCLUSÃO** — parecer técnico final
+
+Use linguagem técnica, profissional e objetiva. Seja específico com base nos dados fornecidos.`,
+
+  riscos: (dados) => `Você é um especialista em gestão de riscos ocupacionais e NR1. Com base nos dados abaixo, elabore um RELATÓRIO DE RISCOS PSICOSSOCIAIS completo.
+
+DADOS DO SISTEMA:
+${dados}
+
+O relatório deve conter:
+1. **MATRIZ DE RISCOS** — listagem de todos os riscos, com classificação por probabilidade, impacto e nível resultante
+2. **ANÁLISE DE CRITICIDADE** — riscos ordenados por grau de urgência
+3. **IMPACTOS ORGANIZACIONAIS** — como cada risco afeta a organização
+4. **MEDIDAS DE CONTROLE PROPOSTAS** — para cada risco, descreva: eliminação, substituição, controles de engenharia, controles administrativos e EPIs/EPC
+5. **PLANO DE AÇÃO SUGERIDO** — com prazos e responsáveis sugeridos
+6. **INDICADORES DE MONITORAMENTO** — KPIs recomendados para acompanhamento
+
+Seja técnico, objetivo e embasado na NR1/2025.`,
+
+  empresa: (dados) => `Você é um consultor sênior de RH e segurança do trabalho. Elabore um RELATÓRIO EXECUTIVO DE EMPRESA completo e profissional com base nos dados abaixo.
+
+DADOS DO SISTEMA:
+${dados}
+
+O relatório deve conter:
+1. **PERFIL DA EMPRESA** — dados cadastrais, segmento, porte e contexto
+2. **QUADRO DE COLABORADORES** — análise do perfil funcional, setores e distribuição
+3. **DIAGNÓSTICO DE CLIMA E SAÚDE ORGANIZACIONAL** — baseado nas avaliações realizadas
+4. **PRINCIPAIS RISCOS IDENTIFICADOS** — síntese dos riscos ativos por empresa
+5. **STATUS DO PLANO DE AÇÃO** — progresso das ações em andamento
+6. **RECOMENDAÇÕES PRIORITÁRIAS** — top 5 ações recomendadas com justificativa
+7. **PRÓXIMOS PASSOS** — cronograma sugerido de intervenções
+
+Tom executivo, direto e orientado a resultados.`,
+
+  plano: (dados) => `Você é um especialista em gestão de saúde ocupacional e implementação da NR1. Elabore um PLANO DE AÇÃO INTELIGENTE E ESTRUTURADO com base nos dados abaixo.
+
+DADOS DO SISTEMA:
+${dados}
+
+O plano de ação deve conter:
+1. **PRIORIZAÇÃO ESTRATÉGICA** — classifique e justifique as ações por urgência e impacto (Matriz Eisenhower / GUT)
+2. **AÇÕES CRÍTICAS (Curto prazo — até 30 dias)** — liste e detalhe cada ação urgente
+3. **AÇÕES IMPORTANTES (Médio prazo — 30 a 90 dias)** — ações necessárias com planejamento
+4. **AÇÕES DE MELHORIA CONTÍNUA (Longo prazo — 90+ dias)** — consolidação e monitoramento
+5. **INDICADORES DE ACOMPANHAMENTO** — métricas e metas para cada ação
+6. **RESPONSABILIDADES SUGERIDAS** — por perfil de cargo (RH, Gestão, Liderança, Equipe)
+7. **ESTIMATIVA DE IMPACTO** — resultado esperado com a execução do plano
+
+Seja específico, prático e orientado à execução.`,
+
+  completo: (dados) => `Você é um especialista sênior em Saúde Mental no Trabalho, Riscos Psicossociais e NR1. Elabore o RELATÓRIO COMPLETO NR1 PSICOSSOCIAL — o documento mais completo e abrangente possível — com base nos dados abaixo.
+
+DADOS DO SISTEMA:
+${dados}
+
+O relatório completo deve conter:
+1. **SUMÁRIO EXECUTIVO**
+2. **INTRODUÇÃO E BASE LEGAL** — NR1/2025, Lei nº 14.457/2022, LGPD e normas aplicáveis
+3. **METODOLOGIA** — como as avaliações foram conduzidas
+4. **PERFIL ORGANIZACIONAL** — empresas, setores, colaboradores
+5. **DIAGNÓSTICO PSICOSSOCIAL POR DIMENSÃO** — análise detalhada de cada dimensão NR1
+6. **MATRIZ DE RISCOS CONSOLIDADA** — todos os riscos identificados
+7. **ANÁLISE DE CLIMA ORGANIZACIONAL** — resultados e interpretação
+8. **PLANO DE AÇÃO INTEGRADO** — ações priorizadas com prazos e responsáveis
+9. **RECOMENDAÇÕES TÉCNICAS E LEGAIS** — adequação à NR1 e legislação
+10. **INDICADORES E MONITORAMENTO** — dashboard de KPIs sugerido
+11. **CONCLUSÃO E PARECER TÉCNICO** — assinado digitalmente pelo consultor
+
+Seja extenso, detalhado, técnico e juridicamente embasado.`
+};
+
+let groqCurrentTipo = 'diagnostico';
+let groqLastResult = '';
+
+function getGroqKey() {
+  return localStorage.getItem('nr1_groq_key') || '';
+}
+
+function saveGroqKey() {
+  const key = document.getElementById('groq-api-key')?.value.trim();
+  if (!key) { showToast('Insira uma API Key válida', 'error'); return; }
+  localStorage.setItem('nr1_groq_key', key);
+  showToast('API Key da Groq salva!', 'success');
+  const st = document.getElementById('groq-status');
+  if (st) st.innerHTML = '<span style="color:var(--green)">✅ Chave salva. Clique em "Testar" para verificar.</span>';
+}
+
+async function testGroqKey() {
+  const key = document.getElementById('groq-api-key')?.value.trim() || getGroqKey();
+  if (!key) { showToast('Insira a API Key antes de testar', 'error'); return; }
+  const st = document.getElementById('groq-status');
+  if (st) st.innerHTML = '<span style="color:var(--text3)">🔌 Testando conexão...</span>';
+  try {
+    const model = document.getElementById('groq-model')?.value || 'llama-3.3-70b-versatile';
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify({ model, max_tokens: 10, messages: [{ role: 'user', content: 'Olá' }] })
+    });
+    if (res.ok) {
+      if (st) st.innerHTML = '<span style="color:var(--green)">✅ Conexão bem-sucedida! API Key válida.</span>';
+      showToast('Groq API Key válida!', 'success');
+    } else {
+      const err = await res.json();
+      if (st) st.innerHTML = `<span style="color:var(--red)">❌ Erro: ${err.error?.message || res.status}</span>`;
+      showToast('API Key inválida ou sem permissão', 'error');
+    }
+  } catch(e) {
+    if (st) st.innerHTML = `<span style="color:var(--red)">❌ Erro de rede: ${e.message}</span>`;
+    showToast('Erro de rede ao conectar com Groq', 'error');
+  }
+}
+
+function openGroqModal(tipo) {
+  const key = getGroqKey();
+  if (!key) {
+    showToast('Configure a API Key da Groq em Configurações primeiro!', 'error');
+    showPage('configuracoes');
+    setTimeout(() => {
+      document.getElementById('groq-api-key')?.focus();
+    }, 400);
+    return;
+  }
+
+  groqCurrentTipo = tipo;
+  const titles = {
+    diagnostico: '🧠 Análise Diagnóstica NR1',
+    riscos: '📊 Relatório de Riscos + Plano',
+    empresa: '🏢 Relatório Executivo de Empresa',
+    plano: '📈 Plano de Ação Inteligente',
+    completo: '📋 Relatório Completo NR1 + IA'
+  };
+  document.getElementById('groq-modal-title').textContent = titles[tipo] || 'Gerar com IA';
+
+  const model = document.getElementById('groq-model')?.value || 'llama-3.3-70b-versatile';
+  document.getElementById('groq-modal-model').textContent = model;
+
+  // Populate empresa select
+  const sel = document.getElementById('groq-empresa-sel');
+  if (sel) {
+    sel.innerHTML = '<option value="">Todas as empresas</option>' +
+      getEmpresas().map(e => `<option value="${e.id}">${e.razao}</option>`).join('');
+  }
+
+  // Reset result area
+  document.getElementById('groq-result-area').style.display = 'none';
+  document.getElementById('groq-loading').style.display = 'none';
+  document.getElementById('groq-output').style.display = 'none';
+  document.getElementById('groq-error').style.display = 'none';
+  document.getElementById('groq-btn-text').textContent = 'Gerar com IA';
+  document.getElementById('groq-btn-icon').textContent = '✨';
+  document.getElementById('btn-groq-gerar').disabled = false;
+
+  openModal('modal-groq');
+}
+
+function buildGroqDados(tipo, empresaId) {
+  const empresas = empresaId ? getEmpresas().filter(e => e.id === empresaId) : getEmpresas();
+  const colabs = empresaId ? getColabs().filter(c => c.empresaId === empresaId) : getColabs();
+  const riscos = empresaId ? getRiscos().filter(r => r.empresaId === empresaId) : getRiscos();
+  const acoes = empresaId ? getAcoes().filter(a => a.empresaId === empresaId) : getAcoes();
+  const quests = empresaId ? getQuestionarios().filter(q => q.empresaId === empresaId) : getQuestionarios();
+  const treinamentos = DB.get('treinamentos').filter(t => !empresaId || t.empresaId === empresaId);
+  const visitas = DB.get('visitas').filter(v => !empresaId || v.empresaId === empresaId);
+
+  const instrucoes = document.getElementById('groq-instrucoes')?.value.trim();
+  const tom = document.getElementById('groq-tom')?.value || 'tecnico';
+
+  let dados = `=== DADOS DO SISTEMA NR1 PSICOSSOCIAL ===
+Data de geração: ${new Date().toLocaleDateString('pt-BR')}
+Tom solicitado: ${tom}
+${instrucoes ? 'Instruções adicionais: ' + instrucoes : ''}
+
+--- EMPRESAS (${empresas.length}) ---
+${empresas.map(e => `• ${e.razao} | CNPJ: ${e.cnpj || 'N/I'} | Segmento: ${e.segmento || 'N/I'} | ${e.cidade || ''}${e.estado ? ', ' + e.estado : ''} | ${colabs.filter(c => c.empresaId === e.id).length} colaboradores`).join('\n') || 'Nenhuma empresa cadastrada'}
+
+--- COLABORADORES (${colabs.length}) ---
+${colabs.length > 0 ? colabs.slice(0, 20).map(c => `• ${c.nome} | ${c.funcao || 'N/I'} | Setor: ${c.setor || 'N/I'} | Tempo: ${c.tempo || 'N/I'}`).join('\n') + (colabs.length > 20 ? `\n... e mais ${colabs.length - 20} colaboradores` : '') : 'Nenhum colaborador'}
+
+--- AVALIAÇÕES NR1 (${quests.length} realizadas) ---
+${quests.length > 0 ? quests.map(q => `• ${fmtDate(q.data)} | ${q.empresaNome} | ${q.setor || 'Geral'} | Score: ${q.score.toFixed(1)}/10 | Respondidas: ${q.answeredCount}/${q.questionsCount}`).join('\n') : 'Nenhuma avaliação realizada'}
+
+--- RISCOS IDENTIFICADOS (${riscos.length}) ---
+${riscos.length > 0 ? riscos.sort((a,b) => b.score - a.score).map(r => `• [${r.nivel}] ${r.descricao || r.categoria} | Empresa: ${r.empresaNome} | Setor: ${r.setor || 'Geral'} | Score: ${r.score} | Status: ${r.status} | Medidas: ${r.medidas || 'Não definidas'}`).join('\n') : 'Nenhum risco cadastrado'}
+
+--- PLANO DE AÇÃO (${acoes.length} ações) ---
+${acoes.length > 0 ? acoes.map(a => `• [${a.prioridade}] ${a.descricao} | Empresa: ${a.empresaNome} | Responsável: ${a.responsavel || 'N/I'} | Prazo: ${fmtDate(a.prazo)} | Status: ${a.status}`).join('\n') : 'Nenhuma ação cadastrada'}
+
+--- TREINAMENTOS/PALESTRAS (${treinamentos.length}) ---
+${treinamentos.length > 0 ? treinamentos.map(t => `• ${t.tipo}: ${t.tema} | ${t.empresa} | ${fmtDate(t.data)} | ${t.participantes || 0} participantes | Status: ${t.status}`).join('\n') : 'Nenhum treinamento registrado'}
+
+--- VISITAS TÉCNICAS (${visitas.length}) ---
+${visitas.length > 0 ? visitas.map(v => `• ${fmtDate(v.data)} | ${v.empresa} | Consultor: ${v.consultor || 'N/I'} | Ações identificadas: ${v.acoes_ident || 0} | Resolvidas: ${v.acoes_resol || 0}`).join('\n') : 'Nenhuma visita registrada'}`;
+
+  return dados;
+}
+
+async function gerarRelatorioGroq() {
+  const key = getGroqKey();
+  if (!key) { showToast('API Key não configurada', 'error'); return; }
+
+  const empresaId = document.getElementById('groq-empresa-sel')?.value || '';
+  const model = document.getElementById('groq-model')?.value || 'llama-3.3-70b-versatile';
+
+  // UI — loading state
+  document.getElementById('groq-result-area').style.display = 'block';
+  document.getElementById('groq-loading').style.display = 'block';
+  document.getElementById('groq-output').style.display = 'none';
+  document.getElementById('groq-error').style.display = 'none';
+  document.getElementById('btn-groq-gerar').disabled = true;
+  document.getElementById('groq-btn-text').textContent = 'Gerando...';
+  document.getElementById('groq-btn-icon').textContent = '⏳';
+
+  const statusMsgs = [
+    'Coletando dados do sistema...',
+    'Montando contexto para a IA...',
+    'Enviando para Groq API...',
+    'Aguardando resposta da IA...',
+    'Processando resultado...'
+  ];
+  let msgIdx = 0;
+  const msgInterval = setInterval(() => {
+    const el = document.getElementById('groq-loading-status');
+    if (el && msgIdx < statusMsgs.length) el.textContent = statusMsgs[msgIdx++];
+  }, 1200);
+
+  try {
+    const dados = buildGroqDados(groqCurrentTipo, empresaId);
+    const promptFn = GROQ_PROMPTS[groqCurrentTipo] || GROQ_PROMPTS.completo;
+    const prompt = promptFn(dados);
+
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + key
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 4096,
+        temperature: 0.4,
+        messages: [
+          { role: 'system', content: 'Você é um especialista em saúde ocupacional, segurança do trabalho e NR1 psicossocial. Gere relatórios técnicos completos, profissionais e em português do Brasil. Use formatação clara com seções numeradas, bullet points e linguagem técnica adequada.' },
+          { role: 'user', content: prompt }
+        ]
+      })
+    });
+
+    clearInterval(msgInterval);
+
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(errData.error?.message || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    const texto = data.choices?.[0]?.message?.content || '';
+    const tokens = data.usage?.total_tokens || 0;
+
+    groqLastResult = texto;
+
+    document.getElementById('groq-loading').style.display = 'none';
+    document.getElementById('groq-output').style.display = 'block';
+    document.getElementById('groq-text-output').textContent = texto;
+    document.getElementById('groq-tokens-info').textContent = `${tokens} tokens usados`;
+
+    document.getElementById('groq-btn-text').textContent = 'Gerar novamente';
+    document.getElementById('groq-btn-icon').textContent = '🔄';
+    document.getElementById('btn-groq-gerar').disabled = false;
+
+    logRelatorio('Relatório IA — ' + groqCurrentTipo, 'Groq AI', '🤖');
+    addActivity('Relatório gerado com IA', 'Tipo: ' + groqCurrentTipo + ' · Tokens: ' + tokens);
+    showToast('Relatório gerado com sucesso!', 'success');
+
+  } catch (err) {
+    clearInterval(msgInterval);
+    document.getElementById('groq-loading').style.display = 'none';
+    document.getElementById('groq-error').style.display = 'block';
+    document.getElementById('groq-error-msg').textContent = err.message;
+    document.getElementById('groq-btn-text').textContent = 'Tentar novamente';
+    document.getElementById('groq-btn-icon').textContent = '↩';
+    document.getElementById('btn-groq-gerar').disabled = false;
+    showToast('Erro ao gerar relatório: ' + err.message, 'error');
+    console.error('Groq error:', err);
+  }
+}
+
+function copiarTextoGroq() {
+  if (!groqLastResult) return;
+  navigator.clipboard.writeText(groqLastResult).then(() => {
+    showToast('Texto copiado para a área de transferência!', 'success');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = groqLastResult;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('Texto copiado!', 'success');
+  });
+}
+
+function exportarGroqPDF() {
+  if (!groqLastResult) { showToast('Nenhum conteúdo para exportar', 'error'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+  const cfg = DB.getObj('rel_config');
+  const y = pdfHeader(doc, 'Relatório Gerado por IA (Groq)', `Tipo: ${groqCurrentTipo} · ${new Date().toLocaleDateString('pt-BR')}`);
+
+  // Split text into lines for PDF
+  const lines = groqLastResult.split('\n');
+  let curY = y + 4;
+  const pageH = 280;
+  const leftM = 14;
+  const maxW = 182;
+
+  for (const line of lines) {
+    if (curY > pageH) { doc.addPage(); curY = pdfHeader(doc, 'Relatório IA (cont.)') + 4; }
+
+    const trimmed = line.trim();
+    if (!trimmed) { curY += 3; continue; }
+
+    // Headings detection (lines starting with ** or ###)
+    if (trimmed.startsWith('**') && trimmed.endsWith('**') && trimmed.length < 80) {
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(26, 42, 94);
+      const txt = trimmed.replace(/\*\*/g, '');
+      doc.text(txt, leftM, curY);
+      curY += 6;
+    } else if (trimmed.match(/^\d+\.\s+\*\*/)) {
+      doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(26, 42, 94);
+      const txt = trimmed.replace(/\*\*/g, '');
+      const wrapped = doc.splitTextToSize(txt, maxW);
+      doc.text(wrapped, leftM, curY);
+      curY += wrapped.length * 5 + 2;
+    } else if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
+      doc.setFontSize(8.5); doc.setFont('helvetica', 'normal'); doc.setTextColor(60, 70, 90);
+      const wrapped = doc.splitTextToSize(trimmed, maxW - 4);
+      doc.text(wrapped, leftM + 3, curY);
+      curY += wrapped.length * 4.5;
+    } else {
+      doc.setFontSize(9); doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 50, 70);
+      const txt = trimmed.replace(/\*\*/g, '');
+      const wrapped = doc.splitTextToSize(txt, maxW);
+      doc.text(wrapped, leftM, curY);
+      curY += wrapped.length * 4.5;
+    }
+  }
+
+  pdfFooter(doc);
+  const titles = { diagnostico: 'diagnostico_nr1', riscos: 'riscos_plano', empresa: 'executivo_empresa', plano: 'plano_acao', completo: 'relatorio_completo' };
+  doc.save(`relatorio_ia_${titles[groqCurrentTipo] || 'nr1'}.pdf`);
+  logRelatorio('Relatório IA — PDF', 'Groq AI', '🤖');
+  showToast('PDF do relatório IA exportado!', 'success');
+}
+
+function loadGroqConfig() {
+  const key = getGroqKey();
+  const el = document.getElementById('groq-api-key');
+  if (el && key) el.value = key;
+  const st = document.getElementById('groq-status');
+  if (st && key) st.innerHTML = '<span style="color:var(--green)">✅ API Key configurada.</span>';
+}
+
 </script>
 </body>
 </html>
