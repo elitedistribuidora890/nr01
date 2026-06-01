@@ -526,6 +526,17 @@ function doLogin() {
     <div class="nav-item" onclick="showPage('visitas',this)">
       <span class="nav-icon">🚗</span>Visitas Técnicas
     </div>
+    <div class="nav-section-title">Saúde Ocupacional</div>
+    <div class="nav-item" onclick="showPage('afastamentos',this)">
+      <span class="nav-icon">🏥</span>Afastamentos
+      <span class="nav-badge" id="badge-afastamentos" style="background:var(--amber-bg);color:var(--amber)">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('indicadores',this)">
+      <span class="nav-icon">📉</span>Indicadores RH
+    </div>
+    <div class="nav-item" onclick="showPage('quest-gestores',this)">
+      <span class="nav-icon">👔</span>Quest. Organizacional
+    </div>
     <div class="nav-section-title">Relatórios</div>
     <div class="nav-item" onclick="showPage('relatorios',this)">
       <span class="nav-icon">📄</span>Relatórios
@@ -717,7 +728,7 @@ function doLogin() {
       <div><div class="page-title">Questionários NR1</div><div class="page-sub">Instrumento de avaliação psicossocial</div></div>
       <div class="page-actions">
         <button class="btn btn-secondary" onclick="exportQuestionariosExcel()">📊 Exportar</button>
-        <button class="btn btn-accent" onclick="openModal('modal-questionario')">▶ Iniciar Avaliação</button>
+        <button class="btn btn-accent" onclick="openQuestForm()">▶ Iniciar Avaliação</button>
       </div>
     </div>
     <div class="tabs">
@@ -774,67 +785,7 @@ function doLogin() {
       </div>
     </div>
   </div>
-<!-- MODAL QUESTIONÁRIO -->
-<div class="modal-overlay" id="modal-questionario">
-  <div class="modal">
-
-    <div class="modal-header">
-      <h2>Novo Questionário</h2>
-
-      <button onclick="closeModal('modal-questionario')">
-        ✕
-      </button>
-    </div>
-
-    <div class="modal-body">
-
-      <div class="form-group">
-        <label>Título</label>
-        <input type="text" class="input" placeholder="Título do questionário">
-      </div>
-
-      <div class="form-group">
-        <label>Descrição</label>
-        <textarea class="input" rows="4" placeholder="Descrição"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Tipo</label>
-
-        <select class="input">
-          <option>Pesquisa de Clima</option>
-          <option>Avaliação</option>
-          <option>Satisfação</option>
-          <option>Feedback</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Status</label>
-
-        <select class="input">
-          <option>Ativo</option>
-          <option>Inativo</option>
-        </select>
-      </div>
-
-      <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end;">
-
-        <button class="btn"
-          onclick="closeModal('modal-questionario')">
-          Cancelar
-        </button>
-
-        <button class="btn btn-accent">
-          Salvar Questionário
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-</div>
+<!-- modal-questionario removido: botão "Iniciar Avaliação" agora usa openQuestForm() -->
   <!-- DIAGNÓSTICOS PAGE -->
   <div class="page" id="page-diagnosticos">
     <div class="page-header">
@@ -1623,6 +1574,323 @@ function doLogin() {
     </div>
   </div>
 </div>
+  <!-- ====================================================== -->
+  <!-- PÁGINA: AFASTAMENTOS -->
+  <!-- ====================================================== -->
+  <div class="page" id="page-afastamentos">
+    <div class="page-header">
+      <div>
+        <div class="page-title">🏥 Gestão de Afastamentos</div>
+        <div class="page-sub">Controle de afastamentos, CIDs e nexo técnico NTEP</div>
+      </div>
+      <div class="page-actions">
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="afas-empresa-filter" onchange="filterAfastamentos()">
+          <option value="">Todas as empresas</option>
+        </select>
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="afas-status-filter" onchange="filterAfastamentos()">
+          <option value="">Todos os status</option>
+          <option value="Ativo">Ativo</option>
+          <option value="Encerrado">Encerrado</option>
+        </select>
+        <button class="btn btn-accent" onclick="openModal('modal-afastamento')">+ Registrar Afastamento</button>
+      </div>
+    </div>
+    <div class="stats-grid" style="grid-template-columns:repeat(5,1fr)">
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Total</span><div class="stat-icon blue">🏥</div></div><div class="stat-value" id="afas-stat-total">0</div><div class="stat-change neutral">Afastamentos</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Ativos</span><div class="stat-icon red">🔴</div></div><div class="stat-value" id="afas-stat-ativo" style="color:var(--red)">0</div><div class="stat-change neg">Em andamento</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Com NTEP</span><div class="stat-icon amber">⚠️</div></div><div class="stat-value" id="afas-stat-ntep" style="color:var(--amber)">0</div><div class="stat-change neutral">Nexo técnico</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Dias Perdidos</span><div class="stat-icon purple">📅</div></div><div class="stat-value" id="afas-stat-dias" style="color:var(--purple)">0</div><div class="stat-change neutral">Últimos 12m</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Mais Frequente</span><div class="stat-icon amber">🩺</div></div><div class="stat-value" id="afas-stat-cid" style="font-size:16px;color:var(--amber)">—</div><div class="stat-change neutral">CID prevalente</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Registro de Afastamentos</span>
+        <div style="display:flex;gap:8px">
+          <input type="text" class="search-box" placeholder="Buscar colaborador ou CID..." id="afas-search" oninput="filterAfastamentos()" style="width:220px">
+          <button class="btn btn-sm btn-secondary" onclick="exportAfastamentosExcel()">📊 Excel</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empresa</th><th>Colaborador</th><th>Setor</th><th>CID</th><th>Tipo</th><th>Início</th><th>Retorno</th><th>Dias</th><th>NTEP</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="afas-tbody"><tr><td colspan="11" style="text-align:center;color:var(--text3);padding:30px">Nenhum afastamento registrado</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-top:16px">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📊 CIDs Mais Frequentes</span></div>
+        <div class="card-body"><div class="chart-container"><canvas id="chart-cids"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">📈 Evolução dos Afastamentos</span></div>
+        <div class="card-body"><div class="chart-container"><canvas id="chart-afas-evolucao"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Registrar Afastamento -->
+  <div class="modal-overlay" id="modal-afastamento">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-afas-title">🏥 Registrar Afastamento</span>
+      <button class="btn-close" onclick="closeModal('modal-afastamento')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="afas-edit-id">
+      <div class="form-grid">
+        <div class="form-row"><label class="field-label">Empresa *</label><select class="field" id="afas-empresa"><option value="">Selecione a empresa</option></select></div>
+        <div class="form-row"><label class="field-label">Colaborador *</label><input class="field" id="afas-colaborador" placeholder="Nome do colaborador"></div>
+        <div class="form-row"><label class="field-label">CPF</label><input class="field" id="afas-cpf" placeholder="000.000.000-00" oninput="maskCPF(this)"></div>
+        <div class="form-row"><label class="field-label">Setor</label><input class="field" id="afas-setor" placeholder="Setor do colaborador"></div>
+        <div class="form-row"><label class="field-label">Função</label><input class="field" id="afas-funcao" placeholder="Função / cargo"></div>
+        <div class="form-row"><label class="field-label">Tipo de Afastamento *</label>
+          <select class="field" id="afas-tipo">
+            <option value="">Selecione o tipo</option>
+            <option>Doença comum</option>
+            <option>Doença ocupacional</option>
+            <option>Acidente de trabalho</option>
+            <option>Acidente de trajeto</option>
+            <option>INSS</option>
+          </select>
+        </div>
+        <div class="form-row"><label class="field-label">Data de Início *</label><input type="date" class="field" id="afas-inicio" onchange="calcDiasAfas()"></div>
+        <div class="form-row"><label class="field-label">Data de Retorno</label><input type="date" class="field" id="afas-retorno" onchange="calcDiasAfas()"></div>
+        <div class="form-row"><label class="field-label">Dias Afastados</label><input type="number" class="field" id="afas-dias" placeholder="0" readonly style="background:var(--bg4)"></div>
+        <div class="form-row"><label class="field-label">Status</label>
+          <select class="field" id="afas-status"><option>Ativo</option><option>Encerrado</option></select>
+        </div>
+      </div>
+      <!-- CID com autocomplete -->
+      <div class="form-row" style="position:relative">
+        <label class="field-label">CID *</label>
+        <div style="display:flex;gap:8px">
+          <input class="field" id="afas-cid" placeholder="Ex: F32, Z73.0 — busque ou digite" oninput="searchCID(this.value)" autocomplete="off" style="flex:1">
+          <input class="field" id="afas-cid-desc" placeholder="Descrição do CID" style="flex:2" readonly>
+        </div>
+        <div id="cid-dropdown" style="position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);z-index:50;max-height:200px;overflow-y:auto;display:none"></div>
+      </div>
+      <!-- NTEP automático -->
+      <div id="ntep-result" style="display:none;background:var(--amber-bg);border:1px solid rgba(245,165,36,.3);border-radius:var(--r);padding:12px 16px;margin-top:8px;font-size:13px">
+        <div style="font-weight:600;color:var(--amber);margin-bottom:4px">⚠️ Nexo Técnico NTEP Identificado</div>
+        <div id="ntep-info" style="color:var(--text2)"></div>
+      </div>
+      <div id="ntep-none" style="display:none;background:var(--green-bg);border:1px solid rgba(34,208,122,.2);border-radius:var(--r);padding:12px 16px;margin-top:8px;font-size:13px;color:var(--green)">
+        ✅ Nenhum nexo técnico NTEP identificado para este CID
+      </div>
+      <div class="form-row" style="margin-top:12px"><label class="field-label">Observações</label><textarea class="field" id="afas-obs" rows="2" placeholder="Informações adicionais..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-afastamento')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveAfastamento()">💾 Salvar Afastamento</button>
+    </div>
+  </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- PÁGINA: INDICADORES RH -->
+  <!-- ====================================================== -->
+  <div class="page" id="page-indicadores">
+    <div class="page-header">
+      <div>
+        <div class="page-title">📉 Indicadores de RH</div>
+        <div class="page-sub">Turnover, Absenteísmo e métricas estratégicas calculados automaticamente</div>
+      </div>
+      <div class="page-actions">
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="ind-empresa-filter" onchange="renderIndicadores()">
+          <option value="">Todas as empresas</option>
+        </select>
+        <button class="btn btn-secondary btn-sm" onclick="exportIndicadoresPDF()">📄 PDF</button>
+      </div>
+    </div>
+    <!-- Turnover -->
+    <div class="section-label">📊 Turnover</div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Admissões (12m)</span><div class="stat-icon green">➕</div></div>
+        <div class="stat-value" id="ind-admissoes">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Demissões (12m)</span><div class="stat-icon red">➖</div></div>
+        <div class="stat-value" id="ind-demissoes" style="color:var(--red)">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Turnover</span><div class="stat-icon amber">🔄</div></div>
+        <div class="stat-value" id="ind-turnover" style="color:var(--amber)">0%</div>
+        <div class="stat-change neutral" id="ind-turnover-class">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Nível de Risco</span><div class="stat-icon purple">📊</div></div>
+        <div class="stat-value" id="ind-turnover-nivel" style="font-size:16px">—</div>
+      </div>
+    </div>
+    <!-- Absenteísmo -->
+    <div class="section-label">📅 Absenteísmo</div>
+    <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Afastamentos (12m)</span><div class="stat-icon blue">🏥</div></div>
+        <div class="stat-value" id="ind-afas-12m">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Dias Perdidos</span><div class="stat-icon red">📅</div></div>
+        <div class="stat-value" id="ind-dias-perdidos" style="color:var(--red)">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Horas Perdidas</span><div class="stat-icon amber">⏰</div></div>
+        <div class="stat-value" id="ind-horas-perdidas" style="color:var(--amber)">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Taxa Absenteísmo</span><div class="stat-icon purple">%</div></div>
+        <div class="stat-value" id="ind-taxa-absen" style="color:var(--purple)">0%</div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Turnover por Empresa</span></div>
+        <div class="card-body"><div class="chart-container"><canvas id="chart-turnover"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Distribuição por Tipo de Afastamento</span></div>
+        <div class="card-body"><div class="chart-container"><canvas id="chart-tipo-afas"></canvas></div></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><span class="card-title">📋 Tabela de Indicadores por Empresa</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empresa</th><th>Colaboradores</th><th>Admissões</th><th>Demissões</th><th>Turnover</th><th>Afastamentos</th><th>Dias Perdidos</th><th>Taxa Absen.</th><th>Risco</th></tr></thead>
+          <tbody id="ind-tbody"><tr><td colspan="9" style="text-align:center;color:var(--text3);padding:30px">Sem dados suficientes</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- PÁGINA: QUESTIONÁRIO ORGANIZACIONAL NR1 -->
+  <!-- ====================================================== -->
+  <div class="page" id="page-quest-gestores">
+    <div class="page-header">
+      <div>
+        <div class="page-title">👔 Questionário Organizacional NR1</div>
+        <div class="page-sub">Avaliação respondida por líderes, gestores e proprietários</div>
+      </div>
+      <div class="page-actions">
+        <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="qorg-empresa-filter" onchange="renderQuestOrg()">
+          <option value="">Todas as empresas</option>
+        </select>
+        <button class="btn btn-accent" onclick="openNovoQuestOrg()">+ Novo Questionário</button>
+      </div>
+    </div>
+    <!-- Lista de questionários preenchidos -->
+    <div id="qorg-lista-container">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Questionários Preenchidos</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Empresa</th><th>Respondente</th><th>Cargo</th><th>Data</th><th>Score Risco</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="qorg-tbody"><tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhum questionário respondido ainda</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Formulário do questionário -->
+    <div id="qorg-form-container" style="display:none">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header">
+          <span class="card-title">📋 Questionário Organizacional NR1</span>
+          <button class="btn btn-sm btn-secondary" onclick="cancelarQuestOrg()">✕ Cancelar</button>
+        </div>
+        <div class="card-body">
+          <div class="form-grid" style="margin-bottom:20px">
+            <div class="form-row"><label class="field-label">Empresa *</label><select class="field" id="qorg-empresa"><option value="">Selecione a empresa</option></select></div>
+            <div class="form-row"><label class="field-label">Nome do Respondente *</label><input class="field" id="qorg-respondente" placeholder="Nome completo"></div>
+            <div class="form-row"><label class="field-label">Cargo / Função</label>
+              <select class="field" id="qorg-cargo">
+                <option>Proprietário</option><option>Diretor</option><option>Gestor</option><option>Supervisor</option><option>Líder</option>
+              </select>
+            </div>
+            <div class="form-row"><label class="field-label">Data</label><input type="date" class="field" id="qorg-data"></div>
+          </div>
+
+          <!-- SEÇÃO 1: ESTRUTURA -->
+          <div class="section-label">🏢 Estrutura da Empresa</div>
+          <div class="form-grid">
+            <div class="form-row"><label class="field-label">Total de Colaboradores</label><input type="number" class="field" id="qorg-total-colab" placeholder="0" min="0"></div>
+            <div class="form-row"><label class="field-label">Nº de Líderes</label><input type="number" class="field" id="qorg-lideres" placeholder="0" min="0"></div>
+            <div class="form-row"><label class="field-label">Nº de Gestores</label><input type="number" class="field" id="qorg-gestores" placeholder="0" min="0"></div>
+            <div class="form-row"><label class="field-label">Nº de Setores</label><input type="number" class="field" id="qorg-setores" placeholder="0" min="0"></div>
+          </div>
+
+          <!-- SEÇÃO 2: ROTATIVIDADE -->
+          <div class="section-label">🔄 Rotatividade</div>
+          <div class="form-grid">
+            <div class="form-row"><label class="field-label">Admissões nos últimos 12m</label><input type="number" class="field" id="qorg-adm12" placeholder="0" min="0"></div>
+            <div class="form-row"><label class="field-label">Desligamentos nos últimos 12m</label><input type="number" class="field" id="qorg-dem12" placeholder="0" min="0"></div>
+            <div class="form-row"><label class="field-label">Desligamentos nos últimos 24m</label><input type="number" class="field" id="qorg-dem24" placeholder="0" min="0"></div>
+            <div class="form-row"><label class="field-label">Turnover Calculado</label><input class="field" id="qorg-turnover-calc" readonly style="background:var(--bg4);font-weight:600"></div>
+          </div>
+
+          <!-- SEÇÃO 3: BENEFÍCIOS -->
+          <div class="section-label">🎁 Benefícios</div>
+          <div class="form-grid">
+            ${['Plano de Saúde','Plano Odontológico','Plano de Carreira','Avaliação de Desempenho','Programa de Reconhecimento','Programa de Saúde Mental'].map((b,i)=>`
+            <div class="form-row" style="display:flex;align-items:center;gap:10px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px">
+                <input type="checkbox" id="qorg-ben-${i}" style="width:16px;height:16px;accent-color:var(--accent)"> ${b}
+              </label>
+            </div>`).join('')}
+          </div>
+
+          <!-- SEÇÃO 4: GESTÃO -->
+          <div class="section-label">📋 Gestão e Condições de Trabalho</div>
+          <div class="form-grid">
+            ${['Metas agressivas existem','Cobrança excessiva','Sobrecarga de trabalho','Banco de horas elevado','Trabalho aos finais de semana'].map((g,i)=>`
+            <div class="form-row" style="display:flex;align-items:center;gap:10px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px">
+                <input type="checkbox" id="qorg-gest-${i}" style="width:16px;height:16px;accent-color:var(--amber)"> ${g}
+              </label>
+            </div>`).join('')}
+          </div>
+
+          <!-- SEÇÃO 5: ASSÉDIO -->
+          <div class="section-label">🚨 Registros de Assédio e Conflitos</div>
+          <div class="form-grid">
+            ${['Registros de assédio moral','Registros de assédio sexual','Conflitos frequentes entre equipes'].map((a,i)=>`
+            <div class="form-row" style="display:flex;align-items:center;gap:10px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px">
+                <input type="checkbox" id="qorg-ass-${i}" style="width:16px;height:16px;accent-color:var(--red)"> ${a}
+              </label>
+            </div>`).join('')}
+          </div>
+
+          <!-- SEÇÃO 6: AFASTAMENTOS -->
+          <div class="section-label">🏥 Afastamentos Informados</div>
+          <div class="form-grid">
+            <div class="form-row"><label class="field-label">Afastamentos últimos 12m</label><input type="number" class="field" id="qorg-afas12" placeholder="0" min="0"></div>
+            <div class="form-row"><label class="field-label">Afastamentos últimos 24m</label><input type="number" class="field" id="qorg-afas24" placeholder="0" min="0"></div>
+          </div>
+
+          <!-- Score automático -->
+          <div id="qorg-score-preview" style="display:none;margin-top:20px;background:var(--bg3);border-radius:var(--r2);padding:20px">
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px">📊 Score de Risco Calculado</div>
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+              <div style="text-align:center"><div style="font-size:36px;font-weight:700" id="qorg-score-val">0</div><div style="font-size:12px;color:var(--text2)">Score Total</div></div>
+              <div style="flex:1">
+                <div id="qorg-score-dims" style="display:flex;flex-direction:column;gap:6px"></div>
+              </div>
+              <span id="qorg-score-badge" class="badge">—</span>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px">
+            <button class="btn btn-secondary" onclick="calcQuestOrgScore()">🔢 Calcular Score</button>
+            <button class="btn btn-accent" onclick="saveQuestOrg()">💾 Salvar Questionário</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- RELATÓRIOS PAGE -->
   <div class="page" id="page-relatorios">
     <div class="page-header">
@@ -2449,6 +2717,7 @@ async function syncFromFirebase() {
       renderColabs();
       renderRiscos();
       renderAcoes();
+      populateQuestSelects();
       showToast('Dados sincronizados com Firebase!', 'success');
       addNotification('Sincronização concluída', 'Dados carregados do Firestore.', '🔄');
       if (statusEl) statusEl.textContent = 'Status: ✅ Sincronizado';
@@ -2702,7 +2971,7 @@ function showPage(id, el) {
   else document.querySelectorAll('.nav-item').forEach(n => {
     if(n.getAttribute('onclick') && n.getAttribute('onclick').includes("'"+id+"'")) n.classList.add('active');
   });
-  const titles={dashboard:'Dashboard',empresas:'Empresas',colaboradores:'Colaboradores',questionarios:'Questionários NR1',diagnosticos:'Diagnóstico Psicossocial',riscos:'Gestão de Riscos',plano:'Plano de Ação',acompanhamento:'Acompanhamentos',relatorios:'Relatórios',configuracoes:'Configurações','rh-avaldesempenho':'Avaliação de Desempenho','rh-climaorg':'Clima Organizacional','rh-cargos':'Descrição de Cargos','rh-processos':'Processos Seletivos','nr1-gerenciamento':'Gerenciamento NR1','nr1-documentos':'Documentos LGPD','visitas':'Visitas Técnicas'};
+  const titles={dashboard:'Dashboard',empresas:'Empresas',colaboradores:'Colaboradores',questionarios:'Questionários NR1',diagnosticos:'Diagnóstico Psicossocial',riscos:'Gestão de Riscos',plano:'Plano de Ação',acompanhamento:'Acompanhamentos',relatorios:'Relatórios',configuracoes:'Configurações','rh-avaldesempenho':'Avaliação de Desempenho','rh-climaorg':'Clima Organizacional','rh-cargos':'Descrição de Cargos','rh-processos':'Processos Seletivos','nr1-gerenciamento':'Gerenciamento NR1','nr1-documentos':'Documentos LGPD','visitas':'Visitas Técnicas',afastamentos:'Gestão de Afastamentos',indicadores:'Indicadores de RH','quest-gestores':'Questionário Organizacional NR1'};
   document.getElementById('topbar-title').textContent = titles[id]||id;
   // Page-specific refresh
   if(id==='dashboard') refreshDashboard();
@@ -2722,6 +2991,9 @@ function showPage(id, el) {
   if(id==='nr1-gerenciamento') { populateGerEmpresaFilter(); renderGerenciamento(); }
   if(id==='visitas') { populateVisitaFilter(); filterVisitas(); }
   if(id==='nr1-documentos') { renderLgpd(); renderTermos(); renderListaPresenca(); populateDocEmpresaFilter(); }
+  if(id==='afastamentos') { populateAfasFilters(); filterAfastamentos(); renderAfasCharts(); }
+  if(id==='indicadores') { populateIndFilter(); renderIndicadores(); }
+  if(id==='quest-gestores') { populateQuestOrgFilters(); renderQuestOrg(); }
 }
 
 function toggleSidebar() {
@@ -3226,10 +3498,35 @@ function renderQuestHist() {
 }
 
 function populateQuestSelects() {
+  // Select da página de questionários NR1
   const sel = document.getElementById('quest-empresa-select');
-  const prev = sel.value;
-  sel.innerHTML = '<option value="">Selecione a empresa</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
-  sel.value = prev;
+  if (sel) {
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">Selecione a empresa</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+    sel.value = prev;
+  }
+  // Select do questionário organizacional (gestores)
+  const selOrg = document.getElementById('qorg-empresa');
+  if (selOrg) {
+    const prev2 = selOrg.value;
+    selOrg.innerHTML = '<option value="">Selecione a empresa</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+    selOrg.value = prev2;
+  }
+}
+
+function openQuestForm() {
+  // Navega para a página de questionários e garante que o formulário esteja visível
+  showPage('questionarios');
+  // Atualiza o select de empresas com dados atuais
+  populateQuestSelects();
+  // Garante que a aba "Nova Avaliação" esteja ativa
+  const tabNew = document.querySelector('#page-questionarios .tab');
+  if (tabNew) switchQTab(tabNew, 'q-tab-new');
+  // Scroll suave até o formulário
+  setTimeout(() => {
+    const container = document.getElementById('questions-container');
+    if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
 }
 
 function updateQuestColabs() {
@@ -5397,6 +5694,164 @@ function exportarGroqPDF() {
   doc.save(`relatorio_ia_${titles[groqCurrentTipo] || 'nr1'}.pdf`);
   logRelatorio('Relatório IA — PDF', 'Groq AI', '🤖');
   showToast('PDF do relatório IA exportado!', 'success');
+}
+
+// === QUESTIONÁRIO ORGANIZACIONAL (GESTORES) ===
+function getQuestOrg() { return DB.get('quest_org'); }
+function saveQuestOrgDB(arr) { DB.set('quest_org', arr); }
+
+function populateQuestOrgFilters() {
+  // Filtro da lista
+  const sel = document.getElementById('qorg-empresa-filter');
+  if (sel) {
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">Todas as empresas</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+    sel.value = prev;
+  }
+  // Select dentro do formulário
+  const selForm = document.getElementById('qorg-empresa');
+  if (selForm) {
+    const prev2 = selForm.value;
+    selForm.innerHTML = '<option value="">Selecione a empresa</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+    selForm.value = prev2;
+  }
+}
+
+function openNovoQuestOrg() {
+  populateQuestOrgFilters();
+  document.getElementById('qorg-lista-container').style.display = 'none';
+  document.getElementById('qorg-form-container').style.display = 'block';
+  // Preenche data padrão
+  const dataEl = document.getElementById('qorg-data');
+  if (dataEl && !dataEl.value) dataEl.value = new Date().toISOString().split('T')[0];
+  // Limpa campos
+  ['qorg-respondente','qorg-total-colab','qorg-lideres','qorg-gestores','qorg-setores',
+   'qorg-adm12','qorg-dem12','qorg-dem24','qorg-turnover-calc'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  [0,1,2,3,4,5].forEach(i => { const el = document.getElementById('qorg-ben-'+i); if(el) el.checked = false; });
+  [0,1,2,3,4].forEach(i => { const el = document.getElementById('qorg-gest-'+i); if(el) el.checked = false; });
+  [0,1,2].forEach(i => { const el = document.getElementById('qorg-ass-'+i); if(el) el.checked = false; });
+}
+
+function cancelarQuestOrg() {
+  document.getElementById('qorg-lista-container').style.display = 'block';
+  document.getElementById('qorg-form-container').style.display = 'none';
+}
+
+function renderQuestOrg() {
+  populateQuestOrgFilters();
+  const filter = document.getElementById('qorg-empresa-filter')?.value || '';
+  let quests = getQuestOrg();
+  if (filter) quests = quests.filter(q => q.empresaId === filter);
+  quests.sort((a,b) => new Date(b.data) - new Date(a.data));
+  const tbody = document.getElementById('qorg-tbody');
+  if (!tbody) return;
+  if (!quests.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhum questionário respondido ainda</td></tr>';
+    return;
+  }
+  tbody.innerHTML = quests.map(q => {
+    const scoreColor = q.scoreRisco >= 70 ? 'var(--red)' : q.scoreRisco >= 40 ? 'var(--amber)' : 'var(--green)';
+    const nivel = q.scoreRisco >= 70 ? '<span class="badge badge-red">Alto Risco</span>' : q.scoreRisco >= 40 ? '<span class="badge badge-amber">Risco Médio</span>' : '<span class="badge badge-green">Baixo Risco</span>';
+    return `<tr>
+      <td>${q.empresaNome||'—'}</td>
+      <td>${q.respondente||'—'}</td>
+      <td>${q.cargo||'—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtDate(q.data)}</td>
+      <td style="font-weight:600;color:${scoreColor}">${q.scoreRisco||0}</td>
+      <td>${nivel}</td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteQuestOrg('${q.id}')">🗑</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function deleteQuestOrg(id) {
+  showConfirm('Excluir questionário?','Este questionário será removido permanentemente.','🗑', () => {
+    saveQuestOrgDB(getQuestOrg().filter(q => q.id !== id));
+    renderQuestOrg();
+    showToast('Questionário excluído.', 'success');
+  });
+}
+
+function saveQuestOrg() {
+  const empresaId = document.getElementById('qorg-empresa')?.value;
+  if (!empresaId) { showToast('Selecione a empresa', 'error'); return; }
+  const respondente = document.getElementById('qorg-respondente')?.value?.trim();
+  if (!respondente) { showToast('Informe o nome do respondente', 'error'); return; }
+
+  const empresa = getEmpresas().find(e => e.id === empresaId);
+
+  // Calcula score de risco simples
+  let score = 0;
+  const dem12 = parseInt(document.getElementById('qorg-dem12')?.value) || 0;
+  const totalColab = parseInt(document.getElementById('qorg-total-colab')?.value) || 1;
+  const turnover = totalColab > 0 ? Math.round((dem12 / totalColab) * 100) : 0;
+  if (turnover > 20) score += 20; else if (turnover > 10) score += 10;
+  [0,1,2].forEach(i => { if (document.getElementById('qorg-ass-'+i)?.checked) score += 15; });
+  [0,1,2,3,4].forEach(i => { if (document.getElementById('qorg-gest-'+i)?.checked) score += 7; });
+  const benefCount = [0,1,2,3,4,5].filter(i => document.getElementById('qorg-ben-'+i)?.checked).length;
+  score -= benefCount * 3;
+  score = Math.max(0, Math.min(100, score));
+
+  const q = {
+    id: uid(),
+    empresaId, empresaNome: empresa?.razao || '',
+    respondente,
+    cargo: document.getElementById('qorg-cargo')?.value || '',
+    data: document.getElementById('qorg-data')?.value || new Date().toISOString().split('T')[0],
+    totalColab,
+    lideres: parseInt(document.getElementById('qorg-lideres')?.value) || 0,
+    gestores: parseInt(document.getElementById('qorg-gestores')?.value) || 0,
+    setores: parseInt(document.getElementById('qorg-setores')?.value) || 0,
+    adm12: parseInt(document.getElementById('qorg-adm12')?.value) || 0,
+    dem12,
+    dem24: parseInt(document.getElementById('qorg-dem24')?.value) || 0,
+    turnover,
+    scoreRisco: score,
+    createdAt: nowISO(), createdBy: currentUser?.email || 'demo'
+  };
+
+  const quests = getQuestOrg();
+  quests.push(q);
+  saveQuestOrgDB(quests);
+  cancelarQuestOrg();
+  renderQuestOrg();
+  refreshDashboard();
+  addActivity('Questionário organizacional: ' + (empresa?.razao || ''), 'Score risco: ' + score);
+  showToast('Questionário salvo com sucesso!', 'success');
+}
+
+function calcQuestOrgScore() {
+  const dem12 = parseInt(document.getElementById('qorg-dem12')?.value) || 0;
+  const totalColab = parseInt(document.getElementById('qorg-total-colab')?.value) || 1;
+  const turnover = totalColab > 0 ? Math.round((dem12 / totalColab) * 100) : 0;
+
+  // Atualiza campo turnover calculado
+  const tcEl = document.getElementById('qorg-turnover-calc');
+  if (tcEl) tcEl.value = turnover + '%';
+
+  let score = 0;
+  if (turnover > 20) score += 20; else if (turnover > 10) score += 10;
+  [0,1,2].forEach(i => { if (document.getElementById('qorg-ass-'+i)?.checked) score += 15; });
+  [0,1,2,3,4].forEach(i => { if (document.getElementById('qorg-gest-'+i)?.checked) score += 7; });
+  const benefCount = [0,1,2,3,4,5].filter(i => document.getElementById('qorg-ben-'+i)?.checked).length;
+  score -= benefCount * 3;
+  score = Math.max(0, Math.min(100, score));
+
+  const preview = document.getElementById('qorg-score-preview');
+  if (preview) {
+    preview.style.display = 'block';
+    document.getElementById('qorg-score-val').textContent = score;
+    const badge = document.getElementById('qorg-score-badge');
+    if (score >= 70) { badge.className = 'badge badge-red'; badge.textContent = 'Alto Risco'; }
+    else if (score >= 40) { badge.className = 'badge badge-amber'; badge.textContent = 'Risco Médio'; }
+    else { badge.className = 'badge badge-green'; badge.textContent = 'Baixo Risco'; }
+    document.getElementById('qorg-score-dims').innerHTML = `
+      <div style="font-size:12px;color:var(--text2)">Turnover: <b>${turnover}%</b></div>
+      <div style="font-size:12px;color:var(--text2)">Benefícios ativos: <b>${benefCount}</b></div>
+    `;
+  }
 }
 
 function loadGroqConfig() {
