@@ -485,6 +485,16 @@ function doLogin() {
       <span class="nav-icon">👥</span>Colaboradores
       <span class="nav-badge green" id="badge-colab" style="background:var(--green-bg);color:var(--green)">0</span>
     </div>
+    <div class="nav-item" onclick="showPage('kickoff',this)">
+      <span class="nav-icon">🚀</span>Reunião Kick Off
+      <span class="nav-badge green" id="badge-kickoff">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('historico-empresa',this)">
+      <span class="nav-icon">📜</span>Histórico
+    </div>
+    <div class="nav-item" onclick="showPage('financeiro',this)">
+      <span class="nav-icon">💰</span>Financeiro
+    </div>
     <div class="nav-section-title">RH</div>
     <div class="nav-item" onclick="showPage('rh-avaldesempenho',this)">
       <span class="nav-icon">📊</span>Avaliação de Desempenho
@@ -499,6 +509,17 @@ function doLogin() {
       <span class="nav-icon">🔄</span>Processos Seletivos
     </div>
     <div class="nav-section-title">NR1</div>
+    <div class="nav-item" onclick="showPage('nr01-entrevistas',this)">
+      <span class="nav-icon">🎤</span>Entrevistas NR-01
+      <span class="nav-badge" id="badge-nr01-entrevistas">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('nr01-gerencial',this)">
+      <span class="nav-icon">📊</span>Gerencial
+    </div>
+    <div class="nav-item" onclick="showPage('nr01-monitoramento',this)">
+      <span class="nav-icon">🔍</span>Monitoramento
+      <span class="nav-badge" id="badge-nr01-mon">0</span>
+    </div>
     <div class="nav-item" onclick="showPage('questionarios',this)">
       <span class="nav-icon">📋</span>Questionários
     </div>
@@ -728,64 +749,126 @@ function doLogin() {
       <div><div class="page-title">Questionários NR1</div><div class="page-sub">Instrumento de avaliação psicossocial</div></div>
       <div class="page-actions">
         <button class="btn btn-secondary" onclick="exportQuestionariosExcel()">📊 Exportar</button>
-        <button class="btn btn-accent" onclick="openQuestForm()">▶ Iniciar Avaliação</button>
+        <button class="btn btn-accent" onclick="iniciarAvaliacaoWizard()">▶ Iniciar Avaliação</button>
       </div>
     </div>
     <div class="tabs">
-      <div class="tab active" onclick="switchQTab(this,'q-tab-new')">Nova Avaliação</div>
-      <div class="tab" onclick="switchQTab(this,'q-tab-hist')">Histórico</div>
+      <div class="tab active" onclick="switchQTab(this,'q-tab-hist')">Histórico de Avaliações</div>
     </div>
-    <div id="q-tab-new">
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header"><span class="card-title">Selecionar Contexto da Avaliação</span></div>
-        <div class="card-body">
-          <div class="form-grid">
-            <div class="form-row">
-              <label class="field-label">Empresa *</label>
-              <select class="field" id="quest-empresa-select" onchange="updateQuestColabs()">
-                <option value="">Selecione a empresa</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label class="field-label">Colaborador (opcional)</label>
-              <select class="field" id="quest-colab-select">
-                <option value="">Todos do setor/empresa</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label class="field-label">Setor</label>
-              <input class="field" id="quest-setor" placeholder="Ex: Produção, RH, TI...">
-            </div>
-            <div class="form-row">
-              <label class="field-label">Data da Avaliação</label>
-              <input class="field" type="date" id="quest-data">
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="questions-container">
-        <!-- Questions rendered here -->
-      </div>
-      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
-        <button class="btn btn-secondary" onclick="clearQuest()">Limpar</button>
-        <button class="btn btn-accent" onclick="saveQuestionario()">💾 Salvar Avaliação</button>
-      </div>
-    </div>
-    <div id="q-tab-hist" style="display:none">
+    <div id="q-tab-hist">
       <div class="card">
-        <div class="card-header"><span class="card-title">Histórico de Avaliações</span></div>
+        <div class="card-header">
+          <span class="card-title">Avaliações Realizadas</span>
+          <button class="btn btn-sm btn-accent" onclick="iniciarAvaliacaoWizard()">▶ Nova Avaliação</button>
+        </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Data</th><th>Empresa</th><th>Setor</th><th>Colaborador</th><th>Score</th><th>Nível</th><th>Ações</th></tr></thead>
+            <thead><tr><th>Data</th><th>Empresa</th><th>Setor</th><th>Colaborador</th><th>Score</th><th>Nível</th><th>Análise</th><th>Ações</th></tr></thead>
             <tbody id="quest-hist-tbody">
-              <tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhuma avaliação registrada</td></tr>
+              <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhuma avaliação registrada</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
   </div>
-<!-- modal-questionario removido: botão "Iniciar Avaliação" agora usa openQuestForm() -->
+
+  <!-- WIZARD DE AVALIAÇÃO (tela cheia) -->
+  <div id="wizard-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:400;overflow-y:auto;padding:0">
+    <!-- Etapa 0: contexto -->
+    <div id="wiz-step-context" style="display:none;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px">
+      <div style="width:100%;max-width:560px">
+        <div style="text-align:center;margin-bottom:32px">
+          <div style="font-size:40px;margin-bottom:12px">📋</div>
+          <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:6px">Nova Avaliação Psicossocial</div>
+          <div style="font-size:14px;color:var(--text2)">Preencha os dados antes de iniciar as perguntas</div>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-row">
+                <label class="field-label">Empresa *</label>
+                <select class="field" id="wiz-empresa" onchange="wizUpdateColabs()">
+                  <option value="">Selecione a empresa</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label class="field-label">Colaborador (opcional)</label>
+                <select class="field" id="wiz-colab">
+                  <option value="">Geral / Setor</option>
+                </select>
+              </div>
+              <div class="form-row">
+                <label class="field-label">Setor</label>
+                <input class="field" id="wiz-setor" placeholder="Ex: Produção, RH, TI...">
+              </div>
+              <div class="form-row">
+                <label class="field-label">Data da Avaliação</label>
+                <input class="field" type="date" id="wiz-data">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:20px;justify-content:space-between">
+          <button class="btn btn-secondary" onclick="fecharWizard()">✕ Cancelar</button>
+          <button class="btn btn-accent" style="padding:12px 32px;font-size:15px" onclick="wizStartQuestions()">Iniciar Avaliação →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Etapa 1: perguntas passo a passo -->
+    <div id="wiz-step-questions" style="display:none;min-height:100vh;display:flex;flex-direction:column">
+      <!-- Header fixo -->
+      <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10">
+        <button class="btn btn-sm btn-secondary" onclick="fecharWizard()">✕</button>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px" id="wiz-progress-label">Pergunta 1 de 17</div>
+          <div style="background:var(--bg3);border-radius:4px;height:5px;overflow:hidden">
+            <div id="wiz-progress-bar" style="height:100%;background:var(--accent);border-radius:4px;transition:width .4s ease;width:0%"></div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--text3)" id="wiz-dim-label">—</div>
+      </div>
+
+      <!-- Corpo da pergunta -->
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+        <div style="width:100%;max-width:600px" id="wiz-question-body">
+          <!-- Renderizado por JS -->
+        </div>
+      </div>
+
+      <!-- Botões de navegação -->
+      <div style="background:var(--bg2);border-top:1px solid var(--border);padding:16px 24px;display:flex;justify-content:space-between;align-items:center">
+        <button class="btn btn-secondary" id="wiz-btn-prev" onclick="wizPrev()" style="display:none">← Anterior</button>
+        <span style="font-size:12px;color:var(--text3)" id="wiz-answered-count">0 respondidas</span>
+        <button class="btn btn-accent" id="wiz-btn-next" onclick="wizNext()" style="padding:10px 28px">Próxima →</button>
+      </div>
+    </div>
+
+    <!-- Etapa 2: analisando (loading) -->
+    <div id="wiz-step-loading" style="display:none;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px">
+      <div style="text-align:center;max-width:440px">
+        <div style="font-size:48px;margin-bottom:20px">🔬</div>
+        <div style="font-size:20px;font-weight:700;margin-bottom:8px">Processando avaliação...</div>
+        <div style="font-size:14px;color:var(--text2);margin-bottom:32px" id="wiz-loading-msg">Calculando scores por dimensão</div>
+        <div style="background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;width:300px;margin:0 auto">
+          <div id="wiz-loading-bar" style="height:100%;background:var(--accent);border-radius:4px;width:0%;transition:width .5s ease"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Etapa 3: resultado -->
+    <div id="wiz-step-result" style="display:none;padding:32px 20px;max-width:800px;margin:0 auto;width:100%">
+      <div id="wiz-result-content">
+        <!-- Renderizado por JS -->
+      </div>
+      <div style="display:flex;gap:10px;margin-top:24px;justify-content:flex-end;flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="fecharWizard()">Fechar</button>
+        <button class="btn btn-secondary" onclick="imprimirAnalise()">🖨 Imprimir Análise</button>
+        <button class="btn btn-accent" onclick="iniciarAvaliacaoWizard()">▶ Nova Avaliação</button>
+      </div>
+    </div>
+  </div>
   <!-- DIAGNÓSTICOS PAGE -->
   <div class="page" id="page-diagnosticos">
     <div class="page-header">
@@ -2069,6 +2152,24 @@ function doLogin() {
           </div>
         </div>
         <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><span class="card-title">🤖 Análise Automática (Groq)</span></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">
+              A análise técnica dos questionários é gerada automaticamente após cada avaliação. Cole sua chave de API abaixo para ativar.
+            </p>
+            <div class="form-row">
+              <label class="field-label">Chave de API Groq</label>
+              <div style="display:flex;gap:8px">
+                <input class="field" type="password" id="config-groq-key" placeholder="gsk_..." style="flex:1;font-family:'DM Mono',monospace;font-size:13px">
+                <button class="btn btn-accent" onclick="salvarGroqKey()">💾 Salvar</button>
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--text3);margin-top:6px">
+              Obtenha sua chave gratuita em <a href="https://console.groq.com" target="_blank" style="color:var(--accent)">console.groq.com</a>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px">
           <div class="card-header">
             <span class="card-title">📄 Cabeçalho dos Relatórios</span>
             <button class="btn btn-sm btn-secondary" onclick="openModal('modal-cabecalho-preview')">👁 Visualizar</button>
@@ -2127,6 +2228,602 @@ function doLogin() {
     </div>
   </div>
 </div>
+</div>
+
+<!-- ==================== KICK OFF PAGE ==================== -->
+<div class="page" id="page-kickoff">
+  <div class="page-header">
+    <div>
+      <div class="page-title">🚀 Reunião Kick Off</div>
+      <div class="page-sub">Registro da reunião inicial e entrevista RH para NR-01</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" onclick="exportKickoffExcel()">📊 Excel</button>
+      <button class="btn btn-accent" onclick="openKickoffForm()">+ Nova Reunião</button>
+    </div>
+  </div>
+
+  <!-- Lista de reuniões -->
+  <div id="kickoff-lista-container">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Reuniões Cadastradas</span>
+        <select class="field" style="width:auto;padding:5px 10px;font-size:12px" id="kickoff-empresa-filter" onchange="renderKickoff()">
+          <option value="">Todas as empresas</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empresa</th><th>Responsável</th><th>Data</th><th>Colaboradores</th><th>Entrevista RH</th><th>Ações</th></tr></thead>
+          <tbody id="kickoff-tbody">
+            <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:30px">Nenhuma reunião cadastrada</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulário Kick Off -->
+  <div id="kickoff-form-container" style="display:none">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <button class="btn btn-secondary" onclick="cancelarKickoff()">← Voltar</button>
+      <div>
+        <div class="page-title" style="font-size:18px" id="kickoff-form-title">Nova Reunião Kick Off</div>
+        <div class="page-sub">Preencha os dados da reunião inicial</div>
+      </div>
+    </div>
+
+    <!-- Step indicator -->
+    <div style="display:flex;gap:0;margin-bottom:24px;overflow:hidden;border-radius:var(--r);border:1px solid var(--border)">
+      <div id="kickoff-step1-tab" style="flex:1;padding:12px;text-align:center;font-size:13px;font-weight:600;background:var(--accent);color:#fff;cursor:pointer" onclick="switchKickoffStep(1)">1 · Dados da Reunião</div>
+      <div id="kickoff-step2-tab" style="flex:1;padding:12px;text-align:center;font-size:13px;font-weight:600;background:var(--surface2);color:var(--text2);cursor:pointer" onclick="switchKickoffStep(2)">2 · Entrevista RH (NR-01)</div>
+    </div>
+
+    <!-- Step 1: Dados da reunião -->
+    <div id="kickoff-step1">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><span class="card-title">📋 Dados da Reunião</span></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="field-label">Empresa *</label>
+              <select class="field" id="ko-empresa">
+                <option value="">Selecione a empresa</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="field-label">Data da Reunião *</label>
+              <input type="date" class="field" id="ko-data">
+            </div>
+            <div class="form-row">
+              <label class="field-label">Responsável da Empresa</label>
+              <input class="field" id="ko-responsavel" placeholder="Nome do responsável">
+            </div>
+            <div class="form-row">
+              <label class="field-label">Cargo</label>
+              <input class="field" id="ko-cargo" placeholder="Ex: Gerente de RH">
+            </div>
+            <div class="form-row">
+              <label class="field-label">E-mail</label>
+              <input type="email" class="field" id="ko-email" placeholder="email@empresa.com">
+            </div>
+            <div class="form-row">
+              <label class="field-label">Telefone</label>
+              <input class="field" id="ko-telefone" placeholder="(00) 00000-0000">
+            </div>
+            <div class="form-row">
+              <label class="field-label">Quantidade de Colaboradores</label>
+              <input type="number" class="field" id="ko-qtd-colab" placeholder="0" min="0">
+            </div>
+            <div class="form-row">
+              <label class="field-label">Segmento da Empresa</label>
+              <input class="field" id="ko-segmento" placeholder="Ex: Indústria, Saúde, Varejo...">
+            </div>
+            <div class="form-row full">
+              <label class="field-label">Observações</label>
+              <textarea class="field" id="ko-obs" rows="3" placeholder="Observações gerais da reunião..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px">
+        <button class="btn btn-secondary" onclick="cancelarKickoff()">Cancelar</button>
+        <button class="btn btn-accent" onclick="switchKickoffStep(2)">Próximo: Entrevista RH →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Entrevista RH -->
+    <div id="kickoff-step2" style="display:none">
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><span class="card-title">👥 Entrevista RH para NR-01</span></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="field-label">Existe setor de RH?</label>
+              <select class="field" id="ko-tem-rh">
+                <option value="">Selecione</option>
+                <option>Sim</option>
+                <option>Não</option>
+                <option>Parcial (terceirizado)</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="field-label">Turnos de Trabalho</label>
+              <select class="field" id="ko-turnos">
+                <option value="">Selecione</option>
+                <option>1 turno</option>
+                <option>2 turnos</option>
+                <option>3 turnos</option>
+                <option>Escala 12x36</option>
+                <option>Horário flexível</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="field-label">Regime de Contratação</label>
+              <select class="field" id="ko-regime">
+                <option value="">Selecione</option>
+                <option>CLT</option>
+                <option>PJ</option>
+                <option>Misto (CLT + PJ)</option>
+                <option>Cooperativados</option>
+                <option>Terceirizados</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="field-label">Índice de Rotatividade</label>
+              <select class="field" id="ko-rotatividade">
+                <option value="">Selecione</option>
+                <option>Baixo (abaixo de 5%)</option>
+                <option>Médio (5–15%)</option>
+                <option>Alto (acima de 15%)</option>
+                <option>Desconhecido</option>
+              </select>
+            </div>
+            <div class="form-row full">
+              <label class="field-label">Histórico de Afastamentos</label>
+              <textarea class="field" id="ko-afastamentos" rows="2" placeholder="Principais motivos de afastamento nos últimos 12 meses..."></textarea>
+            </div>
+            <div class="form-row full">
+              <label class="field-label">Reclamações Recorrentes</label>
+              <textarea class="field" id="ko-reclamacoes" rows="2" placeholder="Queixas frequentes dos colaboradores..."></textarea>
+            </div>
+            <div class="form-row full">
+              <label class="field-label">Fatores Psicossociais já Identificados</label>
+              <textarea class="field" id="ko-fatores-psico" rows="2" placeholder="Estresse, assédio, sobrecarga, conflitos..."></textarea>
+            </div>
+            <div class="form-row full">
+              <label class="field-label">Programas de Saúde Mental Existentes</label>
+              <textarea class="field" id="ko-programas-saude" rows="2" placeholder="SIPAT, EAP, psicólogo, grupos de apoio..."></textarea>
+            </div>
+            <div class="form-row full">
+              <label class="field-label">Observações Adicionais</label>
+              <textarea class="field" id="ko-obs-rh" rows="2" placeholder="Informações relevantes para a implantação da NR-01..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;gap:10px">
+        <button class="btn btn-secondary" onclick="switchKickoffStep(1)">← Voltar</button>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-secondary" onclick="cancelarKickoff()">Cancelar</button>
+          <button class="btn btn-accent" onclick="saveKickoff()">💾 Salvar Reunião</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== HISTÓRICO EMPRESA PAGE ==================== -->
+<div class="page" id="page-historico-empresa">
+  <div class="page-header">
+    <div>
+      <div class="page-title">📜 Histórico</div>
+      <div class="page-sub">Registro automático de todas as movimentações do sistema</div>
+    </div>
+    <div class="page-actions">
+      <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="hist-empresa-filter" onchange="renderHistoricoEmpresa()">
+        <option value="">Todas as empresas</option>
+      </select>
+      <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="hist-tipo-filter" onchange="renderHistoricoEmpresa()">
+        <option value="">Todos os tipos</option>
+        <option>Kick Off</option>
+        <option>Entrevista NR-01</option>
+        <option>Plano de Ação</option>
+        <option>Relatório</option>
+        <option>Financeiro</option>
+        <option>Cadastro</option>
+      </select>
+      <button class="btn btn-secondary" onclick="exportHistoricoExcel()">📊 Excel</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Data/Hora</th><th>Empresa</th><th>Tipo</th><th>Descrição</th><th>Usuário</th></tr></thead>
+        <tbody id="hist-empresa-tbody">
+          <tr><td colspan="5" style="text-align:center;color:var(--text3);padding:30px">Nenhum registro no histórico</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== FINANCEIRO PAGE ==================== -->
+<div class="page" id="page-financeiro">
+  <div class="page-header">
+    <div>
+      <div class="page-title">💰 Financeiro</div>
+      <div class="page-sub">Controle de contratos, mensalidades e cobranças</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" onclick="exportFinanceiroExcel()">📊 Excel</button>
+      <button class="btn btn-accent" onclick="openModal('modal-financeiro')">+ Novo Lançamento</button>
+    </div>
+  </div>
+
+  <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-card">
+      <div class="stat-header"><span class="stat-label">Em Dia</span><div class="stat-icon green">✅</div></div>
+      <div class="stat-value" id="fin-stat-emdia" style="color:var(--green)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-header"><span class="stat-label">Pendente</span><div class="stat-icon amber">⏳</div></div>
+      <div class="stat-value" id="fin-stat-pend" style="color:var(--amber)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-header"><span class="stat-label">Atrasado</span><div class="stat-icon red">🚨</div></div>
+      <div class="stat-value" id="fin-stat-atr" style="color:var(--red)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-header"><span class="stat-label">Total Recebido</span><div class="stat-icon blue">💵</div></div>
+      <div class="stat-value" id="fin-stat-total" style="font-size:20px">R$ 0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Lançamentos Financeiros</span>
+      <div style="display:flex;gap:6px">
+        <select class="field" style="width:auto;padding:5px 10px;font-size:12px" id="fin-empresa-filter" onchange="renderFinanceiro()">
+          <option value="">Todas as empresas</option>
+        </select>
+        <select class="field" style="width:auto;padding:5px 10px;font-size:12px" id="fin-status-filter" onchange="renderFinanceiro()">
+          <option value="">Todos os status</option>
+          <option>Em dia</option><option>Pendente</option><option>Atrasado</option><option>Cancelado</option>
+        </select>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Empresa</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Vencimento</th><th>Pagamento</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody id="financeiro-tbody">
+          <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhum lançamento cadastrado</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== NR-01 ENTREVISTAS PAGE ==================== -->
+<div class="page" id="page-nr01-entrevistas">
+  <div class="page-header">
+    <div>
+      <div class="page-title">🎤 Entrevistas NR-01</div>
+      <div class="page-sub">Aplicação de questionários COPSOQ III, HSE-IT e personalizados</div>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" onclick="exportNR01Excel()">📊 Excel</button>
+      <button class="btn btn-accent" onclick="openNR01Form()">+ Nova Entrevista</button>
+    </div>
+  </div>
+
+  <div id="nr01-lista-container">
+    <!-- Aviso de fluxo -->
+    <div id="nr01-flow-alert" style="display:none;background:var(--amber-bg);border:1px solid rgba(245,165,36,.3);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--amber)">
+      ⚠️ <b>Atenção:</b> Complete a <b>Reunião Kick Off</b> e a <b>Entrevista RH</b> antes de iniciar as entrevistas NR-01.
+      <button class="btn btn-sm" style="background:var(--amber);color:#fff;margin-left:12px" onclick="showPage('kickoff')">Ir para Kick Off →</button>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Total</span><div class="stat-icon blue">📋</div></div><div class="stat-value" id="nr01-stat-total">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Em Andamento</span><div class="stat-icon amber">🔄</div></div><div class="stat-value" id="nr01-stat-and" style="color:var(--amber)">0</div></div>
+      <div class="stat-card"><div class="stat-header"><span class="stat-label">Finalizados</span><div class="stat-icon green">✅</div></div><div class="stat-value" id="nr01-stat-fin" style="color:var(--green)">0</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Entrevistas Cadastradas</span>
+        <div style="display:flex;gap:6px">
+          <select class="field" style="width:auto;padding:5px 10px;font-size:12px" id="nr01-empresa-filter" onchange="renderNR01Entrevistas()">
+            <option value="">Todas as empresas</option>
+          </select>
+          <select class="field" style="width:auto;padding:5px 10px;font-size:12px" id="nr01-status-filter" onchange="renderNR01Entrevistas()">
+            <option value="">Todos os status</option>
+            <option>Não iniciado</option><option>Em andamento</option><option>Finalizado</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Empresa</th><th>Respondente</th><th>Setor</th><th>Questionário</th><th>Data</th><th>Score</th><th>Status</th><th>Ações</th></tr></thead>
+          <tbody id="nr01-entrevistas-tbody">
+            <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhuma entrevista registrada</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulário de entrevista -->
+  <div id="nr01-form-container" style="display:none">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <button class="btn btn-secondary" onclick="cancelarNR01()">← Voltar</button>
+      <div>
+        <div class="page-title" style="font-size:18px">Nova Entrevista NR-01</div>
+        <div class="page-sub">Aplique o questionário ao colaborador</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><span class="card-title">Dados do Respondente</span></div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="field-label">Empresa *</label>
+            <select class="field" id="nr01-empresa">
+              <option value="">Selecione a empresa</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="field-label">Questionário *</label>
+            <select class="field" id="nr01-tipo-quest">
+              <option value="NR-01">NR-01 (padrão)</option>
+              <option value="COPSOQ III">COPSOQ III</option>
+              <option value="HSE-IT">HSE-IT</option>
+              <option value="Personalizado">Personalizado</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="field-label">Nome do Respondente</label>
+            <input class="field" id="nr01-respondente" placeholder="Nome completo">
+          </div>
+          <div class="form-row">
+            <label class="field-label">Cargo</label>
+            <input class="field" id="nr01-cargo" placeholder="Cargo do respondente">
+          </div>
+          <div class="form-row">
+            <label class="field-label">Setor</label>
+            <input class="field" id="nr01-setor" placeholder="Setor / Departamento">
+          </div>
+          <div class="form-row">
+            <label class="field-label">Data</label>
+            <input type="date" class="field" id="nr01-data">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><span class="card-title">Questões</span></div>
+      <div class="card-body" id="nr01-questions-container">
+        <!-- preenchido dinamicamente -->
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn btn-secondary" onclick="cancelarNR01()">Cancelar</button>
+      <button class="btn btn-secondary" onclick="saveNR01Rascunho()">💾 Salvar Rascunho</button>
+      <button class="btn btn-accent" onclick="saveNR01Entrevista()">✅ Finalizar Entrevista</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== NR-01 GERENCIAL PAGE ==================== -->
+<div class="page" id="page-nr01-gerencial">
+  <div class="page-header">
+    <div>
+      <div class="page-title">📊 Gerencial NR-01</div>
+      <div class="page-sub">Dashboard executivo de indicadores e fatores psicossociais</div>
+    </div>
+    <div class="page-actions">
+      <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="ger-nr01-empresa-filter" onchange="renderNR01Gerencial()">
+        <option value="">Todas as empresas</option>
+      </select>
+      <button class="btn btn-secondary" onclick="generateNR01PDF()">📄 Relatório PDF</button>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">Colaboradores</span><div class="stat-icon blue">👥</div></div><div class="stat-value" id="ger-nr01-colab">0</div></div>
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">Entrevistas</span><div class="stat-icon green">🎤</div></div><div class="stat-value" id="ger-nr01-entrev">0</div></div>
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">Taxa de Participação</span><div class="stat-icon purple">📈</div></div><div class="stat-value" id="ger-nr01-taxa">0%</div></div>
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">Risco Médio</span><div class="stat-icon amber">⚠️</div></div><div class="stat-value" id="ger-nr01-risco">—</div></div>
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">Setores Avaliados</span><div class="stat-icon cyan" style="background:var(--cyan-bg);color:var(--cyan)">🏬</div></div><div class="stat-value" id="ger-nr01-setores">0</div></div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Distribuição de Risco</span></div>
+      <div class="card-body">
+        <div class="chart-container"><canvas id="chart-nr01-risco"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Ranking de Fatores Psicossociais</span></div>
+      <div class="card-body" id="nr01-ranking-fatores">
+        <div class="empty-state" style="padding:20px"><p>Realize entrevistas para ver o ranking</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Score por Dimensão (Radar)</span></div>
+      <div class="card-body">
+        <div class="chart-container"><canvas id="chart-nr01-radar"></canvas></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Comparativo por Setor</span></div>
+      <div class="card-body" id="nr01-setores-comparativo">
+        <div class="empty-state" style="padding:20px"><p>Dados insuficientes para comparativo</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== NR-01 MONITORAMENTO PAGE ==================== -->
+<div class="page" id="page-nr01-monitoramento">
+  <div class="page-header">
+    <div>
+      <div class="page-title">🔍 Monitoramento NR-01</div>
+      <div class="page-sub">Plano de ação, ações corretivas e acompanhamento contínuo</div>
+    </div>
+    <div class="page-actions">
+      <select class="field" style="width:auto;padding:8px 13px;font-size:13px" id="mon-empresa-filter" onchange="renderNR01Monitoramento()">
+        <option value="">Todas as empresas</option>
+      </select>
+      <button class="btn btn-secondary" onclick="exportMonitoramentoExcel()">📊 Excel</button>
+      <button class="btn btn-accent" onclick="openModal('modal-nr01-acao')">+ Nova Ação</button>
+    </div>
+  </div>
+
+  <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">Pendentes</span><div class="stat-icon amber">⏳</div></div><div class="stat-value" id="mon-stat-pend" style="color:var(--amber)">0</div></div>
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">Em Andamento</span><div class="stat-icon blue">🔄</div></div><div class="stat-value" id="mon-stat-and" style="color:var(--accent)">0</div></div>
+    <div class="stat-card"><div class="stat-header"><span class="stat-label">Concluídos</span><div class="stat-icon green">✅</div></div><div class="stat-value" id="mon-stat-conc" style="color:var(--green)">0</div></div>
+    <div class="stat-card"><div class="stat-header"><span class="stat-icon red">🚨</span><span class="stat-label">Atrasados</span></div><div class="stat-value" id="mon-stat-atr" style="color:var(--red)">0</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Plano de Ação NR-01</span>
+      <select class="field" style="width:auto;padding:5px 10px;font-size:12px" id="mon-status-filter" onchange="renderNR01Monitoramento()">
+        <option value="">Todos os status</option>
+        <option>Pendente</option><option>Em andamento</option><option>Concluído</option><option>Atrasado</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Empresa</th><th>Ação</th><th>Responsável</th><th>Início</th><th>Prazo</th><th>Status</th><th>Evidências</th><th>Ações</th></tr></thead>
+        <tbody id="mon-nr01-tbody">
+          <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhuma ação de monitoramento cadastrada</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: FINANCEIRO -->
+<div class="modal-overlay" id="modal-financeiro">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">💰 Novo Lançamento Financeiro</span>
+      <button class="btn-close" onclick="closeModal('modal-financeiro')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa *</label>
+          <select class="field" id="fin-empresa">
+            <option value="">Selecione a empresa</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Tipo</label>
+          <select class="field" id="fin-tipo">
+            <option>Mensalidade</option>
+            <option>Contrato</option>
+            <option>Cobrança Avulsa</option>
+            <option>Pagamento</option>
+          </select>
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Descrição</label>
+          <input class="field" id="fin-desc" placeholder="Ex: Mensalidade Janeiro/2026">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Valor (R$)</label>
+          <input type="number" class="field" id="fin-valor" placeholder="0,00" min="0" step="0.01">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Vencimento</label>
+          <input type="date" class="field" id="fin-vencimento">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Data de Pagamento</label>
+          <input type="date" class="field" id="fin-pagamento">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Status</label>
+          <select class="field" id="fin-status">
+            <option>Em dia</option>
+            <option>Pendente</option>
+            <option>Atrasado</option>
+            <option>Cancelado</option>
+          </select>
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Observações</label>
+          <textarea class="field" id="fin-obs" rows="2" placeholder="Observações..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-financeiro')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveFinanceiro()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NR-01 AÇÃO DE MONITORAMENTO -->
+<div class="modal-overlay" id="modal-nr01-acao">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🎯 Nova Ação de Monitoramento</span>
+      <button class="btn-close" onclick="closeModal('modal-nr01-acao')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-row">
+          <label class="field-label">Empresa *</label>
+          <select class="field" id="mon-empresa">
+            <option value="">Selecione a empresa</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Responsável</label>
+          <input class="field" id="mon-responsavel" placeholder="Nome do responsável">
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Ação Corretiva / Preventiva *</label>
+          <textarea class="field" id="mon-acao" rows="2" placeholder="Descreva a ação a ser tomada..."></textarea>
+        </div>
+        <div class="form-row">
+          <label class="field-label">Data de Início</label>
+          <input type="date" class="field" id="mon-inicio">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Data Prevista</label>
+          <input type="date" class="field" id="mon-prazo">
+        </div>
+        <div class="form-row">
+          <label class="field-label">Status</label>
+          <select class="field" id="mon-status">
+            <option>Pendente</option>
+            <option>Em andamento</option>
+            <option>Concluído</option>
+            <option>Atrasado</option>
+          </select>
+        </div>
+        <div class="form-row full">
+          <label class="field-label">Evidências / Observações</label>
+          <textarea class="field" id="mon-evidencias" rows="2" placeholder="Registre evidências ou observações..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-nr01-acao')">Cancelar</button>
+      <button class="btn btn-accent" onclick="saveNR01Acao()">💾 Salvar Ação</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODALS -->
@@ -2698,7 +3395,7 @@ async function syncFromFirebase() {
   if (statusEl) statusEl.textContent = 'Status: sincronizando...';
 
   try {
-    const keys = ['empresas','colaboradores','riscos','acoes','questionarios','acompanhamentos','activity_log','relatorios_gerados'];
+    const keys = ['empresas','colaboradores','riscos','acoes','questionarios','acompanhamentos','activity_log','relatorios_gerados','kickoffs','historico_empresa','financeiro','nr01_entrevistas','nr01_monitoramento','visitas','treinamentos','rh_avaliacoes','rh_clima','rh_cargos','rh_processos'];
     let temDados = false;
 
     for (const k of keys) {
@@ -2977,7 +3674,7 @@ function showPage(id, el) {
   if(id==='dashboard') refreshDashboard();
   if(id==='empresas') renderEmpresas();
   if(id==='colaboradores') renderColabs();
-  if(id==='questionarios') { renderQuestComp(); renderQuestHist(); populateQuestSelects(); }
+  if(id==='questionarios') { renderQuestHist(); populateQuestSelects(); }
   if(id==='diagnosticos') { populateDiagFilter(); renderDiagnostico(); }
   if(id==='riscos') { renderRiscos(); populateRiscoFilter(); }
   if(id==='plano') { renderAcoes(); populatePlanoFilters(); }
@@ -3341,75 +4038,468 @@ function renderColabs() {
 function filterColabs() { colabCurrentPage=0; renderColabs(); }
 function colabPage(dir) { colabCurrentPage+=dir; if(colabCurrentPage<0) colabCurrentPage=0; renderColabs(); }
 
+// === GROQ CONFIG ===
+// Chave lida do localStorage (configurável em Configurações) ou hardcoded abaixo como fallback
+function getGroqKey() {
+  return localStorage.getItem('nr1_groq_key') || 'gsk_COLE_SUA_CHAVE_GROQ_AQUI';
+}
+
+function salvarGroqKey() {
+  const k = document.getElementById('config-groq-key')?.value?.trim();
+  if(!k) { showToast('Informe a chave Groq','error'); return; }
+  localStorage.setItem('nr1_groq_key', k);
+  showToast('Chave Groq salva! Análises ativadas.','success');
+}
+
+function loadGroqKeyField() {
+  const el = document.getElementById('config-groq-key');
+  if(el) el.value = localStorage.getItem('nr1_groq_key') || '';
+}
+
+async function chamarGroq(prompt) {
+  try {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getGroqKey() },
+      body: JSON.stringify({
+        model: 'llama3-70b-8192',
+        temperature: 0.4,
+        max_tokens: 1800,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!resp.ok) throw new Error('Groq HTTP ' + resp.status);
+    const data = await resp.json();
+    return data.choices?.[0]?.message?.content || '';
+  } catch(e) {
+    console.warn('Groq error:', e.message);
+    return null;
+  }
+}
+
 // === QUESTIONÁRIOS ===
 const NR1_QUESTIONS = [
-  {id:'q1', dim:'Organização do Trabalho', text:'Suas tarefas e responsabilidades são claramente definidas?', type:'scale'},
-  {id:'q2', dim:'Organização do Trabalho', text:'Você tem tempo suficiente para realizar seu trabalho com qualidade?', type:'scale'},
-  {id:'q3', dim:'Carga e Ritmo', text:'O ritmo de trabalho é excessivo ou insustentável?', type:'scale'},
-  {id:'q4', dim:'Carga e Ritmo', text:'Você frequentemente sente-se sobrecarregado(a) no trabalho?', type:'scale'},
-  {id:'q5', dim:'Relações Interpessoais', text:'Você tem bom relacionamento com seus colegas de trabalho?', type:'scale'},
-  {id:'q6', dim:'Relações Interpessoais', text:'Seu gestor direto oferece suporte quando você precisa?', type:'scale'},
-  {id:'q7', dim:'Relações Interpessoais', text:'Existe respeito mútuo entre as pessoas da sua equipe?', type:'scale'},
-  {id:'q8', dim:'Reconhecimento', text:'Você se sente reconhecido(a) pelo seu trabalho?', type:'scale'},
-  {id:'q9', dim:'Reconhecimento', text:'Há oportunidades de crescimento e desenvolvimento profissional?', type:'scale'},
-  {id:'q10', dim:'Autonomia', text:'Você tem autonomia para tomar decisões relacionadas ao seu trabalho?', type:'scale'},
-  {id:'q11', dim:'Autonomia', text:'Suas opiniões e sugestões são consideradas pela gestão?', type:'scale'},
-  {id:'q12', dim:'Violência e Assédio', text:'Você já presenciou ou vivenciou situação de assédio moral no trabalho?', type:'bool'},
-  {id:'q13', dim:'Violência e Assédio', text:'Você já presenciou ou vivenciou situação de assédio sexual no trabalho?', type:'bool'},
-  {id:'q14', dim:'Violência e Assédio', text:'Existe algum tipo de discriminação no ambiente de trabalho?', type:'bool'},
-  {id:'q15', dim:'Saúde e Bem-estar', text:'O trabalho tem afetado negativamente sua saúde física?', type:'scale'},
-  {id:'q16', dim:'Saúde e Bem-estar', text:'O trabalho tem causado estresse ou ansiedade significativa?', type:'scale'},
-  {id:'q17', dim:'Saúde e Bem-estar', text:'Você consegue equilibrar vida profissional e pessoal?', type:'scale'},
+  {id:'q1',  dim:'Organização do Trabalho', text:'Suas tarefas e responsabilidades são claramente definidas?', type:'scale'},
+  {id:'q2',  dim:'Organização do Trabalho', text:'Você tem tempo suficiente para realizar seu trabalho com qualidade?', type:'scale'},
+  {id:'q3',  dim:'Carga e Ritmo',           text:'O ritmo de trabalho é excessivo ou insustentável?', type:'scale'},
+  {id:'q4',  dim:'Carga e Ritmo',           text:'Você frequentemente se sente sobrecarregado(a) no trabalho?', type:'scale'},
+  {id:'q5',  dim:'Relações Interpessoais',  text:'Você tem bom relacionamento com seus colegas de trabalho?', type:'scale'},
+  {id:'q6',  dim:'Relações Interpessoais',  text:'Seu gestor direto oferece suporte quando você precisa?', type:'scale'},
+  {id:'q7',  dim:'Relações Interpessoais',  text:'Existe respeito mútuo entre as pessoas da sua equipe?', type:'scale'},
+  {id:'q8',  dim:'Reconhecimento',          text:'Você se sente reconhecido(a) pelo seu trabalho?', type:'scale'},
+  {id:'q9',  dim:'Reconhecimento',          text:'Há oportunidades de crescimento e desenvolvimento profissional?', type:'scale'},
+  {id:'q10', dim:'Autonomia',               text:'Você tem autonomia para tomar decisões relacionadas ao seu trabalho?', type:'scale'},
+  {id:'q11', dim:'Autonomia',               text:'Suas opiniões e sugestões são consideradas pela gestão?', type:'scale'},
+  {id:'q12', dim:'Violência e Assédio',     text:'Você já presenciou ou vivenciou situação de assédio moral no trabalho?', type:'bool'},
+  {id:'q13', dim:'Violência e Assédio',     text:'Você já presenciou ou vivenciou situação de assédio sexual no trabalho?', type:'bool'},
+  {id:'q14', dim:'Violência e Assédio',     text:'Existe algum tipo de discriminação no ambiente de trabalho?', type:'bool'},
+  {id:'q15', dim:'Saúde e Bem-estar',       text:'O trabalho tem afetado negativamente sua saúde física?', type:'scale'},
+  {id:'q16', dim:'Saúde e Bem-estar',       text:'O trabalho tem causado estresse ou ansiedade significativa?', type:'scale'},
+  {id:'q17', dim:'Saúde e Bem-estar',       text:'Você consegue equilibrar vida profissional e pessoal?', type:'scale'},
 ];
 
 function getQuestionarios() { return DB.get('questionarios'); }
 function saveQuestionariosDB(arr) { DB.set('questionarios', arr); }
 
-const questAnswers = {};
+// ---- WIZARD STATE ----
+let wizContext = {};
+let wizAnswers = {};
+let wizCurrentIdx = 0;
 
-function renderQuestComp() {
-  const container = document.getElementById('questions-container');
-  container.innerHTML = NR1_QUESTIONS.map((q,i) => `
-    <div class="question-card">
-      <div class="question-num">Questão ${i+1} / ${NR1_QUESTIONS.length} · ${q.dim}</div>
-      <div class="question-text">${q.text}</div>
-      ${q.type==='bool' ? `
-        <div class="question-options">
-          <div class="q-opt" onclick="selectBool('${q.id}', 'Sim', this)">Sim</div>
-          <div class="q-opt" onclick="selectBool('${q.id}', 'Não', this)">Não</div>
-          <div class="q-opt" onclick="selectBool('${q.id}', 'Não sei informar', this)">Não sei informar</div>
-        </div>` : `
-        <div class="q-scale">
-          ${[1,2,3,4,5,6,7,8,9,10].map(v=>`<div class="q-scale-opt s${v<=3?1:v<=5?2:v<=7?3:4}" onclick="selectScale('${q.id}',${v},this)">${v}</div>`).join('')}
-        </div>
-        <div class="scale-labels"><span>Nunca/Discordo totalmente</span><span>Sempre/Concordo totalmente</span></div>`}
-    </div>`).join('');
+function iniciarAvaliacaoWizard() {
+  wizAnswers = {};
+  wizCurrentIdx = 0;
+  wizContext = {};
+  // Popula select de empresas
+  const sel = document.getElementById('wiz-empresa');
+  sel.innerHTML = '<option value="">Selecione a empresa</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
+  document.getElementById('wiz-colab').innerHTML = '<option value="">Geral / Setor</option>';
+  document.getElementById('wiz-setor').value = '';
+  document.getElementById('wiz-data').value = new Date().toISOString().split('T')[0];
+  // Mostra overlay e etapa de contexto
+  const ov = document.getElementById('wizard-overlay');
+  ov.style.display = 'block';
+  wizShowStep('context');
 }
 
-function selectBool(qid, val, el) {
-  el.closest('.question-options').querySelectorAll('.q-opt').forEach(o=>o.classList.remove('selected'));
-  el.classList.add('selected');
-  questAnswers[qid] = val;
-}
-function selectScale(qid, val, el) {
-  el.closest('.q-scale').querySelectorAll('.q-scale-opt').forEach(o=>o.classList.remove('selected'));
-  el.classList.add('selected');
-  questAnswers[qid] = val;
+function fecharWizard() {
+  document.getElementById('wizard-overlay').style.display = 'none';
 }
 
-function clearQuest() {
-  Object.keys(questAnswers).forEach(k=>delete questAnswers[k]);
-  renderQuestComp();
-  document.getElementById('quest-empresa-select').value='';
-  document.getElementById('quest-colab-select').value='';
-  document.getElementById('quest-setor').value='';
+function wizShowStep(step) {
+  ['context','questions','loading','result'].forEach(s => {
+    const el = document.getElementById('wiz-step-'+s);
+    if(el) el.style.display = 'none';
+  });
+  const target = document.getElementById('wiz-step-'+step);
+  if(target) target.style.display = 'flex';
+}
+
+function wizUpdateColabs() {
+  const empId = document.getElementById('wiz-empresa').value;
+  const colabs = getColabs().filter(c=>c.empresaId===empId);
+  document.getElementById('wiz-colab').innerHTML =
+    '<option value="">Geral / Setor</option>' + colabs.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+}
+
+function wizStartQuestions() {
+  const empId = document.getElementById('wiz-empresa').value;
+  if(!empId) { showToast('Selecione a empresa para continuar','error'); return; }
+  const emp = getEmpresas().find(e=>e.id===empId);
+  const colabId = document.getElementById('wiz-colab').value;
+  const colab = colabId ? getColabs().find(c=>c.id===colabId) : null;
+  wizContext = {
+    empresaId: empId, empresaNome: emp?.razao||'',
+    colabId: colabId||null, colabNome: colab?.nome||'Geral',
+    setor: document.getElementById('wiz-setor').value.trim(),
+    data: document.getElementById('wiz-data').value || new Date().toISOString().split('T')[0]
+  };
+  wizCurrentIdx = 0;
+  wizShowStep('questions');
+  wizRenderQuestion();
+}
+
+function wizRenderQuestion() {
+  const q = NR1_QUESTIONS[wizCurrentIdx];
+  const total = NR1_QUESTIONS.length;
+  const pct = Math.round((wizCurrentIdx / total) * 100);
+  document.getElementById('wiz-progress-label').textContent = `Pergunta ${wizCurrentIdx+1} de ${total}`;
+  document.getElementById('wiz-progress-bar').style.width = pct + '%';
+  document.getElementById('wiz-dim-label').textContent = q.dim;
+  document.getElementById('wiz-btn-prev').style.display = wizCurrentIdx > 0 ? 'inline-flex' : 'none';
+
+  const answered = Object.keys(wizAnswers).length;
+  document.getElementById('wiz-answered-count').textContent = answered + ' respondida' + (answered!==1?'s':'');
+
+  const isLast = wizCurrentIdx === total - 1;
+  const nextBtn = document.getElementById('wiz-btn-next');
+  nextBtn.textContent = isLast ? '✓ Finalizar' : 'Próxima →';
+
+  const curVal = wizAnswers[q.id];
+
+  const body = document.getElementById('wiz-question-body');
+  body.style.opacity = '0';
+  body.style.transform = 'translateY(16px)';
+
+  if(q.type === 'bool') {
+    body.innerHTML = `
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:12px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">${q.dim}</div>
+        <div style="font-size:20px;font-weight:600;color:var(--text);line-height:1.4">${q.text}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${['Sim','Não','Não sei informar'].map(op=>`
+          <button onclick="wizSelectBool('${q.id}','${op}',this)" class="wiz-opt-btn"
+            style="padding:16px 24px;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;border:2px solid;transition:all .15s;text-align:left;
+            background:${curVal===op?'var(--accent-glow)':'var(--bg3)'};
+            border-color:${curVal===op?'var(--accent)':'var(--border)'};
+            color:${curVal===op?'var(--accent)':'var(--text)'}">
+            ${op==='Sim'?'✓ Sim':op==='Não'?'✗ Não':'— Não sei informar'}
+          </button>`).join('')}
+      </div>`;
+  } else {
+    body.innerHTML = `
+      <div style="text-align:center;margin-bottom:36px">
+        <div style="font-size:12px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">${q.dim}</div>
+        <div style="font-size:20px;font-weight:600;color:var(--text);line-height:1.4">${q.text}</div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">
+        ${[1,2,3,4,5,6,7,8,9,10].map(v=>{
+          const sel = curVal===v;
+          const clr = v<=3?'var(--green)':v<=5?'var(--accent)':v<=7?'var(--amber)':'var(--red)';
+          const bg  = v<=3?'var(--green-bg)':v<=5?'var(--accent-glow)':v<=7?'var(--amber-bg)':'var(--red-bg)';
+          return `<button onclick="wizSelectScale('${q.id}',${v},this)"
+            style="width:52px;height:52px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;border:2px solid;transition:all .15s;
+            background:${sel?bg:'var(--bg3)'};border-color:${sel?clr:'var(--border)'};color:${sel?clr:'var(--text2)'}">${v}</button>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3);padding:0 4px">
+        <span>Nunca / Discordo totalmente</span><span>Sempre / Concordo totalmente</span>
+      </div>`;
+  }
+
+  requestAnimationFrame(()=>{
+    body.style.transition = 'opacity .25s ease, transform .25s ease';
+    body.style.opacity = '1';
+    body.style.transform = 'translateY(0)';
+  });
+}
+
+function wizSelectBool(qid, val, btn) {
+  wizAnswers[qid] = val;
+  // Atualiza visual dos botões
+  btn.closest('[style*="flex-direction:column"]').querySelectorAll('button').forEach(b=>{
+    b.style.background='var(--bg3)'; b.style.borderColor='var(--border)'; b.style.color='var(--text)';
+  });
+  btn.style.background='var(--accent-glow)'; btn.style.borderColor='var(--accent)'; btn.style.color='var(--accent)';
+  document.getElementById('wiz-answered-count').textContent = Object.keys(wizAnswers).length + ' respondidas';
+  // Avança automaticamente após 300ms
+  setTimeout(wizNext, 340);
+}
+
+function wizSelectScale(qid, val, btn) {
+  wizAnswers[qid] = val;
+  const v = val;
+  const clr = v<=3?'var(--green)':v<=5?'var(--accent)':v<=7?'var(--amber)':'var(--red)';
+  const bg  = v<=3?'var(--green-bg)':v<=5?'var(--accent-glow)':v<=7?'var(--amber-bg)':'var(--red-bg)';
+  btn.closest('[style*="justify-content:center"]').querySelectorAll('button').forEach(b=>{
+    b.style.background='var(--bg3)'; b.style.borderColor='var(--border)'; b.style.color='var(--text2)';
+  });
+  btn.style.background=bg; btn.style.borderColor=clr; btn.style.color=clr;
+  document.getElementById('wiz-answered-count').textContent = Object.keys(wizAnswers).length + ' respondidas';
+  // Avança automaticamente após 400ms
+  setTimeout(wizNext, 440);
+}
+
+function wizNext() {
+  const q = NR1_QUESTIONS[wizCurrentIdx];
+  if(!wizAnswers[q.id]) { showToast('Selecione uma opção para continuar','error'); return; }
+  if(wizCurrentIdx < NR1_QUESTIONS.length - 1) {
+    wizCurrentIdx++;
+    wizRenderQuestion();
+  } else {
+    wizFinalizar();
+  }
+}
+
+function wizPrev() {
+  if(wizCurrentIdx > 0) { wizCurrentIdx--; wizRenderQuestion(); }
+}
+
+async function wizFinalizar() {
+  // Mostra loading
+  wizShowStep('loading');
+  const msgs = ['Calculando scores por dimensão...','Identificando pontos de atenção...','Elaborando parecer técnico...','Salvando no Firebase...'];
+  let mi = 0;
+  const loadEl = document.getElementById('wiz-loading-msg');
+  const barEl  = document.getElementById('wiz-loading-bar');
+  const loadInterval = setInterval(()=>{
+    loadEl.textContent = msgs[mi % msgs.length];
+    barEl.style.width = Math.min(90, (mi+1)*24) + '%';
+    mi++;
+  }, 900);
+
+  // Calcula
+  const score = calcQuestScore(wizAnswers);
+  const dimScores = calcDimScores(wizAnswers);
+
+  // Gera análise com Groq
+  let analise = '';
+  const dimResumo = Object.entries(dimScores).map(([d,s])=>`${d}: ${s.toFixed(1)}/10 (${s>=8?'Baixo':s>=6?'Moderado':s>=4?'Alto':'Crítico'})`).join('; ');
+  const prompt = `Você é um psicólogo especialista em saúde ocupacional e riscos psicossociais (NR-01/2025). Elabore um PARECER TÉCNICO em português brasileiro, formal e profissional, para uma avaliação psicossocial com os seguintes dados:
+
+Empresa: ${wizContext.empresaNome}
+Setor: ${wizContext.setor || 'Geral'}
+Colaborador: ${wizContext.colabNome}
+Data: ${wizContext.data}
+Score geral: ${score.toFixed(2)}/10
+Nível de risco: ${score>=8?'Baixo':score>=6?'Moderado':score>=4?'Alto':'Crítico'}
+
+Resultados por dimensão: ${dimResumo}
+
+Escreva o parecer em 4 partes bem distintas:
+1. CONCLUSÃO DIAGNÓSTICA — análise objetiva do cenário identificado
+2. DIMENSÕES CRÍTICAS — quais dimensões precisam de atenção prioritária e por quê
+3. RECOMENDAÇÕES TÉCNICAS — ações concretas baseadas nos resultados (mínimo 4 recomendações numeradas)
+4. CONSIDERAÇÕES FINAIS — perspectiva geral e orientações para acompanhamento
+
+Use linguagem técnica profissional. Não mencione nenhuma ferramenta ou sistema de geração. Assine como o profissional responsável. Máximo 600 palavras.`;
+
+  analise = await chamarGroq(prompt);
+
+  if(!analise) {
+    // Fallback: texto genérico profissional
+    const nv = score>=8?'Baixo':score>=6?'Moderado':score>=4?'Alto':'Crítico';
+    const pior = Object.entries(dimScores).sort((a,b)=>a[1]-b[1])[0];
+    analise = `PARECER TÉCNICO — AVALIAÇÃO PSICOSSOCIAL NR-01/2025\n\n1. CONCLUSÃO DIAGNÓSTICA\nA avaliação psicossocial realizada junto a ${wizContext.empresaNome} — Setor ${wizContext.setor||'Geral'} — resultou em score geral de ${score.toFixed(2)}/10, classificando o ambiente de trabalho no nível de risco ${nv.toUpperCase()}.\n\n2. DIMENSÕES CRÍTICAS\nA dimensão "${pior[0]}" apresentou o menor índice (${pior[1].toFixed(1)}/10), requerendo intervenção prioritária. Fatores relacionados a essa dimensão comprometem diretamente o bem-estar ocupacional e a conformidade com a NR-01/2025.\n\n3. RECOMENDAÇÕES TÉCNICAS\n1. Implementar programa de escuta ativa e comunicação organizacional estruturada.\n2. Realizar reuniões periódicas de alinhamento entre equipes e gestores.\n3. Desenvolver ações de reconhecimento e valorização profissional.\n4. Estabelecer canais formais de denúncia e acolhimento psicológico.\n5. Revisar processos de trabalho para redução de sobrecarga e pressão.\n\n4. CONSIDERAÇÕES FINAIS\nRecomenda-se reavaliação em 90 dias para mensuração dos resultados das intervenções. A empresa deve documentar todas as ações no Programa de Gerenciamento de Riscos (PGR), conforme exigência da NR-01/2025.`;
+  }
+
+  clearInterval(loadInterval);
+  barEl.style.width = '100%';
+
+  // Salva no banco
+  const quest = {
+    id: uid(),
+    ...wizContext,
+    score: parseFloat(score.toFixed(2)),
+    dimScores,
+    answers: {...wizAnswers},
+    analise,
+    questionsCount: NR1_QUESTIONS.length,
+    answeredCount: Object.keys(wizAnswers).length,
+    createdAt: nowISO(),
+    createdBy: currentUser?.email||'demo'
+  };
+  const quests = getQuestionarios();
+  quests.push(quest);
+  saveQuestionariosDB(quests);
+  addActivity(`Avaliação realizada: ${wizContext.empresaNome}`, `Score: ${score.toFixed(1)} · ${wizContext.setor||'Geral'}`);
+  refreshDashboard();
+
+  // Mostra resultado
+  setTimeout(() => {
+    wizShowResultado(quest);
+  }, 400);
+}
+
+function wizShowResultado(quest) {
+  const s = quest.score;
+  const nv = s>=8?'Baixo':s>=6?'Moderado':s>=4?'Alto':'Crítico';
+  const nvBadge = s>=8?'badge-green':s>=6?'badge-amber':s>=4?'badge-red':'badge-purple';
+  const nvColor = s>=8?'var(--green)':s>=6?'var(--amber)':s>=4?'var(--red)':'var(--purple)';
+
+  const analiseHTML = (quest.analise||'').split('\n').map(l=>{
+    if(!l.trim()) return '';
+    if(/^\d+\.\s[A-ZÁÉÍÓÚÃÕ]/.test(l)||/^[A-ZÁÉÍÓÚÃÕ\s]{5,}$/.test(l.trim())) {
+      return `<div style="font-size:13px;font-weight:700;color:var(--accent);margin-top:16px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">${l}</div>`;
+    }
+    if(/^\d+\.\s/.test(l)) return `<div style="font-size:13.5px;color:var(--text);padding:4px 0 4px 12px;border-left:2px solid var(--accent)">${l}</div>`;
+    return `<div style="font-size:13.5px;color:var(--text2);line-height:1.65;padding:2px 0">${l}</div>`;
+  }).join('');
+
+  document.getElementById('wiz-result-content').innerHTML = `
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:40px;margin-bottom:8px">${s>=8?'✅':s>=6?'⚠️':s>=4?'🔴':'🚨'}</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:4px">Avaliação Concluída</div>
+      <div style="font-size:14px;color:var(--text2)">${quest.empresaNome} · ${quest.setor||'Geral'} · ${fmtDate(quest.data)}</div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Score Geral</span><div class="stat-icon" style="background:${nvColor}22;color:${nvColor}">📊</div></div>
+        <div class="stat-value" style="color:${nvColor};font-family:'DM Mono'">${s.toFixed(1)}</div>
+        <div class="stat-change"><span class="badge ${nvBadge}">${nv}</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Respostas</span><div class="stat-icon blue">✓</div></div>
+        <div class="stat-value">${quest.answeredCount}</div>
+        <div class="stat-change neutral">de ${quest.questionsCount} questões</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header"><span class="stat-label">Dimensões</span><div class="stat-icon purple">🔬</div></div>
+        <div class="stat-value">${Object.keys(quest.dimScores).length}</div>
+        <div class="stat-change neutral">avaliadas</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><span class="card-title">Resultados por Dimensão</span></div>
+      <div class="card-body">
+        ${Object.entries(quest.dimScores).sort((a,b)=>a[1]-b[1]).map(([dim,sc])=>{
+          const lv=sc>=8?'badge-green':sc>=6?'badge-amber':sc>=4?'badge-red':'badge-purple';
+          const pc=sc>=8?'green':sc>=6?'amber':sc>=4?'red':'red';
+          const nl=sc>=8?'Baixo':sc>=6?'Moderado':sc>=4?'Alto':'Crítico';
+          return `<div class="dimension-row">
+            <div class="dimension-label"><b>${dim}</b></div>
+            <div class="dimension-bar"><div class="progress-bar"><div class="progress-fill ${pc}" style="width:${sc*10}%"></div></div></div>
+            <div class="dimension-score">${sc.toFixed(1)}</div>
+            <div class="dimension-risk"><span class="badge ${lv}">${nl}</span></div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <div class="card" id="analise-print-area">
+      <div class="card-header">
+        <span class="card-title">Parecer Técnico</span>
+        <button class="btn btn-sm btn-secondary" onclick="imprimirAnalise()">🖨 Imprimir</button>
+      </div>
+      <div class="card-body" style="white-space:pre-wrap;line-height:1.7">
+        ${analiseHTML || '<span style="color:var(--text3)">Análise não disponível.</span>'}
+      </div>
+    </div>`;
+
+  wizShowStep('result');
+  renderQuestHist();
+}
+
+function imprimirAnalise() {
+  const quest = getQuestionarios().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))[0];
+  if(!quest) { showToast('Nenhuma avaliação encontrada','error'); return; }
+  gerarPDFAnalise(quest);
+}
+
+function gerarPDFAnalise(quest) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const config = DB.getObj('rel_config');
+  const consultorNome = config.nome || 'NR1 Psicossocial — Assessoria em Riscos Psicossociais';
+
+  // Header
+  let y = pdfHeader(doc, 'Parecer Técnico Psicossocial', `${quest.empresaNome} · ${quest.setor||'Geral'} · ${fmtDate(quest.data)}`);
+
+  const s = quest.score;
+  const nv = s>=8?'Baixo':s>=6?'Moderado':s>=4?'Alto':'Crítico';
+
+  // Bloco resumo
+  doc.setFillColor(245, 248, 255);
+  doc.roundedRect(12, y, 186, 28, 3, 3, 'F');
+  doc.setFillColor(79, 124, 255);
+  doc.roundedRect(12, y, 3, 28, 1.5, 1.5, 'F');
+  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(26, 42, 94);
+  doc.text('DADOS DA AVALIAÇÃO', 20, y+7);
+  doc.setFont('helvetica', 'normal'); doc.setTextColor(40, 50, 70); doc.setFontSize(8);
+  doc.text(`Empresa: ${quest.empresaNome}   |   Setor: ${quest.setor||'Geral'}   |   Colaborador: ${quest.colabNome||'Geral'}`, 20, y+13);
+  doc.text(`Data: ${fmtDate(quest.data)}   |   Score Geral: ${s.toFixed(2)}/10   |   Nível de Risco: ${nv}`, 20, y+19);
+  doc.text(`Questões respondidas: ${quest.answeredCount} de ${quest.questionsCount}`, 20, y+25);
+  y += 34;
+
+  // Dimensões
+  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(26, 42, 94);
+  doc.text('DIAGNÓSTICO POR DIMENSÃO', 14, y); y += 5;
+  doc.setDrawColor(79, 124, 255); doc.setLineWidth(0.5); doc.line(14, y, 196, y); y += 5;
+
+  Object.entries(quest.dimScores||{}).sort((a,b)=>a[1]-b[1]).forEach(([dim, sc]) => {
+    if(y > 270) { doc.addPage(); y = pdfHeader(doc, 'Parecer Técnico (cont.)') + 5; }
+    const nl = sc>=8?'Baixo':sc>=6?'Moderado':sc>=4?'Alto':'Crítico';
+    const fc = sc>=8?[34,208,122]:sc>=6?[79,124,255]:sc>=4?[245,165,36]:[255,85,85];
+    doc.setFont('helvetica','bold'); doc.setTextColor(30,30,30); doc.setFontSize(8.5);
+    doc.text(dim, 14, y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(80,90,110);
+    doc.text(`${sc.toFixed(1)}/10`, 115, y);
+    doc.text(nl, 140, y);
+    // mini barra
+    doc.setFillColor(220,225,235); doc.rect(14, y+2, 90, 2.5, 'F');
+    doc.setFillColor(...fc); doc.rect(14, y+2, sc*9, 2.5, 'F');
+    y += 9;
+  });
+  y += 6;
+
+  // Parecer técnico
+  if(quest.analise) {
+    if(y > 240) { doc.addPage(); y = pdfHeader(doc, 'Parecer Técnico (cont.)') + 5; }
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(26,42,94);
+    doc.text('PARECER TÉCNICO', 14, y); y += 5;
+    doc.setDrawColor(79,124,255); doc.setLineWidth(0.5); doc.line(14,y,196,y); y += 6;
+
+    doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(35,35,45);
+    const linhas = doc.splitTextToSize(quest.analise, 178);
+    linhas.forEach(linha => {
+      if(y > 272) { doc.addPage(); y = pdfHeader(doc, 'Parecer Técnico (cont.)') + 5; }
+      const isTitulo = /^\d+\.\s[A-ZÁÉÍÓÚÃÕ]/.test(linha) || /^[A-ZÁÉÍÓÚÃÕ\s]{5,}$/.test(linha.trim());
+      if(isTitulo) {
+        y += 3;
+        doc.setFont('helvetica','bold'); doc.setTextColor(26,42,94);
+        doc.text(linha, 14, y);
+        doc.setFont('helvetica','normal'); doc.setTextColor(35,35,45);
+        y += 6;
+      } else {
+        doc.text(linha, 14, y); y += 5;
+      }
+    });
+  }
+
+  pdfFooter(doc);
+  const nomeArq = `parecer_tecnico_${quest.empresaNome.replace(/\s+/g,'_').slice(0,20)}_${quest.data}.pdf`;
+  doc.save(nomeArq);
+  logRelatorio('Parecer Técnico Psicossocial', 'PDF', '🔬');
+  showToast('Parecer técnico gerado!', 'success');
 }
 
 function calcQuestScore(answers) {
   const scaleAnswers = NR1_QUESTIONS.filter(q=>q.type==='scale').map(q=>answers[q.id]||5);
   const boolAnswers = NR1_QUESTIONS.filter(q=>q.type==='bool').map(q=>answers[q.id]);
   const avg = scaleAnswers.length ? scaleAnswers.reduce((a,b)=>a+b,0)/scaleAnswers.length : 5;
-  // Bool "Sim" responses to negative questions reduce score
   const negBools = boolAnswers.filter(a=>a==='Sim').length;
   return Math.max(1, Math.min(10, avg - negBools*0.5));
 }
@@ -3432,44 +4522,6 @@ function calcDimScores(answers) {
   return result;
 }
 
-function saveQuestionario() {
-  const empresaId = document.getElementById('quest-empresa-select').value;
-  if(!empresaId) { showToast('Selecione a empresa','error'); return; }
-  const answered = Object.keys(questAnswers).length;
-  if(answered < 5) { showToast('Responda pelo menos 5 questões antes de salvar','error'); return; }
-  
-  const empresas = getEmpresas();
-  const empresa = empresas.find(e=>e.id===empresaId);
-  const colabId = document.getElementById('quest-colab-select').value;
-  const colabs = getColabs();
-  const colab = colabs.find(c=>c.id===colabId);
-  const score = calcQuestScore(questAnswers);
-  const dimScores = calcDimScores(questAnswers);
-  const data = document.getElementById('quest-data').value || new Date().toISOString().split('T')[0];
-  
-  const quest = {
-    id: uid(),
-    empresaId, empresaNome: empresa?.razao||'',
-    colabId: colabId||null, colabNome: colab?.nome||'Geral',
-    setor: document.getElementById('quest-setor').value.trim(),
-    data, score: parseFloat(score.toFixed(2)),
-    dimScores, answers: {...questAnswers},
-    questionsCount: NR1_QUESTIONS.length,
-    answeredCount: answered,
-    createdAt: nowISO(), createdBy: currentUser?.email||'demo'
-  };
-  
-  const quests = getQuestionarios();
-  quests.push(quest);
-  saveQuestionariosDB(quests);
-  addActivity(`Avaliação realizada: ${empresa?.razao||''}`, `Score: ${score.toFixed(1)} · ${quest.setor||'Geral'}`);
-  showToast('Avaliação salva com sucesso!','success');
-  clearQuest();
-  renderQuestHist();
-  refreshDashboard();
-  switchQTab(document.querySelector('.tab'), 'q-tab-hist');
-}
-
 function deleteQuest(id) {
   showConfirm('Excluir avaliação?','Esta avaliação será removida permanentemente.','🗑',()=>{
     saveQuestionariosDB(getQuestionarios().filter(q=>q.id!==id));
@@ -3478,13 +4530,20 @@ function deleteQuest(id) {
   });
 }
 
+function verAnalise(id) {
+  const quest = getQuestionarios().find(q=>q.id===id);
+  if(!quest) return;
+  wizShowResultado(quest);
+  document.getElementById('wizard-overlay').style.display = 'block';
+}
+
 function renderQuestHist() {
   const quests = getQuestionarios().sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
   const tbody = document.getElementById('quest-hist-tbody');
-  if(!quests.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Nenhuma avaliação registrada</td></tr>'; return; }
+  if(!quests.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhuma avaliação registrada</td></tr>'; return; }
   tbody.innerHTML = quests.map(q=>{
     const s = q.score;
-    const nivel = s>=8?['badge-green','Baixo']:s>=6?['badge-amber','Médio']:s>=4?['badge-red','Alto']:['badge-purple','Crítico'];
+    const nivel = s>=8?['badge-green','Baixo']:s>=6?['badge-amber','Moderado']:s>=4?['badge-red','Alto']:['badge-purple','Crítico'];
     return `<tr>
       <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtDate(q.data)}</td>
       <td>${q.empresaNome}</td>
@@ -3492,20 +4551,16 @@ function renderQuestHist() {
       <td>${q.colabNome||'Geral'}</td>
       <td style="font-family:'DM Mono',monospace;font-weight:600">${s.toFixed(1)}</td>
       <td><span class="badge ${nivel[0]}">${nivel[1]}</span></td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteQuest('${q.id}')">🗑</button></td>
+      <td>${q.analise?`<button class="btn btn-sm btn-accent" onclick="verAnalise('${q.id}')">📄 Ver</button>`:'<span style="color:var(--text3);font-size:12px">—</span>'}</td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-sm btn-secondary" onclick="gerarPDFAnalise(getQuestionarios().find(x=>x.id==='${q.id}'))" title="Imprimir parecer">🖨</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteQuest('${q.id}')">🗑</button>
+      </div></td>
     </tr>`;
   }).join('');
 }
 
 function populateQuestSelects() {
-  // Select da página de questionários NR1
-  const sel = document.getElementById('quest-empresa-select');
-  if (sel) {
-    const prev = sel.value;
-    sel.innerHTML = '<option value="">Selecione a empresa</option>' + getEmpresas().map(e=>`<option value="${e.id}">${e.razao}</option>`).join('');
-    sel.value = prev;
-  }
-  // Select do questionário organizacional (gestores)
   const selOrg = document.getElementById('qorg-empresa');
   if (selOrg) {
     const prev2 = selOrg.value;
@@ -3514,33 +4569,16 @@ function populateQuestSelects() {
   }
 }
 
-function openQuestForm() {
-  // Navega para a página de questionários e garante que o formulário esteja visível
-  showPage('questionarios');
-  // Atualiza o select de empresas com dados atuais
-  populateQuestSelects();
-  // Garante que a aba "Nova Avaliação" esteja ativa
-  const tabNew = document.querySelector('#page-questionarios .tab');
-  if (tabNew) switchQTab(tabNew, 'q-tab-new');
-  // Scroll suave até o formulário
-  setTimeout(() => {
-    const container = document.getElementById('questions-container');
-    if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 100);
-}
-
-function updateQuestColabs() {
-  const empId = document.getElementById('quest-empresa-select').value;
-  const sel = document.getElementById('quest-colab-select');
-  const colabs = getColabs().filter(c=>c.empresaId===empId);
-  sel.innerHTML = '<option value="">Todos do setor/empresa</option>' + colabs.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
-}
+function openQuestForm() { iniciarAvaliacaoWizard(); }
+function updateQuestColabs() {}
+function clearQuest() {}
+function saveQuestionario() {}
 
 function switchQTab(el, tabId) {
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('q-tab-new').style.display = tabId==='q-tab-new'?'block':'none';
-  document.getElementById('q-tab-hist').style.display = tabId==='q-tab-hist'?'block':'none';
+  document.querySelectorAll('#page-questionarios .tab').forEach(t=>t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const hist = document.getElementById('q-tab-hist');
+  if(hist) hist.style.display = 'block';
 }
 
 // === DIAGNÓSTICO ===
@@ -4472,6 +5510,33 @@ function generateFullPDF(){
     });
   }
   
+  // === PARECERES TÉCNICOS ===
+  const questsComAnalise = quests.filter(q=>q.analise);
+  if(questsComAnalise.length){
+    doc.addPage();y=pdfHeader(doc,'4. Pareceres Técnicos',`${questsComAnalise.length} parecer(es) registrado(s)`);
+    questsComAnalise.forEach((q,qi)=>{
+      if(y>250){doc.addPage();y=pdfHeader(doc,'4. Pareceres Técnicos (cont.)')+5;}
+      const sQ=q.score; const nvQ=sQ>=8?'Baixo':sQ>=6?'Moderado':sQ>=4?'Alto':'Crítico';
+      doc.setFillColor(245,248,255);doc.roundedRect(12,y,186,16,2,2,'F');
+      doc.setFillColor(79,124,255);doc.roundedRect(12,y,3,16,1.5,1.5,'F');
+      doc.setFontSize(8.5);doc.setFont('helvetica','bold');doc.setTextColor(20,30,50);
+      doc.text(`${qi+1}. ${q.empresaNome} — ${q.setor||'Geral'} — ${fmtDate(q.data)}`,18,y+6);
+      doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(80,90,110);
+      doc.text(`Score: ${sQ.toFixed(2)}/10  |  Nível: ${nvQ}  |  Colaborador: ${q.colabNome||'Geral'}`,18,y+12);
+      y+=20;
+      // Texto do parecer
+      const linhas=doc.splitTextToSize(q.analise,178);
+      doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(35,35,45);
+      linhas.forEach(linha=>{
+        if(y>272){doc.addPage();y=pdfHeader(doc,'4. Pareceres (cont.)')+5;}
+        const isTit=/^\d+\.\s[A-ZÁÉÍÓÚÃÕ]/.test(linha)||/^[A-ZÁÉÍÓÚÃÕ\s]{5,}$/.test(linha.trim());
+        if(isTit){y+=2;doc.setFont('helvetica','bold');doc.setTextColor(26,42,94);doc.text(linha,14,y);doc.setFont('helvetica','normal');doc.setTextColor(35,35,45);y+=6;}
+        else{doc.text(linha,14,y);y+=5;}
+      });
+      y+=8;
+    });
+  }
+
   pdfFooter(doc);
   doc.save('relatorio_completo_nr1.pdf');
   logRelatorio('Relatório Completo NR1','PDF','📊');
@@ -4572,6 +5637,7 @@ function loadPerfil(){
     document.getElementById('config-nome').value=currentUser.name||'';
     document.getElementById('config-email').value=currentUser.email||'';
   }
+  loadGroqKeyField();
   updateCabecalhoPreview();
 }
 
@@ -4699,9 +5765,7 @@ function initApp(){
   loadPerfil();
   // Populate quest selects
   populateQuestSelects();
-  renderQuestComp();
   // Init date field
-  document.getElementById('quest-data').value=new Date().toISOString().split('T')[0];
   document.getElementById('acomp-data').value=new Date().toISOString().split('T')[0];
 
   // === Firebase init (credenciais fixas no código) ===
@@ -4717,6 +5781,8 @@ function initApp(){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+    const wiz = document.getElementById('wizard-overlay');
+    if(wiz && wiz.style.display==='block') fecharWizard();
     document.getElementById('confirm-overlay').classList.remove('open');
     if(window.innerWidth<=768)document.getElementById('sidebar').classList.remove('open');
   }
@@ -5861,6 +6927,889 @@ function loadGroqConfig() {
   const st = document.getElementById('groq-status');
   if (st && key) st.innerHTML = '<span style="color:var(--green)">✅ API Key configurada.</span>';
 }
+
+// ===========================
+// KICK OFF
+// ===========================
+function getKickoffs() { return DB.get('kickoffs'); }
+function saveKickoffsDB(arr) { DB.set('kickoffs', arr); }
+
+let kickoffEditId = null;
+
+function openKickoffForm(id) {
+  kickoffEditId = id || null;
+  document.getElementById('kickoff-lista-container').style.display = 'none';
+  document.getElementById('kickoff-form-container').style.display = 'block';
+  // populate empresa select
+  const sel = document.getElementById('ko-empresa');
+  sel.innerHTML = '<option value="">Selecione a empresa</option>' +
+    getEmpresas().map(e => `<option value="${e.id}">${e.razao}</option>`).join('');
+  // set defaults
+  document.getElementById('ko-data').value = new Date().toISOString().split('T')[0];
+  if (id) {
+    const ko = getKickoffs().find(k => k.id === id);
+    if (ko) {
+      sel.value = ko.empresaId || '';
+      document.getElementById('ko-data').value = ko.data || '';
+      document.getElementById('ko-responsavel').value = ko.responsavel || '';
+      document.getElementById('ko-cargo').value = ko.cargo || '';
+      document.getElementById('ko-email').value = ko.email || '';
+      document.getElementById('ko-telefone').value = ko.telefone || '';
+      document.getElementById('ko-qtd-colab').value = ko.qtdColab || '';
+      document.getElementById('ko-segmento').value = ko.segmento || '';
+      document.getElementById('ko-obs').value = ko.obs || '';
+      document.getElementById('ko-tem-rh').value = ko.temRH || '';
+      document.getElementById('ko-turnos').value = ko.turnos || '';
+      document.getElementById('ko-regime').value = ko.regime || '';
+      document.getElementById('ko-rotatividade').value = ko.rotatividade || '';
+      document.getElementById('ko-afastamentos').value = ko.afastamentos || '';
+      document.getElementById('ko-reclamacoes').value = ko.reclamacoes || '';
+      document.getElementById('ko-fatores-psico').value = ko.fatoresPsico || '';
+      document.getElementById('ko-programas-saude').value = ko.programasSaude || '';
+      document.getElementById('ko-obs-rh').value = ko.obsRH || '';
+    }
+  } else {
+    ['ko-responsavel','ko-cargo','ko-email','ko-telefone','ko-qtd-colab','ko-segmento','ko-obs',
+     'ko-afastamentos','ko-reclamacoes','ko-fatores-psico','ko-programas-saude','ko-obs-rh'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('ko-tem-rh').value = '';
+    document.getElementById('ko-turnos').value = '';
+    document.getElementById('ko-regime').value = '';
+    document.getElementById('ko-rotatividade').value = '';
+  }
+  switchKickoffStep(1);
+}
+
+function cancelarKickoff() {
+  document.getElementById('kickoff-lista-container').style.display = 'block';
+  document.getElementById('kickoff-form-container').style.display = 'none';
+}
+
+function switchKickoffStep(n) {
+  document.getElementById('kickoff-step1').style.display = n === 1 ? 'block' : 'none';
+  document.getElementById('kickoff-step2').style.display = n === 2 ? 'block' : 'none';
+  document.getElementById('kickoff-step1-tab').style.background = n === 1 ? 'var(--accent)' : 'var(--surface2)';
+  document.getElementById('kickoff-step1-tab').style.color = n === 1 ? '#fff' : 'var(--text2)';
+  document.getElementById('kickoff-step2-tab').style.background = n === 2 ? 'var(--accent)' : 'var(--surface2)';
+  document.getElementById('kickoff-step2-tab').style.color = n === 2 ? '#fff' : 'var(--text2)';
+}
+
+function saveKickoff() {
+  const empresaId = document.getElementById('ko-empresa').value;
+  if (!empresaId) { showToast('Selecione a empresa', 'error'); switchKickoffStep(1); return; }
+  const empresa = getEmpresas().find(e => e.id === empresaId);
+
+  const ko = {
+    id: kickoffEditId || uid(),
+    empresaId, empresaNome: empresa?.razao || '',
+    data: document.getElementById('ko-data').value,
+    responsavel: document.getElementById('ko-responsavel').value.trim(),
+    cargo: document.getElementById('ko-cargo').value.trim(),
+    email: document.getElementById('ko-email').value.trim(),
+    telefone: document.getElementById('ko-telefone').value.trim(),
+    qtdColab: document.getElementById('ko-qtd-colab').value,
+    segmento: document.getElementById('ko-segmento').value.trim(),
+    obs: document.getElementById('ko-obs').value.trim(),
+    temRH: document.getElementById('ko-tem-rh').value,
+    turnos: document.getElementById('ko-turnos').value,
+    regime: document.getElementById('ko-regime').value,
+    rotatividade: document.getElementById('ko-rotatividade').value,
+    afastamentos: document.getElementById('ko-afastamentos').value.trim(),
+    reclamacoes: document.getElementById('ko-reclamacoes').value.trim(),
+    fatoresPsico: document.getElementById('ko-fatores-psico').value.trim(),
+    programasSaude: document.getElementById('ko-programas-saude').value.trim(),
+    obsRH: document.getElementById('ko-obs-rh').value.trim(),
+    createdAt: kickoffEditId ? (getKickoffs().find(k=>k.id===kickoffEditId)||{}).createdAt : nowISO(),
+    updatedAt: nowISO(),
+    createdBy: currentUser?.email || 'demo'
+  };
+
+  const arr = getKickoffs();
+  if (kickoffEditId) { const i = arr.findIndex(k => k.id === kickoffEditId); if (i >= 0) arr[i] = ko; }
+  else arr.push(ko);
+  saveKickoffsDB(arr);
+
+  // Registra no histórico
+  addHistoricoEmpresa(empresaId, empresa?.razao || '', 'Kick Off', `Reunião Kick Off registrada — Resp.: ${ko.responsavel || '—'}`);
+  updateBadge('badge-kickoff', getKickoffs().length, true);
+  cancelarKickoff();
+  renderKickoff();
+  showToast(kickoffEditId ? 'Kick Off atualizado!' : 'Kick Off salvo com sucesso!', 'success');
+  addActivity(`Kick Off: ${empresa?.razao || ''}`, `Data: ${fmtDate(ko.data)}`);
+}
+
+function deleteKickoff(id) {
+  const ko = getKickoffs().find(k => k.id === id);
+  showConfirm('Excluir Kick Off?', `"${ko?.empresaNome || id}" será removido.`, '🗑', () => {
+    saveKickoffsDB(getKickoffs().filter(k => k.id !== id));
+    renderKickoff();
+    updateBadge('badge-kickoff', getKickoffs().length, true);
+    showToast('Kick Off excluído.', 'success');
+  });
+}
+
+function renderKickoff() {
+  // populate empresa filter
+  const ef = document.getElementById('kickoff-empresa-filter');
+  if (ef) {
+    const prev = ef.value;
+    ef.innerHTML = '<option value="">Todas as empresas</option>' + getEmpresas().map(e => `<option value="${e.id}">${e.razao}</option>`).join('');
+    ef.value = prev;
+  }
+  const filter = ef?.value || '';
+  let arr = getKickoffs();
+  if (filter) arr = arr.filter(k => k.empresaId === filter);
+  arr.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+  const tbody = document.getElementById('kickoff-tbody');
+  if (!tbody) return;
+  if (!arr.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:30px">Nenhuma reunião cadastrada</td></tr>';
+    return;
+  }
+  tbody.innerHTML = arr.map(k => `<tr>
+    <td><b>${k.empresaNome || '—'}</b></td>
+    <td>${k.responsavel || '—'}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtDate(k.data)}</td>
+    <td>${k.qtdColab || '—'}</td>
+    <td>${k.temRH ? `<span class="badge badge-green">${k.temRH}</span>` : '<span class="badge badge-gray">Não preenchida</span>'}</td>
+    <td><div style="display:flex;gap:5px">
+      <button class="btn btn-sm btn-secondary" onclick="openKickoffForm('${k.id}')">✏</button>
+      <button class="btn btn-sm btn-accent btn-sm" onclick="verEntrevistaRH('${k.id}')">👁 RH</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteKickoff('${k.id}')">🗑</button>
+    </div></td>
+  </tr>`).join('');
+  updateBadge('badge-kickoff', getKickoffs().length, true);
+}
+
+function verEntrevistaRH(kickoffId) {
+  const ko = getKickoffs().find(k => k.id === kickoffId);
+  if (!ko) return;
+  showToast(`Entrevista RH: ${ko.empresaNome} — RH: ${ko.temRH || 'N/I'} | Turnos: ${ko.turnos || 'N/I'}`, 'info');
+}
+
+// ===========================
+// HISTÓRICO EMPRESA
+// ===========================
+function getHistoricoEmpresa() { return DB.get('historico_empresa'); }
+function saveHistoricoEmpresaDB(arr) { DB.set('historico_empresa', arr); }
+
+function addHistoricoEmpresa(empresaId, empresaNome, tipo, descricao) {
+  const arr = getHistoricoEmpresa();
+  arr.unshift({
+    id: uid(),
+    empresaId, empresaNome,
+    tipo, descricao,
+    usuario: currentUser?.email || 'demo',
+    createdAt: nowISO()
+  });
+  // keep last 500 entries
+  if (arr.length > 500) arr.splice(500);
+  saveHistoricoEmpresaDB(arr);
+}
+
+function renderHistoricoEmpresa() {
+  const ef = document.getElementById('hist-empresa-filter');
+  const tf = document.getElementById('hist-tipo-filter');
+  if (ef) {
+    const prev = ef.value;
+    ef.innerHTML = '<option value="">Todas as empresas</option>' + getEmpresas().map(e => `<option value="${e.id}">${e.razao}</option>`).join('');
+    ef.value = prev;
+  }
+  const empFilter = ef?.value || '';
+  const tipoFilter = tf?.value || '';
+  let arr = getHistoricoEmpresa();
+  if (empFilter) arr = arr.filter(h => h.empresaId === empFilter);
+  if (tipoFilter) arr = arr.filter(h => h.tipo === tipoFilter);
+
+  const tbody = document.getElementById('hist-empresa-tbody');
+  if (!tbody) return;
+  if (!arr.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:30px">Nenhum registro no histórico</td></tr>';
+    return;
+  }
+  const tipoColors = {
+    'Kick Off': 'badge-blue', 'Entrevista NR-01': 'badge-purple', 'Plano de Ação': 'badge-amber',
+    'Relatório': 'badge-green', 'Financeiro': 'badge-cyan', 'Cadastro': 'badge-gray'
+  };
+  tbody.innerHTML = arr.map(h => `<tr>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;white-space:nowrap">${fmtDateTime(h.createdAt)}</td>
+    <td>${h.empresaNome || '—'}</td>
+    <td><span class="badge ${tipoColors[h.tipo] || 'badge-gray'}">${h.tipo}</span></td>
+    <td style="font-size:13px">${h.descricao}</td>
+    <td style="font-size:12px;color:var(--text3)">${h.usuario}</td>
+  </tr>`).join('');
+}
+
+function fmtDateTime(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+  } catch { return iso; }
+}
+
+function exportHistoricoExcel() {
+  const arr = getHistoricoEmpresa();
+  if (!arr.length) { showToast('Nenhum dado para exportar', 'error'); return; }
+  const ws = XLSX.utils.json_to_sheet(arr.map(h => ({
+    'Data/Hora': fmtDateTime(h.createdAt), 'Empresa': h.empresaNome, 'Tipo': h.tipo,
+    'Descrição': h.descricao, 'Usuário': h.usuario
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Histórico');
+  XLSX.writeFile(wb, 'historico.xlsx');
+}
+
+// ===========================
+// FINANCEIRO
+// ===========================
+function getFinanceiro() { return DB.get('financeiro'); }
+function saveFinanceiroDB(arr) { DB.set('financeiro', arr); }
+
+function saveFinanceiro() {
+  const empresaId = document.getElementById('fin-empresa').value;
+  if (!empresaId) { showToast('Selecione a empresa', 'error'); return; }
+  const empresa = getEmpresas().find(e => e.id === empresaId);
+  const valor = parseFloat(document.getElementById('fin-valor').value) || 0;
+  const item = {
+    id: uid(),
+    empresaId, empresaNome: empresa?.razao || '',
+    tipo: document.getElementById('fin-tipo').value,
+    descricao: document.getElementById('fin-desc').value.trim(),
+    valor,
+    vencimento: document.getElementById('fin-vencimento').value,
+    pagamento: document.getElementById('fin-pagamento').value,
+    status: document.getElementById('fin-status').value,
+    obs: document.getElementById('fin-obs').value.trim(),
+    createdAt: nowISO(), createdBy: currentUser?.email || 'demo'
+  };
+  const arr = getFinanceiro();
+  arr.push(item);
+  saveFinanceiroDB(arr);
+  closeModal('modal-financeiro');
+  renderFinanceiro();
+  addHistoricoEmpresa(empresaId, empresa?.razao || '', 'Financeiro', `${item.tipo}: ${item.descricao} — R$ ${valor.toFixed(2)} [${item.status}]`);
+  showToast('Lançamento salvo!', 'success');
+}
+
+function deleteFinanceiro(id) {
+  showConfirm('Excluir lançamento?', 'Este lançamento será removido.', '🗑', () => {
+    saveFinanceiroDB(getFinanceiro().filter(f => f.id !== id));
+    renderFinanceiro();
+    showToast('Lançamento excluído.', 'success');
+  });
+}
+
+function renderFinanceiro() {
+  // populate selects
+  ['fin-empresa-filter', 'fin-empresa'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = (selId === 'fin-empresa-filter' ? '<option value="">Todas as empresas</option>' : '<option value="">Selecione a empresa</option>') +
+      getEmpresas().map(e => `<option value="${e.id}">${e.razao}</option>`).join('');
+    sel.value = prev;
+  });
+
+  const empF = document.getElementById('fin-empresa-filter')?.value || '';
+  const statF = document.getElementById('fin-status-filter')?.value || '';
+  let arr = getFinanceiro();
+  if (empF) arr = arr.filter(f => f.empresaId === empF);
+  if (statF) arr = arr.filter(f => f.status === statF);
+  arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  // stats
+  const all = getFinanceiro();
+  document.getElementById('fin-stat-emdia').textContent = all.filter(f => f.status === 'Em dia').length;
+  document.getElementById('fin-stat-pend').textContent = all.filter(f => f.status === 'Pendente').length;
+  document.getElementById('fin-stat-atr').textContent = all.filter(f => f.status === 'Atrasado').length;
+  const total = all.filter(f => f.status === 'Em dia').reduce((s, f) => s + (f.valor || 0), 0);
+  document.getElementById('fin-stat-total').textContent = 'R$ ' + total.toLocaleString('pt-BR', {minimumFractionDigits:2});
+
+  const tbody = document.getElementById('financeiro-tbody');
+  if (!tbody) return;
+  if (!arr.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhum lançamento cadastrado</td></tr>';
+    return;
+  }
+  const statusColors = {'Em dia':'badge-green','Pendente':'badge-amber','Atrasado':'badge-red','Cancelado':'badge-gray'};
+  tbody.innerHTML = arr.map(f => `<tr>
+    <td><b>${f.empresaNome}</b></td>
+    <td>${f.tipo}</td>
+    <td>${f.descricao || '—'}</td>
+    <td style="font-weight:600;font-family:'DM Mono',monospace">R$ ${(f.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+    <td style="font-size:12px">${fmtDate(f.vencimento)}</td>
+    <td style="font-size:12px">${fmtDate(f.pagamento)}</td>
+    <td><span class="badge ${statusColors[f.status]||'badge-gray'}">${f.status}</span></td>
+    <td><button class="btn btn-sm btn-danger" onclick="deleteFinanceiro('${f.id}')">🗑</button></td>
+  </tr>`).join('');
+}
+
+function exportFinanceiroExcel() {
+  const arr = getFinanceiro();
+  if (!arr.length) { showToast('Nenhum dado para exportar', 'error'); return; }
+  const ws = XLSX.utils.json_to_sheet(arr.map(f => ({
+    'Empresa': f.empresaNome, 'Tipo': f.tipo, 'Descrição': f.descricao,
+    'Valor': f.valor, 'Vencimento': fmtDate(f.vencimento), 'Pagamento': fmtDate(f.pagamento), 'Status': f.status
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Financeiro');
+  XLSX.writeFile(wb, 'financeiro.xlsx');
+}
+
+// ===========================
+// NR-01 ENTREVISTAS
+// ===========================
+function getNR01Entrevistas() { return DB.get('nr01_entrevistas'); }
+function saveNR01EntrevistasDB(arr) { DB.set('nr01_entrevistas', arr); }
+
+const NR01_QUESTIONS_FULL = [
+  {id:'nr1', dim:'Demanda de Trabalho', text:'A quantidade de trabalho exigida é adequada ao tempo disponível?', type:'scale'},
+  {id:'nr2', dim:'Demanda de Trabalho', text:'Você costuma levar trabalho para casa ou trabalhar além do horário?', type:'scale'},
+  {id:'nr3', dim:'Controle e Autonomia', text:'Você tem liberdade para decidir como realizar suas tarefas?', type:'scale'},
+  {id:'nr4', dim:'Controle e Autonomia', text:'Suas habilidades são bem aproveitadas no trabalho?', type:'scale'},
+  {id:'nr5', dim:'Suporte Social', text:'Seus colegas te ajudam quando você precisa?', type:'scale'},
+  {id:'nr6', dim:'Suporte Social', text:'Seu gestor te apoia diante de dificuldades no trabalho?', type:'scale'},
+  {id:'nr7', dim:'Relacionamentos', text:'Existe clima de respeito e cooperação na equipe?', type:'scale'},
+  {id:'nr8', dim:'Relacionamentos', text:'Você já foi alvo de comportamento hostil ou agressivo no trabalho?', type:'bool'},
+  {id:'nr9', dim:'Papel Profissional', text:'As suas responsabilidades são claramente definidas?', type:'scale'},
+  {id:'nr10', dim:'Papel Profissional', text:'Você recebe orientações conflitantes de diferentes superiores?', type:'bool'},
+  {id:'nr11', dim:'Reconhecimento', text:'Seu trabalho é valorizado e reconhecido pela organização?', type:'scale'},
+  {id:'nr12', dim:'Reconhecimento', text:'Há oportunidades reais de crescimento onde você trabalha?', type:'scale'},
+  {id:'nr13', dim:'Saúde e Bem-estar', text:'O trabalho tem afetado sua saúde física ou mental?', type:'scale'},
+  {id:'nr14', dim:'Saúde e Bem-estar', text:'Você consegue se desligar do trabalho nos momentos de descanso?', type:'scale'},
+  {id:'nr15', dim:'Assédio e Violência', text:'Você já sofreu ou presenciou assédio moral no trabalho?', type:'bool'},
+  {id:'nr16', dim:'Assédio e Violência', text:'Você já sofreu ou presenciou assédio sexual no trabalho?', type:'bool'},
+  {id:'nr17', dim:'Carga Cognitiva', text:'Seu trabalho exige concentração intensa e constante?', type:'scale'},
+  {id:'nr18', dim:'Carga Cognitiva', text:'Você sente que a quantidade de informações para processar é excessiva?', type:'scale'},
+];
+
+const nr01Answers = {};
+
+function openNR01Form(id) {
+  document.getElementById('nr01-lista-container').style.display = 'none';
+  document.getElementById('nr01-form-container').style.display = 'block';
+  // populate empresa select
+  const sel = document.getElementById('nr01-empresa');
+  sel.innerHTML = '<option value="">Selecione a empresa</option>' +
+    getEmpresas().map(e => `<option value="${e.id}">${e.razao}</option>`).join('');
+  document.getElementById('nr01-data').value = new Date().toISOString().split('T')[0];
+  // clear answers
+  Object.keys(nr01Answers).forEach(k => delete nr01Answers[k]);
+  renderNR01Questions();
+}
+
+function cancelarNR01() {
+  document.getElementById('nr01-lista-container').style.display = 'block';
+  document.getElementById('nr01-form-container').style.display = 'none';
+}
+
+function renderNR01Questions() {
+  const container = document.getElementById('nr01-questions-container');
+  if (!container) return;
+  container.innerHTML = NR01_QUESTIONS_FULL.map((q, i) => `
+    <div class="question-card">
+      <div class="question-num">Questão ${i+1}/${NR01_QUESTIONS_FULL.length} · ${q.dim}</div>
+      <div class="question-text">${q.text}</div>
+      ${q.type === 'bool' ? `
+        <div class="question-options">
+          <div class="q-opt" onclick="nr01SelectBool('${q.id}','Sim',this)">Sim</div>
+          <div class="q-opt" onclick="nr01SelectBool('${q.id}','Não',this)">Não</div>
+          <div class="q-opt" onclick="nr01SelectBool('${q.id}','Não sei',this)">Não sei</div>
+        </div>` : `
+        <div class="q-scale">
+          ${[1,2,3,4,5,6,7,8,9,10].map(v=>`<div class="q-scale-opt s${v<=3?1:v<=5?2:v<=7?3:4}" onclick="nr01SelectScale('${q.id}',${v},this)">${v}</div>`).join('')}
+        </div>
+        <div class="scale-labels"><span>Nunca / Discordo</span><span>Sempre / Concordo</span></div>`}
+    </div>`).join('');
+}
+
+function nr01SelectBool(qid, val, el) {
+  el.closest('.question-options').querySelectorAll('.q-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  nr01Answers[qid] = val;
+}
+function nr01SelectScale(qid, val, el) {
+  el.closest('.q-scale').querySelectorAll('.q-scale-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  nr01Answers[qid] = val;
+}
+
+function calcNR01Score(answers) {
+  const scales = NR01_QUESTIONS_FULL.filter(q => q.type === 'scale').map(q => answers[q.id] || 5);
+  const bools = NR01_QUESTIONS_FULL.filter(q => q.type === 'bool').map(q => answers[q.id]);
+  const avg = scales.length ? scales.reduce((a, b) => a + b, 0) / scales.length : 5;
+  const negBools = bools.filter(b => b === 'Sim').length;
+  return Math.max(1, Math.min(10, avg - negBools * 0.6));
+}
+
+function calcNR01DimScores(answers) {
+  const dims = {};
+  NR01_QUESTIONS_FULL.forEach(q => {
+    if (!dims[q.dim]) dims[q.dim] = [];
+    const v = answers[q.id];
+    if (v !== undefined) {
+      dims[q.dim].push(q.type === 'scale' ? v : (v === 'Sim' ? 2 : 8));
+    }
+  });
+  const result = {};
+  Object.keys(dims).forEach(d => {
+    const arr = dims[d];
+    result[d] = arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 5;
+  });
+  return result;
+}
+
+function saveNR01Entrevista(status = 'Finalizado') {
+  const empresaId = document.getElementById('nr01-empresa').value;
+  if (!empresaId) { showToast('Selecione a empresa', 'error'); return; }
+  const empresa = getEmpresas().find(e => e.id === empresaId);
+  const score = calcNR01Score(nr01Answers);
+  const dimScores = calcNR01DimScores(nr01Answers);
+
+  const entrevista = {
+    id: uid(),
+    empresaId, empresaNome: empresa?.razao || '',
+    respondente: document.getElementById('nr01-respondente').value.trim(),
+    cargo: document.getElementById('nr01-cargo').value.trim(),
+    setor: document.getElementById('nr01-setor').value.trim(),
+    tipoQuest: document.getElementById('nr01-tipo-quest').value,
+    data: document.getElementById('nr01-data').value,
+    score: parseFloat(score.toFixed(2)),
+    dimScores,
+    answers: {...nr01Answers},
+    status,
+    createdAt: nowISO(), createdBy: currentUser?.email || 'demo'
+  };
+
+  const arr = getNR01Entrevistas();
+  arr.push(entrevista);
+  saveNR01EntrevistasDB(arr);
+
+  addHistoricoEmpresa(empresaId, empresa?.razao || '', 'Entrevista NR-01',
+    `Entrevista ${status}: ${entrevista.respondente || 'N/N'} — Score: ${score.toFixed(1)}`);
+  addActivity(`Entrevista NR-01: ${empresa?.razao || ''}`, `Score: ${score.toFixed(1)} · ${entrevista.setor || 'Geral'}`);
+  cancelarNR01();
+  renderNR01Entrevistas();
+  updateBadge('badge-nr01-entrevistas', getNR01Entrevistas().length, false);
+  showToast(status === 'Finalizado' ? 'Entrevista finalizada!' : 'Rascunho salvo!', 'success');
+}
+
+function saveNR01Rascunho() { saveNR01Entrevista('Em andamento'); }
+
+function deleteNR01Entrevista(id) {
+  showConfirm('Excluir entrevista?', 'Esta entrevista será removida.', '🗑', () => {
+    saveNR01EntrevistasDB(getNR01Entrevistas().filter(e => e.id !== id));
+    renderNR01Entrevistas();
+    updateBadge('badge-nr01-entrevistas', getNR01Entrevistas().length, false);
+    showToast('Entrevista excluída.', 'success');
+  });
+}
+
+function renderNR01Entrevistas() {
+  // populate filters
+  ['nr01-empresa-filter', 'nr01-empresa'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = (selId.endsWith('filter') ? '<option value="">Todas as empresas</option>' : '<option value="">Selecione a empresa</option>') +
+      getEmpresas().map(e => `<option value="${e.id}">${e.razao}</option>`).join('');
+    sel.value = prev;
+  });
+
+  const empF = document.getElementById('nr01-empresa-filter')?.value || '';
+  const statF = document.getElementById('nr01-status-filter')?.value || '';
+  let arr = getNR01Entrevistas();
+  if (empF) arr = arr.filter(e => e.empresaId === empF);
+  if (statF) arr = arr.filter(e => e.status === statF);
+  arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const all = getNR01Entrevistas();
+  document.getElementById('nr01-stat-total').textContent = all.length;
+  document.getElementById('nr01-stat-and').textContent = all.filter(e => e.status === 'Em andamento').length;
+  document.getElementById('nr01-stat-fin').textContent = all.filter(e => e.status === 'Finalizado').length;
+  updateBadge('badge-nr01-entrevistas', all.length, false);
+
+  // Check if kickoff exists
+  const alertEl = document.getElementById('nr01-flow-alert');
+  if (alertEl) alertEl.style.display = getKickoffs().length === 0 ? 'block' : 'none';
+
+  const tbody = document.getElementById('nr01-entrevistas-tbody');
+  if (!tbody) return;
+  if (!arr.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhuma entrevista registrada</td></tr>';
+    return;
+  }
+  const statusColors = {'Não iniciado':'badge-gray','Em andamento':'badge-amber','Finalizado':'badge-green'};
+  tbody.innerHTML = arr.map(e => {
+    const s = e.score;
+    const riscoBadge = s >= 7 ? '<span class="badge badge-green">Baixo</span>' :
+                       s >= 5 ? '<span class="badge badge-amber">Médio</span>' :
+                                '<span class="badge badge-red">Alto</span>';
+    return `<tr>
+      <td><b>${e.empresaNome}</b></td>
+      <td>${e.respondente || '—'}</td>
+      <td>${e.setor || '—'}</td>
+      <td><span class="badge badge-blue">${e.tipoQuest}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtDate(e.data)}</td>
+      <td style="font-weight:600">${s ? s.toFixed(1) : '—'}</td>
+      <td>${riscoBadge}</td>
+      <td><span class="badge ${statusColors[e.status]||'badge-gray'}">${e.status}</span></td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteNR01Entrevista('${e.id}')">🗑</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function exportNR01Excel() {
+  const arr = getNR01Entrevistas();
+  if (!arr.length) { showToast('Nenhum dado para exportar', 'error'); return; }
+  const ws = XLSX.utils.json_to_sheet(arr.map(e => ({
+    'Empresa': e.empresaNome, 'Respondente': e.respondente, 'Setor': e.setor,
+    'Questionário': e.tipoQuest, 'Data': fmtDate(e.data),
+    'Score': e.score, 'Status': e.status
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Entrevistas NR01');
+  XLSX.writeFile(wb, 'entrevistas_nr01.xlsx');
+}
+
+// ===========================
+// NR-01 GERENCIAL
+// ===========================
+let chartNR01Risco = null;
+let chartNR01Radar = null;
+
+function renderNR01Gerencial() {
+  // populate empresa filter
+  const ef = document.getElementById('ger-nr01-empresa-filter');
+  if (ef) {
+    const prev = ef.value;
+    ef.innerHTML = '<option value="">Todas as empresas</option>' + getEmpresas().map(e => `<option value="${e.id}">${e.razao}</option>`).join('');
+    ef.value = prev;
+  }
+  const empFilter = ef?.value || '';
+  let entrevistas = getNR01Entrevistas().filter(e => e.status === 'Finalizado');
+  if (empFilter) entrevistas = entrevistas.filter(e => e.empresaId === empFilter);
+
+  const colabs = empFilter ? getColabs().filter(c => c.empresaId === empFilter) : getColabs();
+  const total = colabs.length || 0;
+  const realizadas = entrevistas.length;
+  const taxa = total > 0 ? Math.round((realizadas / total) * 100) : 0;
+  const setores = [...new Set(entrevistas.map(e => e.setor).filter(Boolean))];
+  const avgScore = realizadas > 0 ? entrevistas.reduce((s, e) => s + e.score, 0) / realizadas : 0;
+  const riscoBadge = avgScore >= 7 ? '🟢 Baixo' : avgScore >= 5 ? '🟡 Médio' : '🔴 Alto';
+
+  document.getElementById('ger-nr01-colab').textContent = total;
+  document.getElementById('ger-nr01-entrev').textContent = realizadas;
+  document.getElementById('ger-nr01-taxa').textContent = taxa + '%';
+  document.getElementById('ger-nr01-risco').textContent = realizadas > 0 ? riscoBadge : '—';
+  document.getElementById('ger-nr01-setores').textContent = setores.length;
+
+  // Risco distribution chart
+  const baixo = entrevistas.filter(e => e.score >= 7).length;
+  const medio = entrevistas.filter(e => e.score >= 5 && e.score < 7).length;
+  const alto = entrevistas.filter(e => e.score < 5).length;
+  const canvasRisco = document.getElementById('chart-nr01-risco');
+  if (canvasRisco) {
+    if (chartNR01Risco) chartNR01Risco.destroy();
+    chartNR01Risco = new Chart(canvasRisco, {
+      type: 'doughnut',
+      data: {
+        labels: ['Baixo Risco', 'Médio Risco', 'Alto Risco'],
+        datasets: [{ data: [baixo, medio, alto], backgroundColor: ['#22d07a','#f5a524','#ff5555'], borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#9aa3be', font: { size: 12 } } } } }
+    });
+  }
+
+  // Radar chart por dimensão
+  const dimTotals = {};
+  const dimCounts = {};
+  entrevistas.forEach(e => {
+    if (e.dimScores) Object.entries(e.dimScores).forEach(([dim, v]) => {
+      dimTotals[dim] = (dimTotals[dim] || 0) + v;
+      dimCounts[dim] = (dimCounts[dim] || 0) + 1;
+    });
+  });
+  const dims = Object.keys(dimTotals);
+  const dimAvgs = dims.map(d => parseFloat((dimTotals[d] / dimCounts[d]).toFixed(1)));
+  const canvasRadar = document.getElementById('chart-nr01-radar');
+  if (canvasRadar && dims.length > 0) {
+    if (chartNR01Radar) chartNR01Radar.destroy();
+    chartNR01Radar = new Chart(canvasRadar, {
+      type: 'radar',
+      data: {
+        labels: dims,
+        datasets: [{ label: 'Score Médio', data: dimAvgs, backgroundColor: 'rgba(79,124,255,0.15)', borderColor: '#4f7cff', borderWidth: 2, pointBackgroundColor: '#4f7cff' }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: { r: { min: 0, max: 10, ticks: { color: '#5a6480', font: {size:9} }, grid: { color: '#2d3650' }, pointLabels: { color: '#9aa3be', font: {size: 10} } } },
+        plugins: { legend: { display: false } }
+      }
+    });
+  }
+
+  // Ranking de fatores psicossociais (dimensões com menor score = maior risco)
+  const rankingEl = document.getElementById('nr01-ranking-fatores');
+  if (rankingEl) {
+    if (!dims.length) {
+      rankingEl.innerHTML = '<div class="empty-state" style="padding:20px"><p>Realize entrevistas para ver o ranking</p></div>';
+    } else {
+      const sorted = dims.map((d, i) => ({dim: d, avg: dimAvgs[i]})).sort((a, b) => a.avg - b.avg);
+      rankingEl.innerHTML = sorted.map((item, i) => {
+        const pct = Math.round((item.avg / 10) * 100);
+        const color = item.avg >= 7 ? 'var(--green)' : item.avg >= 5 ? 'var(--amber)' : 'var(--red)';
+        return `<div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+            <span>${i+1}. ${item.dim}</span>
+            <span style="font-weight:600;color:${color}">${item.avg.toFixed(1)}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${color}"></div></div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Comparativo por setor
+  const setorEl = document.getElementById('nr01-setores-comparativo');
+  if (setorEl) {
+    const setorMap = {};
+    entrevistas.forEach(e => {
+      if (!e.setor) return;
+      if (!setorMap[e.setor]) setorMap[e.setor] = [];
+      setorMap[e.setor].push(e.score);
+    });
+    const setorEntries = Object.entries(setorMap);
+    if (!setorEntries.length) {
+      setorEl.innerHTML = '<div class="empty-state" style="padding:20px"><p>Dados insuficientes</p></div>';
+    } else {
+      setorEl.innerHTML = setorEntries.map(([setor, scores]) => {
+        const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+        const color = avg >= 7 ? 'var(--green)' : avg >= 5 ? 'var(--amber)' : 'var(--red)';
+        return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px;background:var(--bg3);border-radius:var(--r)">
+          <div style="flex:1;font-size:13px">${setor}</div>
+          <div style="font-size:11px;color:var(--text3)">${scores.length} aval.</div>
+          <div style="font-weight:600;color:${color};font-family:'DM Mono',monospace">${avg.toFixed(1)}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+function generateNR01PDF() {
+  showToast('Gerando relatório PDF...', 'info');
+  setTimeout(() => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const entrevistas = getNR01Entrevistas().filter(e => e.status === 'Finalizado');
+    doc.setFontSize(16);
+    doc.text('Relatório Gerencial NR-01', 14, 18);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')} | Total de entrevistas: ${entrevistas.length}`, 14, 26);
+    let y = 36;
+    if (entrevistas.length) {
+      doc.setFontSize(12);
+      doc.text('Entrevistas Realizadas', 14, y); y += 8;
+      doc.setFontSize(9);
+      entrevistas.forEach(e => {
+        if (y > 270) { doc.addPage(); y = 14; }
+        doc.text(`• ${e.empresaNome} | ${e.respondente || 'N/N'} | Setor: ${e.setor || 'N/I'} | Score: ${e.score?.toFixed(1)} | ${e.status}`, 14, y);
+        y += 6;
+      });
+    } else {
+      doc.text('Nenhuma entrevista finalizada.', 14, y);
+    }
+    doc.save('relatorio_nr01_gerencial.pdf');
+    showToast('PDF gerado!', 'success');
+  }, 100);
+}
+
+// ===========================
+// NR-01 MONITORAMENTO
+// ===========================
+function getNR01Acoes() { return DB.get('nr01_monitoramento'); }
+function saveNR01AcoesDB(arr) { DB.set('nr01_monitoramento', arr); }
+
+function saveNR01Acao() {
+  const empresaId = document.getElementById('mon-empresa').value;
+  if (!empresaId) { showToast('Selecione a empresa', 'error'); return; }
+  const acao = document.getElementById('mon-acao').value.trim();
+  if (!acao) { showToast('Descreva a ação', 'error'); return; }
+  const empresa = getEmpresas().find(e => e.id === empresaId);
+  const item = {
+    id: uid(),
+    empresaId, empresaNome: empresa?.razao || '',
+    acao,
+    responsavel: document.getElementById('mon-responsavel').value.trim(),
+    inicio: document.getElementById('mon-inicio').value,
+    prazo: document.getElementById('mon-prazo').value,
+    status: document.getElementById('mon-status').value,
+    evidencias: document.getElementById('mon-evidencias').value.trim(),
+    createdAt: nowISO(), createdBy: currentUser?.email || 'demo'
+  };
+
+  // Auto-detect atrasado
+  if (item.status !== 'Concluído' && item.prazo && new Date(item.prazo) < new Date()) {
+    item.status = 'Atrasado';
+  }
+
+  const arr = getNR01Acoes();
+  arr.push(item);
+  saveNR01AcoesDB(arr);
+  closeModal('modal-nr01-acao');
+  addHistoricoEmpresa(empresaId, empresa?.razao || '', 'Plano de Ação', `Ação NR-01: ${acao.substring(0, 60)}`);
+  renderNR01Monitoramento();
+  updateBadge('badge-nr01-mon', getNR01Acoes().filter(a => ['Pendente','Em andamento','Atrasado'].includes(a.status)).length, false);
+  showToast('Ação salva!', 'success');
+}
+
+function deleteNR01Acao(id) {
+  showConfirm('Excluir ação?', 'Esta ação será removida.', '🗑', () => {
+    saveNR01AcoesDB(getNR01Acoes().filter(a => a.id !== id));
+    renderNR01Monitoramento();
+    updateBadge('badge-nr01-mon', getNR01Acoes().filter(a => ['Pendente','Em andamento','Atrasado'].includes(a.status)).length, false);
+    showToast('Ação excluída.', 'success');
+  });
+}
+
+function updateNR01AcaoStatus(id, newStatus) {
+  const arr = getNR01Acoes();
+  const item = arr.find(a => a.id === id);
+  if (!item) return;
+  item.status = newStatus;
+  item.updatedAt = nowISO();
+  saveNR01AcoesDB(arr);
+  renderNR01Monitoramento();
+  updateBadge('badge-nr01-mon', getNR01Acoes().filter(a => ['Pendente','Em andamento','Atrasado'].includes(a.status)).length, false);
+  showToast('Status atualizado!', 'success');
+}
+
+function renderNR01Monitoramento() {
+  // populate empresa filter and modal select
+  ['mon-empresa-filter', 'mon-empresa'].forEach(selId => {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = (selId.endsWith('filter') ? '<option value="">Todas as empresas</option>' : '<option value="">Selecione a empresa</option>') +
+      getEmpresas().map(e => `<option value="${e.id}">${e.razao}</option>`).join('');
+    sel.value = prev;
+  });
+
+  // Check for overdue
+  const arr = getNR01Acoes();
+  const today = new Date();
+  arr.forEach(a => {
+    if (a.status !== 'Concluído' && a.prazo && new Date(a.prazo) < today) {
+      a.status = 'Atrasado';
+    }
+  });
+  saveNR01AcoesDB(arr);
+
+  const empF = document.getElementById('mon-empresa-filter')?.value || '';
+  const statF = document.getElementById('mon-status-filter')?.value || '';
+  let filtered = arr;
+  if (empF) filtered = filtered.filter(a => a.empresaId === empF);
+  if (statF) filtered = filtered.filter(a => a.status === statF);
+  filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  document.getElementById('mon-stat-pend').textContent = arr.filter(a => a.status === 'Pendente').length;
+  document.getElementById('mon-stat-and').textContent = arr.filter(a => a.status === 'Em andamento').length;
+  document.getElementById('mon-stat-conc').textContent = arr.filter(a => a.status === 'Concluído').length;
+  document.getElementById('mon-stat-atr').textContent = arr.filter(a => a.status === 'Atrasado').length;
+  updateBadge('badge-nr01-mon', arr.filter(a => ['Pendente','Em andamento','Atrasado'].includes(a.status)).length, false);
+
+  const tbody = document.getElementById('mon-nr01-tbody');
+  if (!tbody) return;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Nenhuma ação cadastrada</td></tr>';
+    return;
+  }
+  const statusColors = {'Pendente':'badge-amber','Em andamento':'badge-blue','Concluído':'badge-green','Atrasado':'badge-red'};
+  tbody.innerHTML = filtered.map(a => `<tr>
+    <td><b>${a.empresaNome}</b></td>
+    <td style="max-width:220px;font-size:13px">${a.acao}</td>
+    <td>${a.responsavel || '—'}</td>
+    <td style="font-size:12px">${fmtDate(a.inicio)}</td>
+    <td style="font-size:12px;${a.status==='Atrasado'?'color:var(--red);font-weight:600':''}">${fmtDate(a.prazo)}</td>
+    <td>
+      <select class="field" style="padding:4px 8px;font-size:12px;width:auto" onchange="updateNR01AcaoStatus('${a.id}', this.value)">
+        <option ${a.status==='Pendente'?'selected':''}>Pendente</option>
+        <option ${a.status==='Em andamento'?'selected':''}>Em andamento</option>
+        <option ${a.status==='Concluído'?'selected':''}>Concluído</option>
+        <option ${a.status==='Atrasado'?'selected':''}>Atrasado</option>
+      </select>
+    </td>
+    <td style="font-size:12px;color:var(--text2)">${a.evidencias || '—'}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="deleteNR01Acao('${a.id}')">🗑</button></td>
+  </tr>`).join('');
+}
+
+function exportMonitoramentoExcel() {
+  const arr = getNR01Acoes();
+  if (!arr.length) { showToast('Nenhum dado para exportar', 'error'); return; }
+  const ws = XLSX.utils.json_to_sheet(arr.map(a => ({
+    'Empresa': a.empresaNome, 'Ação': a.acao, 'Responsável': a.responsavel,
+    'Início': fmtDate(a.inicio), 'Prazo': fmtDate(a.prazo), 'Status': a.status, 'Evidências': a.evidencias
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Monitoramento NR01');
+  XLSX.writeFile(wb, 'monitoramento_nr01.xlsx');
+}
+
+// Kick off export
+function exportKickoffExcel() {
+  const arr = getKickoffs();
+  if (!arr.length) { showToast('Nenhum dado para exportar', 'error'); return; }
+  const ws = XLSX.utils.json_to_sheet(arr.map(k => ({
+    'Empresa': k.empresaNome, 'Data': fmtDate(k.data), 'Responsável': k.responsavel,
+    'Cargo': k.cargo, 'E-mail': k.email, 'Telefone': k.telefone,
+    'Colaboradores': k.qtdColab, 'Segmento': k.segmento, 'Tem RH?': k.temRH,
+    'Turnos': k.turnos, 'Regime': k.regime, 'Rotatividade': k.rotatividade
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Kick Off');
+  XLSX.writeFile(wb, 'kickoff.xlsx');
+}
+
+// Initialize new modules on page show
+const _origShowPage = (function() {
+  const fn = showPage;
+  return function(name, el) { fn(name, el); };
+})();
+showPage = function(name, el) {
+  _origShowPage(name, el);
+  if (name === 'kickoff') { renderKickoff(); }
+  else if (name === 'historico-empresa') { renderHistoricoEmpresa(); }
+  else if (name === 'financeiro') { renderFinanceiro(); }
+  else if (name === 'nr01-entrevistas') { renderNR01Entrevistas(); }
+  else if (name === 'nr01-gerencial') { setTimeout(renderNR01Gerencial, 50); }
+  else if (name === 'nr01-monitoramento') { renderNR01Monitoramento(); }
+}
+
+// Init new data stores
+DB.init = DB.init || function() {};
+const _nr01DataKeys = ['kickoffs','historico_empresa','financeiro','nr01_entrevistas','nr01_monitoramento'];
+_nr01DataKeys.forEach(k => { if (!localStorage.getItem('nr1_' + k)) localStorage.setItem('nr1_' + k, JSON.stringify([])); });
+
+// Patch DB.get/set to support new keys
+const _origGet = DB.get.bind(DB);
+const _origSet = DB.set.bind(DB);
+DB.get = function(key) {
+  if (_nr01DataKeys.includes(key)) {
+    try { return JSON.parse(localStorage.getItem('nr1_' + key) || '[]'); } catch { return []; }
+  }
+  return _origGet(key);
+};
+DB.set = function(key, val) {
+  if (_nr01DataKeys.includes(key)) {
+    localStorage.setItem('nr1_' + key, JSON.stringify(val));
+    return;
+  }
+  _origSet(key, val);
+};
 
 </script>
 </body>
